@@ -12,9 +12,9 @@
   :alt: Supported Python versions
   :target: https://pypi.org/project/referencing/
 
-.. |CI| image:: https://github.com/Julian/referencing/workflows/CI/badge.svg
+.. |CI| image:: https://github.com/python-jsonschema/referencing/workflows/CI/badge.svg
   :alt: Build status
-  :target: https://github.com/Julian/referencing/actions?query=workflow%3ACI
+  :target: https://github.com/python-jsonschema/referencing/actions?query=workflow%3ACI
 
 .. image:: https://results.pre-commit.ci/badge/github/python-jsonschema/referencing/main.svg
   :alt: pre-commit.ci status
