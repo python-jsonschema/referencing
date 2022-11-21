@@ -2,7 +2,7 @@
 ``referencing``
 ===============
 
-|PyPI| |Pythons| |CI|
+|PyPI| |Pythons| |CI| |pre-commit|
 
 .. |PyPI| image:: https://img.shields.io/pypi/v/referencing.svg
   :alt: PyPI version
@@ -16,7 +16,7 @@
   :alt: Build status
   :target: https://github.com/python-jsonschema/referencing/actions?query=workflow%3ACI
 
-.. image:: https://results.pre-commit.ci/badge/github/python-jsonschema/referencing/main.svg
+.. |pre-commit| image:: https://results.pre-commit.ci/badge/github/python-jsonschema/referencing/main.svg
   :alt: pre-commit.ci status
   :target: https://results.pre-commit.ci/latest/github/python-jsonschema/referencing/main
 
