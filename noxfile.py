@@ -52,7 +52,12 @@ def style(session):
         "flake8-tidy-imports",
     )
     session.run(
-        "python", "-m", "flake8", str(REFERENCING), str(TESTS), __file__,
+        "python",
+        "-m",
+        "flake8",
+        str(REFERENCING),
+        str(TESTS),
+        __file__,
     )
 
 
