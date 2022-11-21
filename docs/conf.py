@@ -5,7 +5,6 @@ import re
 from hyperlink import URL
 
 DOCS = Path(__file__).parent
-STATIC = DOCS / "_static"
 
 GITHUB = URL.from_text("https://github.com/")
 HOMEPAGE = GITHUB.child("python-jsonschema", "referencing")
@@ -39,7 +38,7 @@ pygments_style = "lovelace"
 pygments_dark_style = "one-dark"
 
 html_theme = "furo"
-html_static_path = [str(STATIC)]
+html_static_path = []
 
 # -- Extension configuration -------------------------------------------------
 
