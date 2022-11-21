@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+
+[project]
+name = "referencing"
+description = "JSON Referencing + Python"
+readme = "README.rst"
+license = {text = "MIT"}
+keywords = []
+authors = [
+  {email = "Julian+referencing@GrayVines.com"},
+  {name = "Julian Berman"},
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/python-jsonschema/referencing"
+Issues = "https://github.com/python-jsonschema/referencing/issues/"
+Source = "https://github.com/python-jsonschema/referencing"
+
+[tool.isort]
+from_first = true
+include_trailing_comma = true
+multi_line_output = 3
