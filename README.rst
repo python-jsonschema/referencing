@@ -16,6 +16,10 @@
   :alt: Build status
   :target: https://github.com/python-jsonschema/referencing/actions?query=workflow%3ACI
 
+.. |ReadTheDocs| image:: https://readthedocs.org/projects/referencing/badge/?version=stable&style=flat
+   :alt: ReadTheDocs status
+   :target: https://referencing.readthedocs.io/en/stable/
+
 .. |pre-commit| image:: https://results.pre-commit.ci/badge/github/python-jsonschema/referencing/main.svg
   :alt: pre-commit.ci status
   :target: https://results.pre-commit.ci/latest/github/python-jsonschema/referencing/main
