@@ -1,12 +1,17 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Union
 from urllib.parse import unquote, urldefrag, urljoin
 
 from pyrsistent import m
 from pyrsistent.typing import PMap
 import attrs
+
+try:
+    Mapping[str, str]
+except TypeError:
+    from typing import Mapping
 
 
 class UnsupportedSubclassing(Exception):
@@ -36,7 +41,7 @@ else:
         return attrs.frozen(cls)
 
 
-Schema = bool | Mapping[str, Any]
+Schema = Union[bool, Mapping[str, Any]]
 
 
 @frozen
