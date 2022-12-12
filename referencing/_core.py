@@ -52,11 +52,7 @@ class Anchor:
     resource: Schema
 
     def added_to(self, registry: Registry):
-        return registry.with_anchor(
-            uri=self.uri,
-            anchor=self.name,
-            resource=self.resource,
-        )
+        return registry.with_anchor(anchor=self)
 
 
 @frozen
@@ -67,11 +63,7 @@ class DynamicAnchor:
     resource: Schema
 
     def added_to(self, registry: Registry):
-        return registry.with_anchor(
-            uri=self.uri,
-            anchor=self.name,
-            resource=self.resource,
-        )
+        return registry.with_anchor(anchor=self)
 
 
 @frozen
@@ -126,10 +118,10 @@ class Registry:
                 contents = contents.set(id, (resource, m()))
         return attrs.evolve(self, contents=contents)
 
-    def with_anchor(self, uri, anchor, resource):
-        uri_resource, anchors = self._contents[uri]
-        new = uri_resource, anchors.set(anchor, resource)
-        return attrs.evolve(self, contents=self._contents.set(uri, new))
+    def with_anchor(self, anchor: Anchor | DynamicAnchor):
+        uri_resource, anchors = self._contents[anchor.uri]
+        new = uri_resource, anchors.set(anchor.name, anchor)
+        return attrs.evolve(self, contents=self._contents.set(anchor.uri, new))
 
     def resolver(self, root) -> Resolver:
         uri = id_of(root) or ""
@@ -168,7 +160,7 @@ class Resolver:
                     segment = segment.replace("~1", "/").replace("~0", "~")
                 target = target[segment]
         elif fragment:
-            target = anchors[fragment]
+            target = anchors[fragment].resource
 
         return target, self.with_base_uri(uri)
 
