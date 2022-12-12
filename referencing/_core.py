@@ -15,7 +15,7 @@ class UnsupportedSubclassing(Exception):
         raise UnsupportedSubclassing(
             "Subclassing is not part of referencing's public API. "
             "If no other suitable API exists for what you're trying to do, "
-            "feel free to file an issue asking for one."
+            "feel free to file an issue asking for one.",
         )
 
 
@@ -83,7 +83,7 @@ class IdentifiedResource:
 class Registry:
 
     _contents: PMap[str, tuple[Schema, PMap[str, Schema]]] = attrs.field(
-        default=m(), repr=lambda value: f"({len(value)} entries)"
+        default=m(), repr=lambda value: f"({len(value)} entries)",
     )
 
     def resource_at(self, uri):
@@ -145,10 +145,7 @@ class Resolver:
             uri, fragment = urldefrag(urljoin(self._base_uri, ref))
         if self._registry.has_not_crawled(uri):
             root, _ = self._registry.resource_at(self._base_uri)
-            for each in find_subresources(
-                initial_base_uri=self._base_uri,
-                root=root,
-            ):
+            for each in find_subresources(base_uri=self._base_uri, root=root):
                 self._registry = each.added_to(self._registry)
 
         resource, anchors = self._registry.resource_at(uri)
@@ -176,7 +173,7 @@ class Resolver:
         else:
             uri = urljoin(self._base_uri, maybe_relative)
             registry = self._registry.with_identified_resource(
-                uri=uri, resource=root
+                uri=uri, resource=root,
             )
         return attrs.evolve(self, base_uri=uri, registry=registry)
 
@@ -194,9 +191,9 @@ def id_of(resource) -> str | None:
 
 def find_subresources(
     root: Schema,
-    initial_base_uri: str,
+    base_uri: str,
 ) -> Iterable[Anchor | DynamicAnchor | IdentifiedResource]:
-    resources = [(initial_base_uri, root)]
+    resources = [(base_uri, root)]
     while resources:
         base_uri, resource = resources.pop()
         if resource is True or resource is False:
