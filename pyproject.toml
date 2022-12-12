@@ -30,6 +30,11 @@ classifiers = [
 
 ]
 dynamic = ["version"]
+dependencies = [
+  "attrs",
+  "pyrsistent",
+  "yarl",
+]
 
 [project.urls]
 Homepage = "https://github.com/python-jsonschema/referencing"
