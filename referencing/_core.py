@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from urllib.parse import unquote, urldefrag, urljoin
 
 from pyrsistent import m
@@ -23,14 +23,17 @@ class UnidentifiedResource(Exception):
     pass
 
 
-def define(cls):
-    cls.__init_subclass__ = UnsupportedSubclassing.complain
-    return attrs.define(cls)
+if TYPE_CHECKING:
+    from attrs import define, frozen
+else:
 
+    def define(cls):
+        cls.__init_subclass__ = UnsupportedSubclassing.complain
+        return attrs.define(cls)
 
-def frozen(cls):
-    cls.__init_subclass__ = UnsupportedSubclassing.complain
-    return attrs.frozen(cls)
+    def frozen(cls):
+        cls.__init_subclass__ = UnsupportedSubclassing.complain
+        return attrs.frozen(cls)
 
 
 Schema = bool | Mapping[str, Any]
@@ -83,7 +86,8 @@ class IdentifiedResource:
 class Registry:
 
     _contents: PMap[str, tuple[Schema, PMap[str, Schema]]] = attrs.field(
-        default=m(), repr=lambda value: f"({len(value)} entries)",
+        default=m(),
+        repr=lambda value: f"({len(value)} entries)",
     )
 
     def resource_at(self, uri):
@@ -173,7 +177,8 @@ class Resolver:
         else:
             uri = urljoin(self._base_uri, maybe_relative)
             registry = self._registry.with_identified_resource(
-                uri=uri, resource=root,
+                uri=uri,
+                resource=root,
             )
         return attrs.evolve(self, base_uri=uri, registry=registry)
 
