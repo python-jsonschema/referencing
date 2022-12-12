@@ -22,7 +22,7 @@ def session(default=True, **kwargs):
 
 @session(python=["3.8", "3.9", "3.10", "3.11"])
 def tests(session):
-    session.install("pytest")
+    session.install("pytest", str(ROOT))
     session.run("pytest")
 
 
@@ -63,7 +63,13 @@ def style(session):
 
 @session()
 def typing(session):
-    session.install("mypy", "types-jsonschema", str(ROOT))
+    session.install(  # FIXME: Don't repeat dependencies.
+        "attrs",
+        "mypy",
+        "pyrsistent",
+        "types-jsonschema",
+        str(ROOT),
+    )
     session.run("python", "-m", "mypy", str(REFERENCING))
 
 
