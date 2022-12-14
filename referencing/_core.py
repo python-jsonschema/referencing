@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any, Union
 from urllib.parse import unquote, urldefrag, urljoin
 
-from pyrsistent import m
-from pyrsistent.typing import PMap
-import attrs
+from pyrsistent import m, s
+from pyrsistent.typing import PMap, PSet
 
 try:
     Mapping[str, str]
@@ -29,16 +28,17 @@ class UnidentifiedResource(Exception):
 
 
 if TYPE_CHECKING:
-    from attrs import define, frozen
+    from attrs import define, evolve, field, frozen
 else:
+    from attrs import define as _define, evolve, field, frozen as _frozen
 
     def define(cls):
         cls.__init_subclass__ = UnsupportedSubclassing.complain
-        return attrs.define(cls)
+        return _define(cls)
 
     def frozen(cls):
         cls.__init_subclass__ = UnsupportedSubclassing.complain
-        return attrs.frozen(cls)
+        return _frozen(cls)
 
 
 Schema = Union[bool, Mapping[str, Any]]
@@ -51,9 +51,6 @@ class Anchor:
     name: str
     resource: Schema
 
-    def added_to(self, registry: Registry):
-        return registry.with_anchor(anchor=self)
-
 
 @frozen
 class DynamicAnchor:
@@ -61,9 +58,6 @@ class DynamicAnchor:
     uri: str
     name: str
     resource: Schema
-
-    def added_to(self, registry: Registry):
-        return registry.with_anchor(anchor=self)
 
 
 AnchorType = Union[Anchor, DynamicAnchor]
@@ -75,26 +69,15 @@ class IdentifiedResource:
     uri: str
     resource: Schema
 
-    def added_to(self, registry: Registry):
-        return registry.with_identified_resource(
-            uri=self.uri,
-            resource=self.resource,
-        )
-
 
 @frozen
 class Registry:
 
-    _contents: PMap[str, tuple[Schema, PMap[str, AnchorType]]] = attrs.field(
+    _contents: PMap[str, tuple[Schema, PMap[str, AnchorType]]] = field(
         default=m(),
         repr=lambda value: f"({len(value)} entries)",
     )
-
-    def resource_at(self, uri) -> Schema:
-        return self._contents[uri][0]
-
-    def anchor_at(self, uri, name) -> AnchorType:
-        return self._contents[uri][1][name]
+    _uncrawled: PSet[str] = field(default=s())
 
     def with_resource(self, resource) -> Registry:
         uri = id_of(resource)
@@ -106,10 +89,16 @@ class Registry:
         return self.with_resources([(uri, resource)])
 
     def update(self, *registries: Registry) -> Registry:
-        contents = (registry._contents for registry in registries)
-        return attrs.evolve(self, contents=self._contents.update(*contents))
+        contents = (each._contents for each in registries)
+        uncrawled = (each._uncrawled for each in registries)
+        return evolve(
+            self,
+            contents=self._contents.update(*contents),
+            uncrawled=self._uncrawled.update(*uncrawled),
+        )
 
     def with_resources(self, pairs) -> Registry:
+        uncrawled = self._uncrawled
         contents = self._contents
         for uri, resource in pairs:
             assert (
@@ -122,21 +111,78 @@ class Registry:
             id = id_of(resource)
             if id is not None:
                 contents = contents.set(id, (resource, m()))
-        return attrs.evolve(self, contents=contents)
+
+            uncrawled = uncrawled.add(uri)
+        return evolve(self, contents=contents, uncrawled=uncrawled)
 
     def with_anchor(self, anchor: Anchor | DynamicAnchor) -> Registry:
-        uri_resource, anchors = self._contents[anchor.uri]
-        new = uri_resource, anchors.set(anchor.name, anchor)
-        return attrs.evolve(self, contents=self._contents.set(anchor.uri, new))
+        resource, anchors = self._contents[anchor.uri]
+        new = resource, anchors.set(anchor.name, anchor)
+        return evolve(self, contents=self._contents.set(anchor.uri, new))
+
+    def resource_at(self, uri: str) -> tuple[Schema, Registry]:
+        at_uri = self._contents.get(uri)
+        if at_uri is not None and at_uri[1]:
+            registry = self
+        else:
+            registry = self.crawl()
+        return registry._contents[uri][0], registry
+
+    def anchor_at(self, uri, name) -> AnchorType:
+        return self._contents[uri][1][name]
+
+    def crawl(self) -> Registry:
+        registry = self
+        resources = [(uri, self._contents[uri][0]) for uri in self._uncrawled]
+        while resources:
+            base_uri, resource = resources.pop()
+            if resource is True or resource is False:
+                continue
+
+            uri = urljoin(base_uri, resource.get("$id", ""))
+            if uri != base_uri:
+                registry = registry.with_identified_resource(
+                    uri=uri,
+                    resource=resource,
+                )
+
+            anchor = resource.get("$anchor")
+            if anchor is not None:
+                registry = registry.with_anchor(
+                    Anchor(uri=uri, name=anchor, resource=resource),
+                )
+
+            dynamic_anchor = resource.get("$dynamicAnchor")
+            if dynamic_anchor is not None:
+                registry = registry.with_anchor(
+                    DynamicAnchor(
+                        uri=uri,
+                        name=dynamic_anchor,
+                        resource=resource,
+                    ),
+                )
+
+            resources.extend(  # TODO: delay finding anchors in subresources...
+                (uri, resource[k]) for k in SUBRESOURCE if k in resource
+            )
+            resources.extend(
+                (uri, subresource)
+                for k in SUBRESOURCE_VALUES
+                if k in resource
+                for subresource in resource[k].values()
+            )
+            resources.extend(
+                (uri, subresource)
+                for k in SUBRESOURCE_ITEMS
+                if k in resource
+                for subresource in resource[k]
+            )
+        return evolve(registry, uncrawled=s())
 
     def resolver(self, root) -> Resolver:
         uri = id_of(root) or ""
         registry = self.with_identified_resource(uri=uri, resource=root)
         return Resolver(base_uri=uri, registry=registry)
-
-    def has_not_crawled(self, uri) -> bool:
-        at_uri = self._contents.get(uri)
-        return at_uri is None or not at_uri[1]
 
 
 @define
@@ -145,17 +191,12 @@ class Resolver:
     _base_uri: str
     _registry: Registry
 
-    def lookup(self, ref: str):
+    def lookup(self, ref: str) -> tuple[Schema, Resolver]:
         if ref.startswith("#"):
             uri, fragment = self._base_uri, ref[1:]
         else:
             uri, fragment = urldefrag(urljoin(self._base_uri, ref))
-        if self._registry.has_not_crawled(uri):
-            root = self._registry.resource_at(self._base_uri)
-            for each in find_subresources(base_uri=self._base_uri, root=root):
-                self._registry = each.added_to(self._registry)
-
-        target = self._registry.resource_at(uri)
+        target, registry = self._registry.resource_at(uri)
         if fragment.startswith("/"):
             segments = unquote(fragment[1:]).split("/")
             for segment in segments:
@@ -165,21 +206,21 @@ class Resolver:
                     segment = segment.replace("~1", "/").replace("~0", "~")
                 target = target[segment]  # type: ignore # this can't be a bool
         elif fragment:
-            target = self._registry.anchor_at(uri=uri, name=fragment).resource
+            target = registry.anchor_at(uri=uri, name=fragment).resource
 
-        return target, attrs.evolve(self, base_uri=uri)
+        return target, evolve(self, base_uri=uri, registry=registry)
 
     def with_root(self, root) -> Resolver:
         maybe_relative = id_of(root)
         if maybe_relative is None:
-            uri, registry = self._base_uri, self._registry
-        else:
-            uri = urljoin(self._base_uri, maybe_relative)
-            registry = self._registry.with_identified_resource(
-                uri=uri,
-                resource=root,
-            )
-        return attrs.evolve(self, base_uri=uri, registry=registry)
+            return self
+
+        uri = urljoin(self._base_uri, maybe_relative)
+        registry = self._registry.with_identified_resource(
+            uri=uri,
+            resource=root,
+        )
+        return evolve(self, base_uri=uri, registry=registry)
 
 
 SUBRESOURCE = {"items", "not"}
@@ -191,46 +232,3 @@ def id_of(resource) -> str | None:
     if resource is True or resource is False:
         return None
     return resource.get("$id")
-
-
-def find_subresources(
-    root: Schema,
-    base_uri: str,
-) -> Iterable[Anchor | DynamicAnchor | IdentifiedResource]:
-    resources = [(base_uri, root)]
-    while resources:
-        base_uri, resource = resources.pop()
-        if resource is True or resource is False:
-            continue
-
-        uri = urljoin(base_uri, resource.get("$id", ""))
-        if uri != base_uri:
-            yield IdentifiedResource(uri=uri, resource=resource)
-
-        anchor = resource.get("$anchor")
-        if anchor is not None:
-            yield Anchor(uri=uri, name=anchor, resource=resource)
-
-        dynamic_anchor = resource.get("$dynamicAnchor")
-        if dynamic_anchor is not None:
-            yield DynamicAnchor(
-                uri=uri,
-                name=dynamic_anchor,
-                resource=resource,
-            )
-
-        resources.extend(  # TODO: delay finding anchors in subresources...
-            (uri, resource[k]) for k in SUBRESOURCE if k in resource
-        )
-        resources.extend(
-            (uri, subresource)
-            for k in SUBRESOURCE_VALUES
-            if k in resource
-            for subresource in resource[k].values()
-        )
-        resources.extend(
-            (uri, subresource)
-            for k in SUBRESOURCE_ITEMS
-            if k in resource
-            for subresource in resource[k]
-        )

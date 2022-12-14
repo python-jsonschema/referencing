@@ -42,6 +42,7 @@ Issues = "https://github.com/python-jsonschema/referencing/issues/"
 Source = "https://github.com/python-jsonschema/referencing"
 
 [tool.isort]
+combine_as_imports = true
 from_first = true
 include_trailing_comma = true
 multi_line_output = 3
