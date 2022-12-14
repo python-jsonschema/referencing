@@ -79,15 +79,6 @@ class Registry:
     )
     _uncrawled: PSet[str] = field(default=s())
 
-    def with_resource(self, resource) -> Registry:
-        uri = id_of(resource)
-        if uri is None:
-            raise UnidentifiedResource(resource)
-        return self.with_identified_resource(uri=uri, resource=resource)
-
-    def with_identified_resource(self, uri, resource) -> Registry:
-        return self.with_resources([(uri, resource)])
-
     def update(self, *registries: Registry) -> Registry:
         contents = (each._contents for each in registries)
         uncrawled = (each._uncrawled for each in registries)
@@ -96,6 +87,15 @@ class Registry:
             contents=self._contents.update(*contents),
             uncrawled=self._uncrawled.update(*uncrawled),
         )
+
+    def with_resource(self, resource) -> Registry:
+        uri = id_of(resource)
+        if uri is None:
+            raise UnidentifiedResource(resource)
+        return self.with_identified_resource(uri=uri, resource=resource)
+
+    def with_identified_resource(self, uri, resource) -> Registry:
+        return self.with_resources([(uri, resource)])
 
     def with_resources(self, pairs) -> Registry:
         uncrawled = self._uncrawled
@@ -125,13 +125,13 @@ class Registry:
         if at_uri is not None and at_uri[1]:
             registry = self
         else:
-            registry = self.crawl()
+            registry = self._crawl()
         return registry._contents[uri][0], registry
 
     def anchor_at(self, uri, name) -> AnchorType:
         return self._contents[uri][1][name]
 
-    def crawl(self) -> Registry:
+    def _crawl(self) -> Registry:
         registry = self
         resources = [(uri, self._contents[uri][0]) for uri in self._uncrawled]
         while resources:
