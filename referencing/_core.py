@@ -66,6 +66,9 @@ class DynamicAnchor:
         return registry.with_anchor(anchor=self)
 
 
+AnchorType = Union[Anchor, DynamicAnchor]
+
+
 @frozen
 class IdentifiedResource:
 
@@ -82,28 +85,31 @@ class IdentifiedResource:
 @frozen
 class Registry:
 
-    _contents: PMap[str, tuple[Schema, PMap[str, Schema]]] = attrs.field(
+    _contents: PMap[str, tuple[Schema, PMap[str, AnchorType]]] = attrs.field(
         default=m(),
         repr=lambda value: f"({len(value)} entries)",
     )
 
-    def resource_at(self, uri):
-        return self._contents[uri]
+    def resource_at(self, uri) -> Schema:
+        return self._contents[uri][0]
 
-    def with_resource(self, resource):
+    def anchor_at(self, uri, name) -> AnchorType:
+        return self._contents[uri][1][name]
+
+    def with_resource(self, resource) -> Registry:
         uri = id_of(resource)
         if uri is None:
             raise UnidentifiedResource(resource)
         return self.with_identified_resource(uri=uri, resource=resource)
 
-    def with_identified_resource(self, uri, resource):
+    def with_identified_resource(self, uri, resource) -> Registry:
         return self.with_resources([(uri, resource)])
 
-    def update(self, *registries: Registry):
+    def update(self, *registries: Registry) -> Registry:
         contents = (registry._contents for registry in registries)
         return attrs.evolve(self, contents=self._contents.update(*contents))
 
-    def with_resources(self, pairs):
+    def with_resources(self, pairs) -> Registry:
         contents = self._contents
         for uri, resource in pairs:
             assert (
@@ -118,7 +124,7 @@ class Registry:
                 contents = contents.set(id, (resource, m()))
         return attrs.evolve(self, contents=contents)
 
-    def with_anchor(self, anchor: Anchor | DynamicAnchor):
+    def with_anchor(self, anchor: Anchor | DynamicAnchor) -> Registry:
         uri_resource, anchors = self._contents[anchor.uri]
         new = uri_resource, anchors.set(anchor.name, anchor)
         return attrs.evolve(self, contents=self._contents.set(anchor.uri, new))
@@ -128,7 +134,7 @@ class Registry:
         registry = self.with_identified_resource(uri=uri, resource=root)
         return Resolver(base_uri=uri, registry=registry)
 
-    def has_not_crawled(self, uri):
+    def has_not_crawled(self, uri) -> bool:
         at_uri = self._contents.get(uri)
         return at_uri is None or not at_uri[1]
 
@@ -145,12 +151,11 @@ class Resolver:
         else:
             uri, fragment = urldefrag(urljoin(self._base_uri, ref))
         if self._registry.has_not_crawled(uri):
-            root, _ = self._registry.resource_at(self._base_uri)
+            root = self._registry.resource_at(self._base_uri)
             for each in find_subresources(base_uri=self._base_uri, root=root):
                 self._registry = each.added_to(self._registry)
 
-        resource, anchors = self._registry.resource_at(uri)
-        target = resource
+        target = self._registry.resource_at(uri)
         if fragment.startswith("/"):
             segments = unquote(fragment[1:]).split("/")
             for segment in segments:
@@ -158,14 +163,11 @@ class Resolver:
                     segment = int(segment)  # type: ignore
                 else:
                     segment = segment.replace("~1", "/").replace("~0", "~")
-                target = target[segment]
+                target = target[segment]  # type: ignore # this can't be a bool
         elif fragment:
-            target = anchors[fragment].resource
+            target = self._registry.anchor_at(uri=uri, name=fragment).resource
 
-        return target, self.with_base_uri(uri)
-
-    def with_base_uri(self, base_uri):
-        return attrs.evolve(self, base_uri=base_uri)
+        return target, attrs.evolve(self, base_uri=uri)
 
     def with_root(self, root) -> Resolver:
         maybe_relative = id_of(root)
@@ -226,7 +228,7 @@ def find_subresources(
             if k in resource
             for subresource in resource[k].values()
         )
-        resources.extend(  # TODO: delay finding anchors in subresources...
+        resources.extend(
             (uri, subresource)
             for k in SUBRESOURCE_ITEMS
             if k in resource
