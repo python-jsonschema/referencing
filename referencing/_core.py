@@ -64,13 +64,6 @@ AnchorType = Union[Anchor, DynamicAnchor]
 
 
 @frozen
-class IdentifiedResource:
-
-    uri: str
-    resource: Schema
-
-
-@frozen
 class Registry:
 
     _contents: PMap[str, tuple[Schema, PMap[str, AnchorType]]] = field(
