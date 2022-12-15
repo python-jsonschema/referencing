@@ -7,6 +7,8 @@ from urllib.parse import unquote, urldefrag, urljoin
 from pyrsistent import m, plist, s
 from pyrsistent.typing import PList, PMap, PSet
 
+from referencing.typing import Anchor as AnchorType, Schema, Specification
+
 
 class UnsupportedSubclassing(Exception):
     @classmethod
@@ -24,8 +26,6 @@ class UnidentifiedResource(Exception):
 
 if TYPE_CHECKING:
     from attrs import define, evolve, field, frozen
-
-    from referencing.typing import AnchorType, Schema, Specification
 else:
     from attrs import define as _define, evolve, field, frozen as _frozen
 
@@ -56,7 +56,7 @@ class DynamicAnchor:
     name: str
     resource: Schema
 
-    def resolve(self, dynamic_scope, uri) -> tuple[Schema, str]:
+    def resolve(self, dynamic_scope, uri):
         last = self.resource
         for resource, anchors in dynamic_scope:
             anchor = anchors.get(self.name)
@@ -124,7 +124,7 @@ class Registry:
             uncrawled = uncrawled.add(uri)
         return evolve(self, contents=contents, uncrawled=uncrawled)
 
-    def with_anchor(self, anchor: Anchor | DynamicAnchor) -> Registry:
+    def with_anchor(self, anchor: AnchorType) -> Registry:
         resource, anchors = self._contents[anchor.uri]
         new = resource, anchors.set(anchor.name, anchor)
         return evolve(self, contents=self._contents.set(anchor.uri, new))

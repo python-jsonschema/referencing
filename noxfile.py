@@ -67,7 +67,6 @@ def typing(session):
         "attrs",
         "mypy",
         "pyrsistent",
-        "types-jsonschema",
         str(ROOT),
     )
     session.run("python", "-m", "mypy", str(REFERENCING))

@@ -7,11 +7,26 @@ try:
 except TypeError:
     from typing import Mapping
 
-from referencing._core import Anchor, DynamicAnchor
 
 ObjectSchema = Mapping[str, Any]
 Schema = Union[bool, ObjectSchema]
-AnchorType = Union[Anchor, DynamicAnchor]
+
+
+class Anchor(Protocol):
+    @property
+    def uri(self) -> str:
+        ...
+
+    @property
+    def name(self) -> str:
+        ...
+
+    def resolve(
+        self,
+        dynamic_scope: Iterable[tuple[Schema, "Anchor"]],
+        uri: str,
+    ) -> tuple[Schema, str]:
+        pass
 
 
 class Specification(Protocol):
