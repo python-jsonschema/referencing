@@ -1,16 +1,11 @@
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
-from typing import TYPE_CHECKING, Any, Union
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
 from urllib.parse import unquote, urldefrag, urljoin
 
 from pyrsistent import m, plist, s
 from pyrsistent.typing import PList, PMap, PSet
-
-try:
-    Mapping[str, str]
-except TypeError:
-    from typing import Mapping
 
 
 class UnsupportedSubclassing(Exception):
@@ -29,6 +24,8 @@ class UnidentifiedResource(Exception):
 
 if TYPE_CHECKING:
     from attrs import define, evolve, field, frozen
+
+    from referencing.typing import AnchorType, Schema, Specification
 else:
     from attrs import define as _define, evolve, field, frozen as _frozen
 
@@ -39,9 +36,6 @@ else:
     def frozen(cls):
         cls.__init_subclass__ = UnsupportedSubclassing.complain
         return _frozen(cls)
-
-
-Schema = Union[bool, Mapping[str, Any]]
 
 
 @frozen
@@ -73,7 +67,15 @@ class DynamicAnchor:
         return last, id_of(last) or ""  # FIXME: consider when this can be None
 
 
-AnchorType = Union[Anchor, DynamicAnchor]
+class OpaqueSpecification:
+    """
+    A non-specification `Specification` which treats resources opaquely.
+
+    In particular, they have no subresources.
+    """
+
+    def subresources_of(self, resource: Schema):
+        return ()
 
 
 @frozen
@@ -83,7 +85,8 @@ class Registry:
         default=m(),
         repr=lambda value: f"({len(value)} entries)",
     )
-    _uncrawled: PSet[str] = field(default=s())
+    _uncrawled: PSet[str] = s()
+    _specification: Specification = OpaqueSpecification()
 
     def update(self, *registries: Registry) -> Registry:
         contents = (each._contents for each in registries)
@@ -167,27 +170,17 @@ class Registry:
                         resource=resource,
                     ),
                 )
-
-            resources.extend(  # TODO: delay finding anchors in subresources...
-                (uri, resource[k]) for k in SUBRESOURCE if k in resource
-            )
             resources.extend(
-                (uri, subresource)
-                for k in SUBRESOURCE_VALUES
-                if k in resource
-                for subresource in resource[k].values()
-            )
-            resources.extend(
-                (uri, subresource)
-                for k in SUBRESOURCE_ITEMS
-                if k in resource
-                for subresource in resource[k]
+                (uri, each)
+                for each in self._specification.subresources_of(resource)
+                if each is not True and each is not False
             )
         return evolve(registry, uncrawled=s())
 
-    def resolver(self, root) -> Resolver:
+    def resolver(self, root, specification) -> Resolver:
         uri = id_of(root) or ""
         registry = self.with_identified_resource(uri=uri, resource=root)
+        registry = evolve(registry, specification=specification)
         return Resolver(base_uri=uri, registry=registry)
 
 
@@ -241,11 +234,6 @@ class Resolver:
         for uri in self._previous:
             resource, _ = self._registry.resource_at(uri)
             yield resource, self._registry.anchors_at(uri)
-
-
-SUBRESOURCE = {"items", "not"}
-SUBRESOURCE_ITEMS = {"allOf"}
-SUBRESOURCE_VALUES = {"$defs", "properties"}
 
 
 def id_of(resource) -> str | None:
