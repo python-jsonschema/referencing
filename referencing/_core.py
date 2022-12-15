@@ -1,41 +1,19 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
 from urllib.parse import unquote, urldefrag, urljoin
 
+from attrs import evolve, field
 from pyrsistent import m, plist, s
 from pyrsistent.typing import PList, PMap, PSet
 
+from referencing._attrs import define, frozen
+from referencing.jsonschema import DynamicAnchor, id_of
 from referencing.typing import Anchor as AnchorType, Schema, Specification
-
-
-class UnsupportedSubclassing(Exception):
-    @classmethod
-    def complain(this):
-        raise UnsupportedSubclassing(
-            "Subclassing is not part of referencing's public API. "
-            "If no other suitable API exists for what you're trying to do, "
-            "feel free to file an issue asking for one.",
-        )
 
 
 class UnidentifiedResource(Exception):
     pass
-
-
-if TYPE_CHECKING:
-    from attrs import define, evolve, field, frozen
-else:
-    from attrs import define as _define, evolve, field, frozen as _frozen
-
-    def define(cls):
-        cls.__init_subclass__ = UnsupportedSubclassing.complain
-        return _define(cls)
-
-    def frozen(cls):
-        cls.__init_subclass__ = UnsupportedSubclassing.complain
-        return _frozen(cls)
 
 
 @frozen
@@ -47,24 +25,6 @@ class Anchor:
 
     def resolve(self, dynamic_scope, uri) -> tuple[Schema, str]:
         return self.resource, uri
-
-
-@frozen
-class DynamicAnchor:
-
-    uri: str
-    name: str
-    resource: Schema
-
-    def resolve(self, dynamic_scope, uri):
-        last = self.resource
-        for resource, anchors in dynamic_scope:
-            anchor = anchors.get(self.name)
-            if isinstance(anchor, DynamicAnchor):
-                last = anchor.resource
-            elif "$ref" not in resource:
-                break
-        return last, id_of(last) or ""  # FIXME: consider when this can be None
 
 
 class OpaqueSpecification:
@@ -234,9 +194,3 @@ class Resolver:
         for uri in self._previous:
             resource, _ = self._registry.resource_at(uri)
             yield resource, self._registry.anchors_at(uri)
-
-
-def id_of(resource) -> str | None:
-    if resource is True or resource is False:
-        return None
-    return resource.get("$id")
