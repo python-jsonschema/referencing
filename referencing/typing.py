@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Any, Iterable, Protocol, Union
 
 try:
@@ -23,7 +25,7 @@ class Anchor(Protocol):
 
     def resolve(
         self,
-        dynamic_scope: Iterable[tuple[Schema, "Anchor"]],
+        dynamic_scope: Iterable[tuple[Schema, Anchor]],
         uri: str,
     ) -> tuple[Schema, str]:
         pass
