@@ -4,8 +4,8 @@ from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any, Union
 from urllib.parse import unquote, urldefrag, urljoin
 
-from pyrsistent import m, s
-from pyrsistent.typing import PMap, PSet
+from pyrsistent import m, plist, s
+from pyrsistent.typing import PList, PMap, PSet
 
 try:
     Mapping[str, str]
@@ -51,6 +51,9 @@ class Anchor:
     name: str
     resource: Schema
 
+    def resolve(self, dynamic_scope, uri) -> tuple[Schema, str]:
+        return self.resource, uri
+
 
 @frozen
 class DynamicAnchor:
@@ -58,6 +61,16 @@ class DynamicAnchor:
     uri: str
     name: str
     resource: Schema
+
+    def resolve(self, dynamic_scope, uri) -> tuple[Schema, str]:
+        last = self.resource
+        for resource, anchors in dynamic_scope:
+            anchor = anchors.get(self.name)
+            if isinstance(anchor, DynamicAnchor):
+                last = anchor.resource
+            elif "$ref" not in resource:
+                break
+        return last, id_of(last) or ""  # FIXME: consider when this can be None
 
 
 AnchorType = Union[Anchor, DynamicAnchor]
@@ -121,8 +134,8 @@ class Registry:
             registry = self._crawl()
         return registry._contents[uri][0], registry
 
-    def anchor_at(self, uri, name) -> AnchorType:
-        return self._contents[uri][1][name]
+    def anchors_at(self, uri) -> PMap[str, AnchorType]:
+        return self._contents[uri][1]
 
     def _crawl(self) -> Registry:
         registry = self
@@ -183,6 +196,7 @@ class Resolver:
 
     _base_uri: str
     _registry: Registry
+    _previous: PList[Resolver] = plist()
 
     def lookup(self, ref: str) -> tuple[Schema, Resolver]:
         if ref.startswith("#"):
@@ -199,9 +213,13 @@ class Resolver:
                     segment = segment.replace("~1", "/").replace("~0", "~")
                 target = target[segment]  # type: ignore # this can't be a bool
         elif fragment:
-            target = registry.anchor_at(uri=uri, name=fragment).resource
+            anchor = registry.anchors_at(uri=uri)[fragment]
+            target, uri = anchor.resolve(
+                dynamic_scope=self.dynamic_scope(),
+                uri=uri,
+            )
 
-        return target, evolve(self, base_uri=uri, registry=registry)
+        return target, self.evolve(base_uri=uri, registry=registry)
 
     def with_root(self, root) -> Resolver:
         maybe_relative = id_of(root)
@@ -213,7 +231,16 @@ class Resolver:
             uri=uri,
             resource=root,
         )
-        return evolve(self, base_uri=uri, registry=registry)
+        return self.evolve(base_uri=uri, registry=registry)
+
+    def evolve(self, **kwargs):
+        previous = self._previous.cons(self._base_uri)
+        return evolve(self, previous=previous, **kwargs)
+
+    def dynamic_scope(self):
+        for uri in self._previous:
+            resource, _ = self._registry.resource_at(uri)
+            yield resource, self._registry.anchors_at(uri)
 
 
 SUBRESOURCE = {"items", "not"}
