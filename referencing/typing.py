@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Iterable, Protocol, Union
+from typing import TYPE_CHECKING, Any, Iterable, Protocol, Union
 
 try:
     from collections.abc import Mapping
@@ -9,6 +9,9 @@ try:
 except TypeError:
     from typing import Mapping
 
+if TYPE_CHECKING:
+    from referencing._core import Resolver
+
 
 ObjectSchema = Mapping[str, Any]
 Schema = Union[bool, ObjectSchema]
@@ -16,22 +19,24 @@ Schema = Union[bool, ObjectSchema]
 
 class Anchor(Protocol):
     @property
-    def uri(self) -> str:
-        ...
-
-    @property
     def name(self) -> str:
         ...
 
-    def resolve(
-        self,
-        dynamic_scope: Iterable[tuple[Schema, Anchor]],
-        uri: str,
-    ) -> tuple[Schema, str]:
+    def resolve(self, resolver: Resolver, uri: str) -> tuple[Schema, str]:
         pass
 
 
 class Specification(Protocol):
+    def id_of(self, resource: Schema) -> str | None:
+        """
+        The URI ID of the given resource.
+        """
+
+    def anchors_in(self, resource: ObjectSchema) -> Iterable[Anchor]:
+        """
+        All (non-recursively nested) anchors inside the given resource.
+        """
+
     def subresources_of(self, resource: ObjectSchema) -> Iterable[Schema]:
         """
         All (non-recursively nested) resources inside the given resource.
