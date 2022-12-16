@@ -131,3 +131,117 @@ class Draft7:
             yield from items
         else:
             yield items
+
+
+class Draft6:
+
+    _SUBRESOURCE = {"not"}
+    _SUBRESOURCE_ITEMS = {"allOf"}
+    _SUBRESOURCE_VALUES = {"definitions", "properties"}
+
+    def id_of(self, resource):
+        if resource is True or resource is False or "$ref" in resource:
+            return None
+        id = resource.get("$id")
+        if id is not None and not id.startswith("#"):
+            return id
+
+    def anchors_in(self, resource):
+        anchor = resource.get("$id", "")
+        if anchor.startswith("#"):
+            yield Anchor(name=anchor[1:], resource=resource)
+
+    def subresources_of(self, resource):
+        for each in self._SUBRESOURCE:
+            if each in resource:
+                yield resource[each]
+        for each in self._SUBRESOURCE_ITEMS:
+            if each in resource:
+                yield from resource[each]
+        for each in self._SUBRESOURCE_VALUES:
+            if each in resource:
+                yield from resource[each].values()
+
+        items = resource.get("items")
+        if items is None:
+            return
+        elif isinstance(items, list):
+            yield from items
+        else:
+            yield items
+
+
+class Draft4:
+
+    _SUBRESOURCE = {"not"}
+    _SUBRESOURCE_ITEMS = {"allOf"}
+    _SUBRESOURCE_VALUES = {"definitions", "properties"}
+
+    def id_of(self, resource):
+        if resource is True or resource is False or "$ref" in resource:
+            return None
+        id = resource.get("id")
+        if id is not None and not id.startswith("#"):
+            return id
+
+    def anchors_in(self, resource):
+        anchor = resource.get("id", "")
+        if anchor.startswith("#"):
+            yield Anchor(name=anchor[1:], resource=resource)
+
+    def subresources_of(self, resource):
+        for each in self._SUBRESOURCE:
+            if each in resource:
+                yield resource[each]
+        for each in self._SUBRESOURCE_ITEMS:
+            if each in resource:
+                yield from resource[each]
+        for each in self._SUBRESOURCE_VALUES:
+            if each in resource:
+                yield from resource[each].values()
+
+        items = resource.get("items")
+        if items is None:
+            return
+        elif isinstance(items, list):
+            yield from items
+        else:
+            yield items
+
+
+class Draft3:
+
+    _SUBRESOURCE = {"not"}
+    _SUBRESOURCE_ITEMS = {"allOf"}
+    _SUBRESOURCE_VALUES = {"definitions", "properties"}
+
+    def id_of(self, resource):
+        if resource is True or resource is False or "$ref" in resource:
+            return None
+        id = resource.get("id")
+        if id is not None and not id.startswith("#"):
+            return id
+
+    def anchors_in(self, resource):
+        anchor = resource.get("id", "")
+        if anchor.startswith("#"):
+            yield Anchor(name=anchor[1:], resource=resource)
+
+    def subresources_of(self, resource):
+        for each in self._SUBRESOURCE:
+            if each in resource:
+                yield resource[each]
+        for each in self._SUBRESOURCE_ITEMS:
+            if each in resource:
+                yield from resource[each]
+        for each in self._SUBRESOURCE_VALUES:
+            if each in resource:
+                yield from resource[each].values()
+
+        items = resource.get("items")
+        if items is None:
+            return
+        elif isinstance(items, list):
+            yield from items
+        else:
+            yield items

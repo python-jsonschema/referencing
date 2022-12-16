@@ -95,7 +95,7 @@ class Registry:
         uri: str,
         anchors: Iterable[AnchorType],
     ) -> Registry:
-        assert "#" not in uri, uri
+        assert uri.endswith("#") or "#" not in uri, uri
         resource, old = self._contents[uri]
         new = old.update({anchor.name: anchor for anchor in anchors})
         contents = self._contents.set(uri, (resource, new))
