@@ -181,11 +181,12 @@ class Draft4:
         if resource is True or resource is False or "$ref" in resource:
             return None
         id = resource.get("id")
-        if id is not None and not id.startswith("#"):
-            return id
+        if id is None or id.startswith("#"):
+            return
+        return id
 
     def anchors_in(self, resource):
-        anchor = resource.get("id", "")
+        anchor = self.id_of(resource) or ""
         if anchor.startswith("#"):
             yield Anchor(name=anchor[1:], resource=resource)
 
