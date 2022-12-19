@@ -3,6 +3,7 @@ import importlib.metadata
 import re
 
 from hyperlink import URL
+from sphinx.ext.intersphinx import resolve_reference_in_inventory
 
 DOCS = Path(__file__).parent
 
@@ -40,6 +41,43 @@ pygments_dark_style = "one-dark"
 html_theme = "furo"
 html_static_path = []
 
+# See sphinx-doc/sphinx#10785
+_TYPE_ALIASES = {
+    "Schema",
+}
+
+
+def _resolve_broken_refs(app, env, node, contnode):
+    if node["refdomain"] != "py":
+        return
+
+    # Evade tobgu/pyrsistent#267
+    if node["reftarget"].startswith("pyrsistent.typing."):
+        node["reftarget"] = node["reftarget"].replace(".typing.", ".")
+        return resolve_reference_in_inventory(
+            env, "pyrsistent", node, contnode
+        )
+    elif node["reftarget"] == "PList":
+        node["reftarget"] = "pyrsistent.PList"
+        return resolve_reference_in_inventory(
+            env, "pyrsistent", node, contnode
+        )
+    elif node["reftarget"] in _TYPE_ALIASES:
+        return app.env.get_domain("py").resolve_xref(
+            env,
+            node["refdoc"],
+            app.builder,
+            "data",
+            node["reftarget"],
+            node,
+            contnode,
+        )
+
+
+def setup(app):
+    app.connect("missing-reference", _resolve_broken_refs)
+
+
 # -- Extension configuration -------------------------------------------------
 
 # -- Options for autodoc extension -------------------------------------------
@@ -56,6 +94,7 @@ autosectionlabel_prefix_document = True
 # -- Options for intersphinx extension ---------------------------------------
 
 intersphinx_mapping = {
+    "pyrsistent": ("https://pyrsistent.readthedocs.io/en/latest/", None),
     "python": ("https://docs.python.org/", None),
 }
 

@@ -13,7 +13,10 @@ if TYPE_CHECKING:
     from referencing._core import Resolver
 
 
+#: A JSON Schema which is a JSON object
 ObjectSchema = Mapping[str, Any]
+
+#: A JSON Schema of any kind
 Schema = Union[bool, ObjectSchema]
 
 
