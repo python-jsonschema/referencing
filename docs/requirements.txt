@@ -35,7 +35,7 @@ imagesize==1.4.1
     # via sphinx
 jinja2==3.1.2
     # via sphinx
-lxml==4.9.1
+lxml==4.9.2
     # via sphinx-json-schema-spec
 markupsafe==2.1.1
     # via jinja2
@@ -54,7 +54,7 @@ pygments-github-lexers==0.0.5
     # via -r docs/requirements.in
 pyrsistent==0.19.2
     # via referencing
-pytz==2022.6
+pytz==2022.7
     # via babel
 file:.#egg=referencing
     # via -r docs/requirements.in
@@ -79,7 +79,7 @@ sphinx-click==4.4.0
     # via -r docs/requirements.in
 sphinx-copybutton==0.5.1
     # via -r docs/requirements.in
-sphinx-json-schema-spec==2.3.2
+sphinx-json-schema-spec==2.3.3
     # via -r docs/requirements.in
 sphinxcontrib-applehelp==1.0.2
     # via sphinx
