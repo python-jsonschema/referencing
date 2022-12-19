@@ -34,9 +34,12 @@ jobs:
           egress-policy: block
           allowed-endpoints: >
             api.github.com:443
+            azure.archive.ubuntu.com:443
             files.pythonhosted.org:443
             github.com:443
             objects.githubusercontent.com:443
+            packages.microsoft.com:443
+            ppa.launchpadcontent.net:443
             pypi.org:443
       - uses: actions/checkout@v3
       - name: Install dependencies
