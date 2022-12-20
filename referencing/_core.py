@@ -171,7 +171,7 @@ class Resolver:
 
         id = self._registry._specification.id_of(target)
         if id is not None:
-            base_uri = urljoin(self._base_uri, id)
+            base_uri = urljoin(self._base_uri, id).rstrip("#")
         else:
             base_uri = uri
         return target, self.evolve(base_uri=base_uri, registry=registry)
