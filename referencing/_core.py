@@ -169,7 +169,12 @@ class Resolver:
             anchor = registry.anchors_at(uri=uri)[fragment]
             target, uri = anchor.resolve(resolver=self, uri=uri)
 
-        return target, self.evolve(base_uri=uri, registry=registry)
+        id = self._registry._specification.id_of(target)
+        if id is not None:
+            base_uri = urljoin(self._base_uri, id)
+        else:
+            base_uri = uri
+        return target, self.evolve(base_uri=base_uri, registry=registry)
 
     def with_root(self, root) -> Resolver:
         maybe_relative = self._registry._specification.id_of(root)
