@@ -28,19 +28,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Harden Runner
-        uses: step-security/harden-runner@v2
-        with:
-          egress-policy: block
-          allowed-endpoints: >
-            api.github.com:443
-            azure.archive.ubuntu.com:80
-            files.pythonhosted.org:443
-            github.com:443
-            objects.githubusercontent.com:443
-            packages.microsoft.com:443
-            ppa.launchpadcontent.net:443
-            pypi.org:443
       - uses: actions/checkout@v3
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y libenchant-2-dev
