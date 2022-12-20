@@ -149,7 +149,7 @@ class Resolver:
 
     _base_uri: str
     _registry: Registry
-    _previous: PList[Resolver] = plist()
+    _previous: PList[Resolver] = field(default=plist(), repr=False)
 
     def lookup(self, ref: str) -> tuple[Schema, Resolver]:
         if ref.startswith("#"):
