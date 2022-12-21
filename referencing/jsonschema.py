@@ -186,9 +186,9 @@ class Draft4:
         return id
 
     def anchors_in(self, resource):
-        anchor = self.id_of(resource) or ""
-        if anchor.startswith("#"):
-            yield Anchor(name=anchor[1:], resource=resource)
+        id = resource.get("id")
+        if id is not None and id.startswith("#"):
+            yield Anchor(name=id[1:], resource=resource)
 
     def subresources_of(self, resource):
         for each in self._SUBRESOURCE:
