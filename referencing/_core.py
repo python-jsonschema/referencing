@@ -156,7 +156,10 @@ class Resolver:
             uri, fragment = self._base_uri, ref[1:]
         else:
             uri, fragment = urldefrag(urljoin(self._base_uri, ref))
+
         target, registry = self._registry.resource_at(uri)
+        base_uri = uri
+
         if fragment.startswith("/"):
             segments = unquote(fragment[1:]).split("/")
             for segment in segments:
@@ -165,15 +168,23 @@ class Resolver:
                 else:
                     segment = segment.replace("~1", "/").replace("~0", "~")
                 target = target[segment]  # type: ignore # this can't be a bool
+                # FIXME: this is wrong, we need to know that we are crossing
+                #        the boundary of a *schema* specifically
+                if not isinstance(target, Sequence):
+                    id = self._registry._specification.id_of(target)
+                    if id is not None:
+                        base_uri = urljoin(base_uri, id).rstrip("#")
         elif fragment:
             anchor = registry.anchors_at(uri=uri)[fragment]
             target, uri = anchor.resolve(resolver=self, uri=uri)
 
-        id = self._registry._specification.id_of(target)
-        if id is not None:
-            base_uri = urljoin(self._base_uri, id).rstrip("#")
+            id = self._registry._specification.id_of(target)
+            if id is not None:
+                base_uri = urljoin(self._base_uri, id).rstrip("#")
         else:
-            base_uri = uri
+            id = self._registry._specification.id_of(target)
+            if id is not None:
+                base_uri = urljoin(self._base_uri, id).rstrip("#")
         return target, self.evolve(base_uri=base_uri, registry=registry)
 
     def with_root(self, root) -> Resolver:
