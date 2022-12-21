@@ -21,7 +21,7 @@ class Anchor:
     name: str
     resource: Schema
 
-    def resolve(self, resolver, uri) -> tuple[Schema, str]:
+    def resolve(self, resolver: Resolver, uri: str) -> tuple[Schema, str]:
         return self.resource, uri
 
 
@@ -63,7 +63,7 @@ class Registry:
             uncrawled=self._uncrawled.update(*uncrawled),
         )
 
-    def with_resource(self, resource) -> Registry:
+    def with_resource(self, resource: Schema) -> Registry:
         uri = self._specification.id_of(resource)
         if uri is None:
             raise UnidentifiedResource(resource)
@@ -72,7 +72,7 @@ class Registry:
     def with_identified_resource(self, uri, resource) -> Registry:
         return self.with_resources([(uri, resource)])
 
-    def with_resources(self, pairs) -> Registry:
+    def with_resources(self, pairs: Iterable[tuple[str, Schema]]) -> Registry:
         uncrawled = self._uncrawled
         contents = self._contents
         for uri, resource in pairs:
@@ -109,7 +109,7 @@ class Registry:
             registry = self._crawl()
         return registry._contents[uri][0], registry
 
-    def anchors_at(self, uri) -> PMap[str, AnchorType]:
+    def anchors_at(self, uri: str) -> PMap[str, AnchorType]:
         return self._contents[uri][1]
 
     def _crawl(self) -> Registry:
@@ -137,7 +137,7 @@ class Registry:
             )
         return evolve(registry, uncrawled=s())
 
-    def resolver(self, root, specification) -> Resolver:
+    def resolver(self, root: Schema, specification: Specification) -> Resolver:
         uri = self._specification.id_of(root) or ""
         registry = self.with_identified_resource(uri=uri, resource=root)
         registry = evolve(registry, specification=specification)
@@ -187,7 +187,7 @@ class Resolver:
                 base_uri = urljoin(self._base_uri, id).rstrip("#")
         return target, self.evolve(base_uri=base_uri, registry=registry)
 
-    def with_root(self, root) -> Resolver:
+    def with_root(self, root: Schema) -> Resolver:
         maybe_relative = self._registry._specification.id_of(root)
         if maybe_relative is None:
             return self
