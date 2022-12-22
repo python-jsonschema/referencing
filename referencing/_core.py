@@ -22,11 +22,26 @@ class IdentifiedResource:
     resource: Schema
 
     @classmethod
-    def from_resource(cls, resource, **kwargs):
-        return cls(
-            resource=resource,
-            specification=specification_for(resource, **kwargs),
-        )
+    def from_resource(
+        cls,
+        resource: Schema,
+        default_specification: Specification = ...,  # type: ignore
+    ):
+        specification = default_specification
+
+        if resource is not True and resource is not False:
+            jsonschema_schema_keyword = resource.get("$schema")
+            if jsonschema_schema_keyword is not None:
+                from referencing import jsonschema
+
+                specification = jsonschema.BY_ID.get(
+                    jsonschema_schema_keyword,
+                    default_specification,
+                )
+
+        if specification is ...:
+            raise UnidentifiedResource(resource)
+        return cls(resource=resource, specification=specification)
 
     def id(self):
         return self._specification.id_of(self.resource)
@@ -38,27 +53,8 @@ class IdentifiedResource:
         for each in self._specification.subresources_of(self.resource):
             yield IdentifiedResource.from_resource(
                 resource=each,
-                default=self._specification,
+                default_specification=self._specification,
             )
-
-
-def specification_for(
-    resource: Schema,
-    default: Specification = ...,  # type: ignore
-) -> Specification:
-    if resource is True or resource is False:
-        pass
-    else:
-        jsonschema_schema_keyword = resource.get("$schema")
-        if jsonschema_schema_keyword is not None:
-            from referencing import jsonschema
-
-            specification = jsonschema.BY_ID.get(jsonschema_schema_keyword)
-            if specification is not None:
-                return specification
-    if default is ...:
-        raise UnidentifiedResource(resource)
-    return default
 
 
 @frozen
@@ -203,8 +199,8 @@ class Registry:
         registry = self.with_identified_resource(
             uri=uri,
             resource=IdentifiedResource(
-                specification=specification,
                 resource=root,
+                specification=specification,
             ),
         )
         return Resolver(base_uri=uri, registry=registry)
