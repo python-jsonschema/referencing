@@ -10,7 +10,7 @@ except TypeError:
     from typing import Mapping
 
 if TYPE_CHECKING:
-    from referencing._core import Resolver
+    from referencing._core import IdentifiedResource, Resolver
 
 
 #: A JSON Schema which is a JSON object
@@ -25,7 +25,11 @@ class Anchor(Protocol):
     def name(self) -> str:
         ...
 
-    def resolve(self, resolver: Resolver, uri: str) -> tuple[Schema, str]:
+    def resolve(
+        self,
+        resolver: Resolver,
+        uri: str,
+    ) -> tuple[IdentifiedResource, str]:
         pass
 
 

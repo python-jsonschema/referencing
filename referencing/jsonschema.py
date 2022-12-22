@@ -5,8 +5,8 @@ Referencing implementations for JSON Schema specs (historic & current).
 from __future__ import annotations
 
 from referencing._attrs import frozen
-from referencing._core import Anchor
-from referencing.typing import Schema
+from referencing._core import Anchor, IdentifiedResource
+from referencing.typing import Specification
 
 
 class Draft202012:
@@ -23,11 +23,23 @@ class Draft202012:
     def anchors_in(self, resource):
         anchor = resource.get("$anchor")
         if anchor is not None:
-            yield Anchor(name=anchor, resource=resource)
+            yield Anchor(
+                name=anchor,
+                resource=IdentifiedResource(
+                    resource=resource,
+                    specification=self,
+                ),
+            )
 
         dynamic_anchor = resource.get("$dynamicAnchor")
         if dynamic_anchor is not None:
-            yield DynamicAnchor(name=dynamic_anchor, resource=resource)
+            yield DynamicAnchor(
+                name=dynamic_anchor,
+                resource=IdentifiedResource(
+                    resource=resource,
+                    specification=self,
+                ),
+            )
 
     def subresources_of(self, resource):
         for each in self._SUBRESOURCE:
@@ -45,7 +57,7 @@ class Draft202012:
 class DynamicAnchor:
 
     name: str
-    resource: Schema
+    resource: IdentifiedResource
 
     def resolve(self, resolver, uri):
         last = self.resource
@@ -53,10 +65,9 @@ class DynamicAnchor:
             anchor = anchors.get(self.name)
             if isinstance(anchor, DynamicAnchor):
                 last = anchor.resource
-            elif "$ref" not in resource:
+            elif "$ref" not in resource.resource:
                 break
-        id = resolver._registry._specification.id_of(last) or ""  # FIXME
-        return last, id
+        return last, last.id() or ""
 
 
 class Draft201909:
@@ -73,7 +84,13 @@ class Draft201909:
     def anchors_in(self, resource):
         anchor = resource.get("$anchor")
         if anchor is not None:
-            yield Anchor(name=anchor, resource=resource)
+            yield Anchor(
+                name=anchor,
+                resource=IdentifiedResource(
+                    resource=resource,
+                    specification=self,
+                ),
+            )
 
     def subresources_of(self, resource):
         for each in self._SUBRESOURCE:
@@ -109,9 +126,15 @@ class Draft7:
             return id
 
     def anchors_in(self, resource):
-        anchor = resource.get("$id", "")
-        if anchor.startswith("#"):
-            yield Anchor(name=anchor[1:], resource=resource)
+        id = resource.get("$id", "")
+        if id.startswith("#"):
+            yield Anchor(
+                name=id[1:],
+                resource=IdentifiedResource(
+                    resource=resource,
+                    specification=self,
+                ),
+            )
 
     def subresources_of(self, resource):
         for each in self._SUBRESOURCE:
@@ -147,9 +170,15 @@ class Draft6:
             return id
 
     def anchors_in(self, resource):
-        anchor = resource.get("$id", "")
-        if anchor.startswith("#"):
-            yield Anchor(name=anchor[1:], resource=resource)
+        id = resource.get("$id", "")
+        if id.startswith("#"):
+            yield Anchor(
+                name=id[1:],
+                resource=IdentifiedResource(
+                    resource=resource,
+                    specification=self,
+                ),
+            )
 
     def subresources_of(self, resource):
         for each in self._SUBRESOURCE:
@@ -188,7 +217,13 @@ class Draft4:
     def anchors_in(self, resource):
         id = resource.get("id")
         if id is not None and id.startswith("#"):
-            yield Anchor(name=id[1:], resource=resource)
+            yield Anchor(
+                name=id[1:],
+                resource=IdentifiedResource(
+                    resource=resource,
+                    specification=self,
+                ),
+            )
 
     def subresources_of(self, resource):
         for each in self._SUBRESOURCE:
@@ -224,9 +259,15 @@ class Draft3:
             return id
 
     def anchors_in(self, resource):
-        anchor = resource.get("id", "")
-        if anchor.startswith("#"):
-            yield Anchor(name=anchor[1:], resource=resource)
+        id = resource.get("id", "")
+        if id.startswith("#"):
+            yield Anchor(
+                name=id[1:],
+                resource=IdentifiedResource(
+                    resource=resource,
+                    specification=self,
+                ),
+            )
 
     def subresources_of(self, resource):
         for each in self._SUBRESOURCE:
@@ -246,3 +287,13 @@ class Draft3:
             yield from items
         else:
             yield items
+
+
+BY_ID: dict[str, Specification] = {
+    "https://json-schema.org/draft/2020-12/schema": Draft202012(),
+    "https://json-schema.org/draft/2019-09/schema": Draft201909(),
+    "http://json-schema.org/draft-07/schema#": Draft7(),
+    "http://json-schema.org/draft-06/schema#": Draft6(),
+    "http://json-schema.org/draft-04/schema#": Draft4(),
+    "http://json-schema.org/draft-03/schema#": Draft3(),
+}

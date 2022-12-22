@@ -16,12 +16,58 @@ class UnidentifiedResource(Exception):
 
 
 @frozen
+class IdentifiedResource:
+
+    _specification: Specification
+    resource: Schema
+
+    @classmethod
+    def from_resource(cls, resource, **kwargs):
+        return cls(
+            resource=resource,
+            specification=specification_for(resource, **kwargs),
+        )
+
+    def id(self):
+        return self._specification.id_of(self.resource)
+
+    def anchors(self):
+        return self._specification.anchors_in(self.resource)
+
+    def subresources(self):
+        for each in self._specification.subresources_of(self.resource):
+            yield IdentifiedResource.from_resource(
+                resource=each,
+                default=self._specification,
+            )
+
+
+def specification_for(
+    resource: Schema,
+    default: Specification = ...,  # type: ignore
+) -> Specification:
+    if resource is True or resource is False:
+        pass
+    else:
+        jsonschema_schema_keyword = resource.get("$schema")
+        if jsonschema_schema_keyword is not None:
+            from referencing import jsonschema
+
+            specification = jsonschema.BY_ID.get(jsonschema_schema_keyword)
+            if specification is not None:
+                return specification
+    if default is ...:
+        raise UnidentifiedResource(resource)
+    return default
+
+
+@frozen
 class Anchor:
 
     name: str
-    resource: Schema
+    resource: IdentifiedResource
 
-    def resolve(self, resolver: Resolver, uri: str) -> tuple[Schema, str]:
+    def resolve(self, resolver, uri):
         return self.resource, uri
 
 
@@ -47,12 +93,14 @@ class OpaqueSpecification:
 @frozen
 class Registry:
 
-    _contents: PMap[str, tuple[Schema, PMap[str, AnchorType]]] = field(
+    _contents: PMap[
+        str,
+        tuple[IdentifiedResource, PMap[str, AnchorType]],
+    ] = field(
         default=m(),
         repr=lambda value: f"({len(value)} entries)",
     )
     _uncrawled: PSet[str] = field(default=s(), repr=False)
-    _specification: Specification = OpaqueSpecification()
 
     def update(self, *registries: Registry) -> Registry:
         contents = (each._contents for each in registries)
@@ -64,28 +112,41 @@ class Registry:
         )
 
     def with_resource(self, resource: Schema) -> Registry:
-        uri = self._specification.id_of(resource)
-        if uri is None:
-            raise UnidentifiedResource(resource)
-        return self.with_identified_resource(uri=uri, resource=resource)
+        identified = IdentifiedResource.from_resource(resource)
+        return self.with_identified_resource(
+            uri=identified.id(),
+            resource=identified,
+        )
 
-    def with_identified_resource(self, uri, resource) -> Registry:
-        return self.with_resources([(uri, resource)])
+    def with_resources(
+        self,
+        pairs: Iterable[tuple[str, Schema]],
+        **kwargs,
+    ) -> Registry:
+        return self.with_identified_resources(
+            (uri, IdentifiedResource.from_resource(resource, **kwargs))
+            for uri, resource in pairs
+        )
 
-    def with_resources(self, pairs: Iterable[tuple[str, Schema]]) -> Registry:
+    def with_identified_resource(
+        self,
+        uri: str,
+        resource: IdentifiedResource,
+    ) -> Registry:
+        return self.with_identified_resources([(uri, resource)])
+
+    def with_identified_resources(
+        self,
+        pairs: Iterable[tuple[str, IdentifiedResource]],
+    ) -> Registry:
         uncrawled = self._uncrawled
         contents = self._contents
         for uri, resource in pairs:
-            assert (
-                uri == ""
-                or uri not in self._contents
-                or self._contents[uri][0] == resource
-            ), (uri, self._contents[uri], resource)
-            contents = contents.set(uri, (resource, m()))
-
-            id = self._specification.id_of(resource)
+            anchors: PMap[str, AnchorType] = m()
+            contents = contents.set(uri, (resource, anchors))
+            id = resource.id()
             if id is not None:
-                contents = contents.set(id, (resource, m()))
+                contents = contents.set(id, (resource, anchors))
 
             uncrawled = uncrawled.add(uri)
         return evolve(self, contents=contents, uncrawled=uncrawled)
@@ -101,7 +162,7 @@ class Registry:
         contents = self._contents.set(uri, (resource, new))
         return evolve(self, contents=contents)
 
-    def resource_at(self, uri: str) -> tuple[Schema, Registry]:
+    def resource_at(self, uri: str) -> tuple[IdentifiedResource, Registry]:
         at_uri = self._contents.get(uri)
         if at_uri is not None and at_uri[1]:
             registry = self
@@ -114,33 +175,40 @@ class Registry:
 
     def _crawl(self) -> Registry:
         registry = self
-        resources = [(uri, self._contents[uri][0]) for uri in self._uncrawled]
+        resources: list[tuple[str, IdentifiedResource]] = [
+            (uri, self._contents[uri][0]) for uri in self._uncrawled
+        ]
         while resources:
             base_uri, resource = resources.pop()
-            if resource is True or resource is False:
+            if resource.resource is True or resource.resource is False:
                 continue
 
-            uri = urljoin(base_uri, self._specification.id_of(resource) or "")
+            uri = urljoin(base_uri, resource.id() or "")
             if uri != base_uri:
                 registry = registry.with_identified_resource(
                     uri=uri,
                     resource=resource,
                 )
 
-            anchors = self._specification.anchors_in(resource)
+            anchors = resource.anchors()
             registry = registry.with_anchors(uri=uri, anchors=anchors)
 
             resources.extend(
                 (uri, each)
-                for each in self._specification.subresources_of(resource)
+                for each in resource.subresources()
                 if each is not True and each is not False
             )
         return evolve(registry, uncrawled=s())
 
     def resolver(self, root: Schema, specification: Specification) -> Resolver:
-        uri = self._specification.id_of(root) or ""
-        registry = self.with_identified_resource(uri=uri, resource=root)
-        registry = evolve(registry, specification=specification)
+        uri = specification.id_of(root) or ""
+        registry = self.with_identified_resource(
+            uri=uri,
+            resource=IdentifiedResource(
+                specification=specification,
+                resource=root,
+            ),
+        )
         return Resolver(base_uri=uri, registry=registry)
 
 
@@ -157,8 +225,9 @@ class Resolver:
         else:
             uri, fragment = urldefrag(urljoin(self._base_uri, ref))
 
-        target, registry = self._registry.resource_at(uri)
+        resource, registry = self._registry.resource_at(uri)
         base_uri = uri
+        target = resource.resource
 
         if fragment.startswith("/"):
             segments = unquote(fragment[1:]).split("/")
@@ -171,31 +240,40 @@ class Resolver:
                 # FIXME: this is wrong, we need to know that we are crossing
                 #        the boundary of a *schema* specifically
                 if not isinstance(target, Sequence):
-                    id = self._registry._specification.id_of(target)
+                    id = resource._specification.id_of(target)
                     if id is not None:
                         base_uri = urljoin(base_uri, id).rstrip("#")
         elif fragment:
             anchor = registry.anchors_at(uri=uri)[fragment]
-            target, uri = anchor.resolve(resolver=self, uri=uri)
+            resource, uri = anchor.resolve(resolver=self, uri=uri)
+            target = resource.resource
 
-            id = self._registry._specification.id_of(target)
+            id = resource.id()
             if id is not None:
                 base_uri = urljoin(self._base_uri, id).rstrip("#")
         else:
-            id = self._registry._specification.id_of(target)
+            target = resource.resource
+            id = resource.id()
             if id is not None:
                 base_uri = urljoin(self._base_uri, id).rstrip("#")
         return target, self.evolve(base_uri=base_uri, registry=registry)
 
-    def with_root(self, root: Schema) -> Resolver:
-        maybe_relative = self._registry._specification.id_of(root)
+    def with_root(
+        self,
+        root: Schema,
+        specification: Specification,
+    ) -> Resolver:
+        maybe_relative = specification.id_of(root)
         if maybe_relative is None:
             return self
 
         uri = urljoin(self._base_uri, maybe_relative)
         registry = self._registry.with_identified_resource(
             uri=uri,
-            resource=root,
+            resource=IdentifiedResource(
+                resource=root,
+                specification=specification,
+            ),
         )
         return self.evolve(base_uri=uri, registry=registry)
 
