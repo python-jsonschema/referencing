@@ -4,9 +4,11 @@ Referencing implementations for JSON Schema specs (historic & current).
 
 from __future__ import annotations
 
+from urllib.parse import urljoin
+
 from referencing._attrs import frozen
-from referencing._core import Anchor, IdentifiedResource
-from referencing.typing import Specification
+from referencing._core import Anchor, IdentifiedResource, Resolver
+from referencing.typing import Schema, Specification
 
 
 class Draft202012:
@@ -61,7 +63,7 @@ class DynamicAnchor:
 
     def resolve(self, resolver, uri):
         last = self.resource
-        for resource, anchors in resolver.dynamic_scope():
+        for uri, resource, anchors in resolver.dynamic_scope():
             anchor = anchors.get(self.name)
             if isinstance(anchor, DynamicAnchor):
                 last = anchor.resource
@@ -287,6 +289,21 @@ class Draft3:
             yield from items
         else:
             yield items
+
+
+def lookup_recursive_ref(
+    resolver: Resolver,
+    recursiveRef: str,
+) -> tuple[Schema, Resolver]:
+    subschema, resolver = resolver.lookup(recursiveRef)
+    if subschema.get("$recursiveAnchor"):
+        for uri, _, _ in resolver.dynamic_scope():
+            ref = urljoin(uri, recursiveRef)
+            next_subschema, next_resolver = resolver.lookup(ref)
+            if not next_subschema.get("$recursiveAnchor"):
+                break
+            subschema, resolver = next_subschema, next_resolver
+    return subschema, resolver
 
 
 BY_ID: dict[str, Specification] = {

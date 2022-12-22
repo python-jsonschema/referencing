@@ -284,4 +284,5 @@ class Resolver:
     def dynamic_scope(self):
         for uri in self._previous:
             resource, _ = self._registry.resource_at(uri)
-            yield resource, self._registry.anchors_at(uri)
+            anchors = self._registry.anchors_at(uri)
+            yield uri, resource, anchors
