@@ -79,9 +79,7 @@ class OpaqueSpecification:
     """
 
     def id_of(self, resource):
-        if resource is True or resource is False:
-            return
-        return resource.get("$id")  # REMOVEME
+        return
 
     def anchors_in(self, resource):
         return ()
