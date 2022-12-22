@@ -63,7 +63,7 @@ class DynamicAnchor:
 
     def resolve(self, resolver, uri):
         last = self.resource
-        for uri, resource, anchors in resolver.dynamic_scope():
+        for _, resource, anchors in resolver.dynamic_scope():
             anchor = anchors.get(self.name)
             if isinstance(anchor, DynamicAnchor):
                 last = anchor.resource
@@ -296,11 +296,11 @@ def lookup_recursive_ref(
     recursiveRef: str,
 ) -> tuple[Schema, Resolver]:
     subschema, resolver = resolver.lookup(recursiveRef)
-    if subschema.get("$recursiveAnchor"):
+    if subschema.get("$recursiveAnchor"):  # type: ignore # FIXME: missing test
         for uri, _, _ in resolver.dynamic_scope():
             ref = urljoin(uri, recursiveRef)
             next_subschema, next_resolver = resolver.lookup(ref)
-            if not next_subschema.get("$recursiveAnchor"):
+            if not next_subschema.get("$recursiveAnchor"):  # type: ignore
                 break
             subschema, resolver = next_subschema, next_resolver
     return subschema, resolver
