@@ -38,7 +38,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: ${{env.PYTHON_LATEST}}
+          python-version: ${{ env.PYTHON_LATEST }}
       - name: Set up nox
         uses: wntrblm/nox@2022.11.21
       - name: Run nox
@@ -64,7 +64,6 @@ jobs:
         if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          user: __token__
           password: ${{ secrets.pypi_password }}
       - name: Create a Release
         if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
