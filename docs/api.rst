@@ -10,6 +10,10 @@ API Reference
    :members:
    :undoc-members:
 
+.. autoclass:: referencing._core.Specification
+   :members:
+   :undoc-members:
+
 
 Submodules
 ----------

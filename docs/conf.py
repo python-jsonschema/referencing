@@ -42,9 +42,11 @@ html_theme = "furo"
 html_static_path = []
 
 # See sphinx-doc/sphinx#10785
-_TYPE_ALIASES = {
-    "Schema",
-}
+_TYPE_ALIASES = dict(
+    AnchorType=("class", "Anchor"),
+    ObjectSchema=("data", "ObjectSchema"),
+    Schema=("data", "Schema"),
+)
 
 
 def _resolve_broken_refs(app, env, node, contnode):
@@ -62,13 +64,15 @@ def _resolve_broken_refs(app, env, node, contnode):
         return resolve_reference_in_inventory(
             env, "pyrsistent", node, contnode
         )
-    elif node["reftarget"] in _TYPE_ALIASES:
+
+    kind, target = _TYPE_ALIASES.get(node["reftarget"], (None, None))
+    if kind is not None:
         return app.env.get_domain("py").resolve_xref(
             env,
             node["refdoc"],
             app.builder,
-            "data",
-            node["reftarget"],
+            kind,
+            target,
             node,
             contnode,
         )

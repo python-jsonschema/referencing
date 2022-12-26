@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Iterable, Protocol, Union
+from typing import TYPE_CHECKING, Any, Protocol, Union
 
 try:
     from collections.abc import Mapping
@@ -21,6 +21,13 @@ Schema = Union[bool, ObjectSchema]
 
 
 class Anchor(Protocol):
+    """
+    An anchor within a `Schema`.
+
+    Beyond "simple" anchors, some specifications like JSON Schema's 2020
+    version have dynamic anchors.
+    """
+
     @property
     def name(self) -> str:
         ...
@@ -31,20 +38,3 @@ class Anchor(Protocol):
         uri: str,
     ) -> tuple[IdentifiedResource, str]:
         pass
-
-
-class Specification(Protocol):
-    def id_of(self, resource: Schema) -> str | None:
-        """
-        The URI ID of the given resource.
-        """
-
-    def anchors_in(self, resource: ObjectSchema) -> Iterable[Anchor]:
-        """
-        All (non-recursively nested) anchors inside the given resource.
-        """
-
-    def subresources_of(self, resource: ObjectSchema) -> Iterable[Schema]:
-        """
-        All (non-recursively nested) resources inside the given resource.
-        """

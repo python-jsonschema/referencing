@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from urllib.parse import unquote, urldefrag, urljoin
 
 from attrs import evolve, field
@@ -8,7 +8,7 @@ from pyrsistent import m, plist, s
 from pyrsistent.typing import PList, PMap, PSet
 
 from referencing._attrs import define, frozen
-from referencing.typing import Anchor as AnchorType, Schema, Specification
+from referencing.typing import Anchor as AnchorType, ObjectSchema, Schema
 
 
 class UnidentifiedResource(Exception):
@@ -67,21 +67,29 @@ class Anchor:
         return self.resource, uri
 
 
-class OpaqueSpecification:
+@frozen
+class Specification:
     """
-    A non-specification `Specification` which treats resources opaquely.
+    A referencing-defining specification.
 
-    In particular, they have no subresources.
+    See `referencing.jsonschema` for JSON Schema-specific instances.
     """
 
-    def id_of(self, resource):
-        return
+    id_of: Callable[[Schema], str | None]
+    subresources_of: Callable[[ObjectSchema], Iterable[Schema]]
+    _anchors_in: Callable[[ObjectSchema, Specification], Iterable[AnchorType]]
 
-    def anchors_in(self, resource):
-        return ()
+    def anchors_in(self, resource: ObjectSchema) -> Iterable[AnchorType]:
+        return self._anchors_in(resource, self)
 
-    def subresources_of(self, resource):
-        return ()
+
+#: A 'null' specification, where resources are opaque
+#: (e.g. have no subresources or IDs).
+OPAQUE_SPECIFICATION = Specification(
+    id_of=lambda resource: None,
+    anchors_in=lambda resource, specification: (),
+    subresources_of=lambda resource: (),
+)
 
 
 @frozen
