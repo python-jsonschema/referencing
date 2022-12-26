@@ -177,9 +177,7 @@ class Registry:
 
     def _crawl(self) -> Registry:
         registry = self
-        resources: list[tuple[str, IdentifiedResource]] = [
-            (uri, self._contents[uri][0]) for uri in self._uncrawled
-        ]
+        resources = [(uri, self._contents[uri][0]) for uri in self._uncrawled]
         while resources:
             base_uri, resource = resources.pop()
             if resource.resource is True or resource.resource is False:
@@ -195,11 +193,7 @@ class Registry:
             anchors = resource.anchors()
             registry = registry.with_anchors(uri=uri, anchors=anchors)
 
-            resources.extend(
-                (uri, each)
-                for each in resource.subresources()
-                if each is not True and each is not False
-            )
+            resources.extend((uri, each) for each in resource.subresources())
         return evolve(registry, uncrawled=s())
 
     def resolver(self, root: Schema, specification: Specification) -> Resolver:
