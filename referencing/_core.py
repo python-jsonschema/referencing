@@ -65,7 +65,7 @@ class IdentifiedResource:
     def id(self):
         return self._specification.id_of(self.resource)
 
-    def anchors(self) -> list[AnchorType]:
+    def anchors(self) -> Iterable[AnchorType]:
         if isinstance(self.resource, bool):
             return []
         return self._specification.anchors_in(self.resource)
@@ -102,9 +102,9 @@ class Specification:
 
     id_of: Callable[[Schema], str | None]
     subresources_of: Callable[[ObjectSchema], Iterable[Schema]]
-    _anchors_in: Callable[[ObjectSchema, Specification], list[AnchorType]]
+    _anchors_in: Callable[[ObjectSchema, Specification], Iterable[AnchorType]]
 
-    def anchors_in(self, resource: ObjectSchema) -> list[AnchorType]:
+    def anchors_in(self, resource: ObjectSchema) -> Iterable[AnchorType]:
         return self._anchors_in(resource, self)
 
 
