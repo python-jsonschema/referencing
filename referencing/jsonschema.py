@@ -254,7 +254,7 @@ def lookup_recursive_ref(
     return subschema, resolver
 
 
-BY_ID: dict[str, Specification] = {
+BY_ID = {
     "https://json-schema.org/draft/2020-12/schema": DRAFT202012,
     "https://json-schema.org/draft/2019-09/schema": DRAFT201909,
     "http://json-schema.org/draft-07/schema#": DRAFT7,

@@ -46,15 +46,21 @@ class IdentifiedResource:
     def id(self):
         return self._specification.id_of(self.resource)
 
-    def anchors(self):
+    def anchors(self) -> list[AnchorType]:
+        if isinstance(self.resource, bool):
+            return []
         return self._specification.anchors_in(self.resource)
 
-    def subresources(self):
-        for each in self._specification.subresources_of(self.resource):
-            yield IdentifiedResource.from_resource(
+    def subresources(self) -> Iterable[IdentifiedResource]:
+        subresources = self._specification.subresources_of(self.resource)  # type: ignore  # FIXME: missing test  # noqa: E501
+        return (
+            IdentifiedResource.from_resource(
                 resource=each,
                 default_specification=self._specification,
             )
+            for each in subresources
+            if each is not True and each is not False
+        )
 
 
 @frozen
@@ -77,9 +83,9 @@ class Specification:
 
     id_of: Callable[[Schema], str | None]
     subresources_of: Callable[[ObjectSchema], Iterable[Schema]]
-    _anchors_in: Callable[[ObjectSchema, Specification], Iterable[AnchorType]]
+    _anchors_in: Callable[[ObjectSchema, Specification], list[AnchorType]]
 
-    def anchors_in(self, resource: ObjectSchema) -> Iterable[AnchorType]:
+    def anchors_in(self, resource: ObjectSchema) -> list[AnchorType]:
         return self._anchors_in(resource, self)
 
 
@@ -87,7 +93,7 @@ class Specification:
 #: (e.g. have no subresources or IDs).
 OPAQUE_SPECIFICATION = Specification(
     id_of=lambda resource: None,
-    anchors_in=lambda resource, specification: (),
+    anchors_in=lambda resource, specification: [],
     subresources_of=lambda resource: (),
 )
 
@@ -141,19 +147,18 @@ class Registry:
         self,
         pairs: Iterable[tuple[str, IdentifiedResource]],
     ) -> Registry:
-        uncrawled = self._uncrawled
-        contents = self._contents
+        uncrawled = self._uncrawled.evolver()
+        contents = self._contents.evolver()
         for uri, resource in pairs:
-            anchors: PMap[str, AnchorType] = m()
-            contents = contents.set(uri, (resource, anchors))
-            id = resource.id()
-            if id is not None:
-                contents = contents.set(id, (resource, anchors))
+            contents[uri] = resource, m()
+            uncrawled.add(uri)
+        return evolve(
+            self,
+            contents=contents.persistent(),
+            uncrawled=uncrawled.persistent(),
+        )
 
-            uncrawled = uncrawled.add(uri)
-        return evolve(self, contents=contents, uncrawled=uncrawled)
-
-    def with_anchors(
+    def _with_anchors(
         self,
         uri: str,
         anchors: Iterable[AnchorType],
@@ -161,37 +166,35 @@ class Registry:
         assert uri.endswith("#") or "#" not in uri, uri
         resource, old = self._contents[uri]
         new = old.update({anchor.name: anchor for anchor in anchors})
-        contents = self._contents.set(uri, (resource, new))
-        return evolve(self, contents=contents)
+        return evolve(self, contents=self._contents.set(uri, (resource, new)))
 
-    def resource_at(self, uri: str) -> tuple[IdentifiedResource, Registry]:
+    def resource_at(
+        self, uri: str
+    ) -> tuple[IdentifiedResource, PMap[str, AnchorType], Registry]:
         at_uri = self._contents.get(uri)
-        if at_uri is not None and at_uri[1]:
-            registry = self
-        else:
+        if at_uri is None or uri in self._uncrawled:
             registry = self._crawl()
-        return registry._contents[uri][0], registry
-
-    def anchors_at(self, uri: str) -> PMap[str, AnchorType]:
-        return self._contents[uri][1]
+            return *registry._contents[uri], registry
+        return *at_uri, self
 
     def _crawl(self) -> Registry:
         registry = self
         resources = [(uri, self._contents[uri][0]) for uri in self._uncrawled]
         while resources:
             base_uri, resource = resources.pop()
-            if resource.resource is True or resource.resource is False:
-                continue
-
-            uri = urljoin(base_uri, resource.id() or "")
-            if uri != base_uri:
+            id = resource.id()
+            if id is None:
+                uri = base_uri
+            else:
+                uri = urljoin(base_uri, id)
                 registry = registry.with_identified_resource(
                     uri=uri,
                     resource=resource,
                 )
 
             anchors = resource.anchors()
-            registry = registry.with_anchors(uri=uri, anchors=anchors)
+            if anchors:
+                registry = registry._with_anchors(uri, anchors)
 
             resources.extend((uri, each) for each in resource.subresources())
         return evolve(registry, uncrawled=s())
@@ -221,7 +224,7 @@ class Resolver:
         else:
             uri, fragment = urldefrag(urljoin(self._base_uri, ref))
 
-        resource, registry = self._registry.resource_at(uri)
+        resource, anchors, registry = self._registry.resource_at(uri)
         base_uri = uri
         target = resource.resource
 
@@ -240,19 +243,17 @@ class Resolver:
                     if id is not None:
                         base_uri = urljoin(base_uri, id).rstrip("#")
         elif fragment:
-            anchor = registry.anchors_at(uri=uri)[fragment]
-            resource, uri = anchor.resolve(resolver=self, uri=uri)
+            resource, uri = anchors[fragment].resolve(resolver=self, uri=uri)
             target = resource.resource
 
             id = resource.id()
             if id is not None:
                 base_uri = urljoin(self._base_uri, id).rstrip("#")
         else:
-            target = resource.resource
             id = resource.id()
             if id is not None:
                 base_uri = urljoin(self._base_uri, id).rstrip("#")
-        return target, self.evolve(base_uri=base_uri, registry=registry)
+        return target, self._evolve(base_uri=base_uri, registry=registry)
 
     def with_root(
         self,
@@ -271,14 +272,13 @@ class Resolver:
                 specification=specification,
             ),
         )
-        return self.evolve(base_uri=uri, registry=registry)
-
-    def evolve(self, **kwargs):
-        previous = self._previous.cons(self._base_uri)
-        return evolve(self, previous=previous, **kwargs)
+        return self._evolve(base_uri=uri, registry=registry)
 
     def dynamic_scope(self):
         for uri in self._previous:
-            resource, _ = self._registry.resource_at(uri)
-            anchors = self._registry.anchors_at(uri)
+            resource, anchors, _ = self._registry.resource_at(uri)
             yield uri, resource, anchors
+
+    def _evolve(self, **kwargs):
+        previous = self._previous.cons(self._base_uri)
+        return evolve(self, previous=previous, **kwargs)
