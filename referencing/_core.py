@@ -43,6 +43,25 @@ class IdentifiedResource:
             raise UnidentifiedResource(resource)
         return cls(resource=resource, specification=specification)
 
+    def pointer(self, base_uri: str, pointer: str) -> tuple[str, Schema]:
+        """
+        Resolve the given JSON pointer, returning a base URI and resource.
+        """
+        resource = self.resource
+        for segment in unquote(pointer[1:]).split("/"):
+            if isinstance(resource, Sequence):
+                segment = int(segment)  # type: ignore
+            else:
+                segment = segment.replace("~1", "/").replace("~0", "~")
+            resource = resource[segment]  # type: ignore # this can't be a bool
+            # FIXME: this is wrong, we need to know that we are crossing
+            #        the boundary of a *schema* specifically
+            if not isinstance(resource, Sequence):
+                id = self._specification.id_of(resource)
+                if id is not None:
+                    base_uri = urljoin(base_uri, id)
+        return base_uri, resource
+
     def id(self):
         return self._specification.id_of(self.resource)
 
@@ -226,31 +245,17 @@ class Resolver:
             uri, fragment = urldefrag(urljoin(self._base_uri, ref))
 
         resource, anchors, registry = self._registry.resource_at(uri)
-        base_uri = uri
-        target = resource.resource
 
         if fragment.startswith("/"):
-            segments = unquote(fragment[1:]).split("/")
-            for segment in segments:
-                if isinstance(target, Sequence):
-                    segment = int(segment)  # type: ignore
-                else:
-                    segment = segment.replace("~1", "/").replace("~0", "~")
-                target = target[segment]  # type: ignore # this can't be a bool
-                # FIXME: this is wrong, we need to know that we are crossing
-                #        the boundary of a *schema* specifically
-                if not isinstance(target, Sequence):
-                    id = resource._specification.id_of(target)
-                    if id is not None:
-                        base_uri = urljoin(base_uri, id)
-        elif fragment:
-            resource, uri = anchors[fragment].resolve(resolver=self, uri=uri)
-            target = resource.resource
-
-            id = resource.id()
-            if id is not None:
-                base_uri = urljoin(self._base_uri, id)
+            base_uri, target = resource.pointer(base_uri=uri, pointer=fragment)
         else:
+            if fragment:
+                resource, uri = anchors[fragment].resolve(
+                    resolver=self,
+                    uri=uri,
+                )
+
+            base_uri, target = uri, resource.resource
             id = resource.id()
             if id is not None:
                 base_uri = urljoin(self._base_uri, id).rstrip("#")
