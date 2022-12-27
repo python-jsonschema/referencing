@@ -4,7 +4,7 @@ from collections.abc import Callable, Iterable, Sequence
 from urllib.parse import unquote, urldefrag, urljoin
 
 from attrs import evolve, field
-from pyrsistent import m, plist, s
+from pyrsistent import m, plist, pmap, s
 from pyrsistent.typing import PList, PMap, PSet
 
 from referencing._attrs import define, frozen
@@ -178,16 +178,6 @@ class Registry:
             uncrawled=uncrawled.persistent(),
         )
 
-    def _with_anchors(
-        self,
-        uri: str,
-        anchors: Iterable[AnchorType],
-    ) -> Registry:
-        assert uri.endswith("#") or "#" not in uri, uri
-        resource, old = self._contents[uri]
-        new = old.update({anchor.name: anchor for anchor in anchors})
-        return evolve(self, contents=self._contents.set(uri, (resource, new)))
-
     def resource_at(
         self,
         uri: str,
@@ -199,26 +189,25 @@ class Registry:
         return *at_uri, self
 
     def _crawl(self) -> Registry:
-        registry = self
-        resources = [(uri, self._contents[uri][0]) for uri in self._uncrawled]
+        contents = self._contents.evolver()
+        resources = [(uri, contents[uri][0]) for uri in self._uncrawled]
         while resources:
             base_uri, resource = resources.pop()
+            anchors = pmap((each.name, each) for each in resource.anchors())
+
             id = resource.id()
             if id is None:
                 uri = base_uri
+
+                if anchors:
+                    old, old_anchors = contents[uri]
+                    contents[uri] = old, old_anchors.update(anchors)
             else:
                 uri = urljoin(base_uri, id)
-                registry = registry.with_identified_resource(
-                    uri=uri,
-                    resource=resource,
-                )
-
-            anchors = resource.anchors()
-            if anchors:
-                registry = registry._with_anchors(uri, anchors)
+                contents[uri] = resource, anchors
 
             resources.extend((uri, each) for each in resource.subresources())
-        return evolve(registry, uncrawled=s())
+        return evolve(self, contents=contents.persistent(), uncrawled=s())
 
     def resolver(self, root: Schema, specification: Specification) -> Resolver:
         uri = specification.id_of(root) or ""
