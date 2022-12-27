@@ -241,14 +241,14 @@ class Resolver:
                 if not isinstance(target, Sequence):
                     id = resource._specification.id_of(target)
                     if id is not None:
-                        base_uri = urljoin(base_uri, id).rstrip("#")
+                        base_uri = urljoin(base_uri, id)
         elif fragment:
             resource, uri = anchors[fragment].resolve(resolver=self, uri=uri)
             target = resource.resource
 
             id = resource.id()
             if id is not None:
-                base_uri = urljoin(self._base_uri, id).rstrip("#")
+                base_uri = urljoin(self._base_uri, id)
         else:
             id = resource.id()
             if id is not None:
