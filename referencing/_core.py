@@ -192,18 +192,16 @@ class Registry:
         contents = self._contents.evolver()
         resources = [(uri, contents[uri][0]) for uri in self._uncrawled]
         while resources:
-            base_uri, resource = resources.pop()
+            uri, resource = resources.pop()
             anchors = pmap((each.name, each) for each in resource.anchors())
 
             id = resource.id()
             if id is None:
-                uri = base_uri
-
                 if anchors:
                     old, old_anchors = contents[uri]
                     contents[uri] = old, old_anchors.update(anchors)
             else:
-                uri = urljoin(base_uri, id)
+                uri = urljoin(uri, id)
                 contents[uri] = resource, anchors
 
             resources.extend((uri, each) for each in resource.subresources())
