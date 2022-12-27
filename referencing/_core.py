@@ -169,7 +169,8 @@ class Registry:
         return evolve(self, contents=self._contents.set(uri, (resource, new)))
 
     def resource_at(
-        self, uri: str
+        self,
+        uri: str,
     ) -> tuple[IdentifiedResource, PMap[str, AnchorType], Registry]:
         at_uri = self._contents.get(uri)
         if at_uri is None or uri in self._uncrawled:
