@@ -169,8 +169,9 @@ class Registry:
         uncrawled = self._uncrawled.evolver()
         contents = self._contents.evolver()
         for uri, resource in pairs:
+            if uri not in self._contents or self._contents[uri][0] != resource:
+                uncrawled.add(uri)
             contents[uri] = resource, m()
-            uncrawled.add(uri)
         return evolve(
             self,
             contents=contents.persistent(),
