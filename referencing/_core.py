@@ -236,7 +236,7 @@ class Resolver:
 
     _base_uri: str
     _registry: Registry
-    _previous: PList[Resolver] = field(default=plist(), repr=False)
+    _previous: PList[str] = field(default=plist(), repr=False)
 
     def lookup(self, ref: str) -> tuple[Schema, Resolver]:
         if ref.startswith("#"):
@@ -280,7 +280,9 @@ class Resolver:
         )
         return self._evolve(base_uri=uri, registry=registry)
 
-    def dynamic_scope(self):
+    def dynamic_scope(
+        self,
+    ) -> Iterable[tuple[str, IdentifiedResource, PMap[str, AnchorType]]]:
         for uri in self._previous:
             resource, anchors, _ = self._registry.resource_at(uri)
             yield uri, resource, anchors
