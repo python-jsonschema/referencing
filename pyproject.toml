@@ -10,6 +10,7 @@ name = "referencing"
 description = "JSON Referencing + Python"
 readme = "README.rst"
 license = {text = "MIT"}
+requires-python = ">=3.8"
 keywords = []
 authors = [
   {email = "Julian+referencing@GrayVines.com"},
