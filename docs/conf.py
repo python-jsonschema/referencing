@@ -2,12 +2,12 @@ from pathlib import Path
 import importlib.metadata
 import re
 
-from hyperlink import URL
+from yarl import URL
 
 DOCS = Path(__file__).parent
 
-GITHUB = URL.from_text("https://github.com/")
-HOMEPAGE = GITHUB.child("python-jsonschema", "referencing")
+GITHUB = URL("https://github.com/")
+HOMEPAGE = GITHUB / "python-jsonschema/referencing"
 
 project = "referencing"
 author = "Julian Berman"
@@ -38,7 +38,6 @@ pygments_style = "lovelace"
 pygments_dark_style = "one-dark"
 
 html_theme = "furo"
-html_static_path = []
 
 # See sphinx-doc/sphinx#10785
 _TYPE_ALIASES = dict(
@@ -92,8 +91,8 @@ intersphinx_mapping = {
 # -- Options for extlinks extension ------------------------------------------
 
 extlinks = {
-    "gh": (str(HOMEPAGE.child("%s")), None),
-    "github": (str(GITHUB.child("%s")), None),
+    "gh": (str(HOMEPAGE) + "/%s", None),
+    "github": (str(GITHUB) + "/%s", None),
 }
 
 # -- Options for the linkcheck builder ---------------------------------------
@@ -107,8 +106,8 @@ linkcheck_ignore = [
     entire_domain("codecov.io"),
     entire_domain("img.shields.io"),
     f"{GITHUB}.*#.*",
-    str(HOMEPAGE.child("actions")),
-    str(HOMEPAGE.child("python-jsonschema/workflows/CI/badge.svg")),
+    str(HOMEPAGE / "actions"),
+    str(HOMEPAGE / "python-jsonschema/workflows/CI/badge.svg"),
 ]
 
 # -- Options for spelling extension ------------------------------------------

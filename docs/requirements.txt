@@ -24,11 +24,8 @@ docutils==0.19
     #   sphinx-click
 furo==2022.12.7
     # via -r docs/requirements.in
-hyperlink==21.0.0
-    # via -r docs/requirements.in
 idna==3.4
     # via
-    #   hyperlink
     #   requests
     #   yarl
 imagesize==1.4.1
@@ -64,7 +61,7 @@ snowballstemmer==2.2.0
     # via sphinx
 soupsieve==2.3.2.post1
     # via beautifulsoup4
-sphinx==5.3.0
+sphinx==6.0.0
     # via
     #   -r docs/requirements.in
     #   furo
@@ -98,4 +95,6 @@ sphinxcontrib-spelling==7.7.0
 urllib3==1.26.13
     # via requests
 yarl==1.8.2
-    # via referencing
+    # via
+    #   -r docs/requirements.in
+    #   referencing
