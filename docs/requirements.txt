@@ -6,7 +6,7 @@
 #
 alabaster==0.7.12
     # via sphinx
-attrs==22.1.0
+attrs==22.2.0
     # via referencing
 babel==2.11.0
     # via sphinx
@@ -39,7 +39,7 @@ lxml==4.9.2
     # via sphinx-json-schema-spec
 markupsafe==2.1.1
     # via jinja2
-multidict==6.0.3
+multidict==6.0.4
     # via yarl
 packaging==22.0
     # via sphinx
@@ -52,7 +52,7 @@ pygments==2.13.0
     #   sphinx
 pygments-github-lexers==0.0.5
     # via -r docs/requirements.in
-pyrsistent==0.19.2
+pyrsistent==0.19.3
     # via referencing
 pytz==2022.7
     # via babel

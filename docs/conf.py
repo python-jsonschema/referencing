@@ -3,7 +3,6 @@ import importlib.metadata
 import re
 
 from hyperlink import URL
-from sphinx.ext.intersphinx import resolve_reference_in_inventory
 
 DOCS = Path(__file__).parent
 
@@ -52,18 +51,6 @@ _TYPE_ALIASES = dict(
 def _resolve_broken_refs(app, env, node, contnode):
     if node["refdomain"] != "py":
         return
-
-    # Evade tobgu/pyrsistent#267
-    if node["reftarget"].startswith("pyrsistent.typing."):
-        node["reftarget"] = node["reftarget"].replace(".typing.", ".")
-        return resolve_reference_in_inventory(
-            env, "pyrsistent", node, contnode
-        )
-    elif node["reftarget"] == "PList":
-        node["reftarget"] = "pyrsistent.PList"
-        return resolve_reference_in_inventory(
-            env, "pyrsistent", node, contnode
-        )
 
     kind, target = _TYPE_ALIASES.get(node["reftarget"], (None, None))
     if kind is not None:
