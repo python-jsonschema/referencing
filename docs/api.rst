@@ -6,14 +6,6 @@ API Reference
    :undoc-members:
    :imported-members:
 
-.. autoclass:: referencing._core.Resolver
-   :members:
-   :undoc-members:
-
-.. autoclass:: referencing._core.Specification
-   :members:
-   :undoc-members:
-
 
 Submodules
 ----------

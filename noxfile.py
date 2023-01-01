@@ -5,7 +5,6 @@ import nox
 ROOT = Path(__file__).parent
 DOCS = ROOT / "docs"
 REFERENCING = ROOT / "referencing"
-TESTS = ROOT / "tests"
 
 
 nox.options.sessions = []
