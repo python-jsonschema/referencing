@@ -47,3 +47,7 @@ combine_as_imports = true
 from_first = true
 include_trailing_comma = true
 multi_line_output = 3
+
+[tool.mypy]
+strict = true
+exclude = [".*/tests/.*"]

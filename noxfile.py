@@ -3,6 +3,7 @@ from pathlib import Path
 import nox
 
 ROOT = Path(__file__).parent
+PYPROJECT = ROOT / "pyproject.toml"
 DOCS = ROOT / "docs"
 REFERENCING = ROOT / "referencing"
 
@@ -57,7 +58,7 @@ def style(session):
 def typing(session):
     # FIXME: Don't repeat dependencies.
     session.install("attrs", "mypy", "pyrsistent", ROOT)
-    session.run("python", "-m", "mypy", REFERENCING)
+    session.run("mypy", "--config-file", PYPROJECT, REFERENCING)
 
 
 @session(tags=["docs"])

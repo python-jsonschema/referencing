@@ -1,7 +1,7 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NoReturn
 
 if TYPE_CHECKING:
-    from attrs import define, frozen
+    from attrs import define as define, frozen as frozen
 else:
     from attrs import define as _define, frozen as _frozen
 
@@ -16,7 +16,7 @@ else:
 
 class UnsupportedSubclassing(Exception):
     @classmethod
-    def complain(this):
+    def complain(this) -> NoReturn:
         raise UnsupportedSubclassing(
             "Subclassing is not part of referencing's public API. "
             "If no other suitable API exists for what you're trying to do, "
