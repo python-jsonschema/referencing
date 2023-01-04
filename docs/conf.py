@@ -42,6 +42,7 @@ html_theme = "furo"
 # See sphinx-doc/sphinx#10785
 _TYPE_ALIASES = dict(
     AnchorType=("class", "Anchor"),
+    D=("data", "D"),
     ObjectSchema=("data", "ObjectSchema"),
     Schema=("data", "Schema"),
 )
@@ -51,7 +52,10 @@ def _resolve_broken_refs(app, env, node, contnode):
     if node["refdomain"] != "py":
         return
 
-    kind, target = _TYPE_ALIASES.get(node["reftarget"], (None, None))
+    if node["reftarget"].startswith("referencing.typing."):
+        kind, target = "data", node["reftarget"]
+    else:
+        kind, target = _TYPE_ALIASES.get(node["reftarget"], (None, None))
     if kind is not None:
         return app.env.get_domain("py").resolve_xref(
             env,
