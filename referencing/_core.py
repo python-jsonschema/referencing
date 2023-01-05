@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import ClassVar, Generic
+from typing import Callable, ClassVar, Generic
 
 from attrs import evolve
 from pyrsistent import pmap
@@ -20,12 +20,14 @@ class Specification:
     behavior across JSON Schema specification versions, etc.
     """
 
+    id_of: Callable[[D], str | None]
+
     #: An opaque specification where resources have no subresources
     #: nor internal identifiers.
     OPAQUE: ClassVar[Specification]
 
 
-Specification.OPAQUE = Specification()
+Specification.OPAQUE = Specification(id_of=lambda contents: None)
 
 
 @frozen
@@ -41,6 +43,13 @@ class Resource(Generic[D]):
 
     contents: D
     _specification: Specification
+
+    @classmethod
+    def from_contents(cls, contents: D) -> Resource[D]:
+        return cls(contents=contents, specification=Specification.OPAQUE)
+
+    def id(self) -> str | None:
+        return self._specification.id_of(self.contents)
 
 
 @frozen
