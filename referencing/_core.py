@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
-from typing import Callable, ClassVar, Generic
+from collections.abc import Iterable, Mapping
+from typing import Any, Callable, ClassVar, Generic
 
 from attrs import evolve
 from pyrsistent import pmap
@@ -9,6 +9,18 @@ from pyrsistent.typing import PMap
 
 from referencing._attrs import frozen
 from referencing.typing import URI, D
+
+
+@frozen
+class CannotDetermineSpecification(Exception):
+    """
+    Attempting to detect the appropriate `Specification` failed.
+
+    This happens if no discernible information is found in the contents of the
+    new resource which would help identify it.
+    """
+
+    contents: Any
 
 
 @frozen
@@ -45,11 +57,25 @@ class Resource(Generic[D]):
     _specification: Specification
 
     @classmethod
-    def from_contents(cls, contents: D) -> Resource[D]:
+    def from_contents(
+        cls,
+        contents: D,
+        default_specification: Specification = ...,  # type: ignore[assignment]
+    ) -> Resource[D]:
         """
         Attempt to discern which specification applies to the given contents.
         """
-        return cls(contents=contents, specification=Specification.OPAQUE)
+        specification = default_specification
+        if isinstance(contents, Mapping):
+            jsonschema_dialect_identifier = contents.get("$schema")
+            if jsonschema_dialect_identifier is not None:
+                from referencing import jsonschema
+
+                specification = jsonschema.BY_ID[jsonschema_dialect_identifier]
+
+        if specification is ...:  # type: ignore[comparison-overlap]
+            raise CannotDetermineSpecification(contents)
+        return cls(contents=contents, specification=specification)
 
     def id(self) -> str | None:
         """
