@@ -46,9 +46,15 @@ class Resource(Generic[D]):
 
     @classmethod
     def from_contents(cls, contents: D) -> Resource[D]:
+        """
+        Attempt to discern which specification applies to the given contents.
+        """
         return cls(contents=contents, specification=Specification.OPAQUE)
 
     def id(self) -> str | None:
+        """
+        Retrieve this resource's (specification-specific) identifier.
+        """
         return self._specification.id_of(self.contents)
 
 
@@ -82,7 +88,6 @@ class Registry(Generic[D]):
         """
         Immediately crawl all added resources, discovering subresources.
         """
-
         return self
 
     def with_resources(

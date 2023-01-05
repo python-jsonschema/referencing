@@ -48,6 +48,7 @@ def style(session):
         "flake8-broken-line",
         "flake8-bugbear",
         "flake8-commas",
+        "flake8-docstrings",
         "flake8-quotes",
         "flake8-tidy-imports",
     )

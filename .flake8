@@ -1,10 +1,16 @@
 [flake8]
 ban-relative-imports = true
 inline-quotes = "
+per-file-ignores =
+    noxfile.py:D
+    referencing/tests/*:D
+    referencing/_attrs.py:D
 ignore =
     # Barring function calls in default args. Ha, no.
     B008,
     # See https://github.com/PyCQA/flake8-bugbear/issues/131
     B306,
+    # This rule makes diffs uglier when expanding docstrings (and it's uglier)
+    D200,
     # (flake8 default) old PEP8 boolean operator line breaks
     W503,
