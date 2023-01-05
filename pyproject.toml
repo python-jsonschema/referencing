@@ -50,4 +50,5 @@ multi_line_output = 3
 
 [tool.mypy]
 strict = true
+warn_no_return = false
 exclude = [".*/tests/.*"]
