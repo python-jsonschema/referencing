@@ -110,6 +110,12 @@ class Registry(Generic[D]):
         """
         return self._contents[uri]
 
+    def contents(self, uri: URI) -> D:
+        """
+        Retreive the contents identified by the given URI.
+        """
+        return self._contents[uri].contents
+
     def crawl(self) -> Registry[D]:
         """
         Immediately crawl all added resources, discovering subresources.

@@ -32,6 +32,16 @@ def test_registry_crawl_still_has_top_level_resource():
     assert registry[uri] is resource
 
 
+def test_registry_contents():
+    resource = Resource(
+        contents={"foo": "bar"},
+        specification=Specification.OPAQUE,
+    )
+    uri = "urn:example"
+    registry = Registry().with_resources([(uri, resource)])
+    assert registry.contents(uri) == {"foo": "bar"}
+
+
 def test_resource_from_contents_with_no_discernible_information():
     """
     Creating a resource with no discernible way to see what specification it
