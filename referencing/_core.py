@@ -32,7 +32,7 @@ class Specification:
     behavior across JSON Schema specification versions, etc.
     """
 
-    id_of: Callable[[D], str | None]
+    id_of: Callable[[D], URI | None]
 
     #: An opaque specification where resources have no subresources
     #: nor internal identifiers.
@@ -77,7 +77,7 @@ class Resource(Generic[D]):
             raise CannotDetermineSpecification(contents)
         return cls(contents=contents, specification=specification)
 
-    def id(self) -> str | None:
+    def id(self) -> URI | None:
         """
         Retrieve this resource's (specification-specific) identifier.
         """
