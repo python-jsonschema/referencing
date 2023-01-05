@@ -24,7 +24,7 @@ class CannotDetermineSpecification(Exception):
 
 
 @frozen
-class Specification:
+class Specification(Generic[D]):
     """
     A specification which defines referencing behavior.
 
@@ -36,7 +36,7 @@ class Specification:
 
     #: An opaque specification where resources have no subresources
     #: nor internal identifiers.
-    OPAQUE: ClassVar[Specification]
+    OPAQUE: ClassVar[Specification[Any]]
 
 
 Specification.OPAQUE = Specification(id_of=lambda contents: None)
@@ -54,13 +54,13 @@ class Resource(Generic[D]):
     """
 
     contents: D
-    _specification: Specification
+    _specification: Specification[D]
 
     @classmethod
     def from_contents(
         cls,
         contents: D,
-        default_specification: Specification = ...,  # type: ignore[assignment]
+        default_specification: Specification[D] = ...,  # type: ignore[assignment]  # noqa: E501
     ) -> Resource[D]:
         """
         Attempt to discern which specification applies to the given contents.

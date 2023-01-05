@@ -40,3 +40,19 @@ def test_schemas_with_explicit_schema_keywords_are_detected(uri, expected):
     contents = {"$schema": uri}
     resource = Resource.from_contents(contents)
     assert resource == Resource(contents=contents, specification=expected)
+
+
+@pytest.mark.parametrize(
+    "id, specification",
+    [
+        ("$id", referencing.jsonschema.DRAFT202012),
+        ("$id", referencing.jsonschema.DRAFT201909),
+        ("$id", referencing.jsonschema.DRAFT7),
+        ("$id", referencing.jsonschema.DRAFT6),
+        ("id", referencing.jsonschema.DRAFT4),
+        ("id", referencing.jsonschema.DRAFT3),
+    ],
+)
+def test_id_of(id, specification):
+    uri = "http://example.com/some-schema"
+    assert specification.id_of({id: uri}) == uri

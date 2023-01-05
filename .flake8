@@ -12,5 +12,8 @@ ignore =
     B306,
     # This rule makes diffs uglier when expanding docstrings (and it's uglier)
     D200,
+    # This conflicts with the hilarious way one tells mypy you mean to
+    # re-export an imported object
+    I250,
     # (flake8 default) old PEP8 boolean operator line breaks
     W503,
