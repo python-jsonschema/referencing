@@ -78,6 +78,13 @@ class Registry(Generic[D]):
         """
         return self._contents[uri]
 
+    def crawl(self) -> Registry[D]:
+        """
+        Immediately crawl all added resources, discovering subresources.
+        """
+
+        return self
+
     def with_resources(
         self,
         pairs: Iterable[tuple[URI, Resource[D]]],
