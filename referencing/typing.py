@@ -6,11 +6,11 @@ from __future__ import annotations
 from typing import TypeVar
 
 try:
-    from collections.abc import Mapping
+    from collections.abc import Mapping as Mapping
 
     Mapping[str, str]
 except TypeError:
-    from typing import Mapping
+    from typing import Mapping as Mapping
 
 #: A URI which identifies a `Resource`.
 URI = str
