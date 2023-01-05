@@ -89,4 +89,7 @@ class Registry(Generic[D]):
         self,
         pairs: Iterable[tuple[URI, Resource[D]]],
     ) -> Registry[D]:
+        r"""
+        Add the given `Resource`\ s to the registry, without crawling them.
+        """
         return evolve(self, contents=self._contents.update(pmap(pairs)))
