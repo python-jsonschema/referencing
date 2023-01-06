@@ -113,7 +113,7 @@ class Registry(Mapping[URI, Resource[D]]):
 
     def __len__(self) -> int:
         """
-        Count the total number of (fully crawled) resources  in this registry.
+        Count the total number of (fully crawled) resources in this registry.
         """
         return len(self._contents)
 
