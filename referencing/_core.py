@@ -55,24 +55,24 @@ class Resource(Generic[D]):
     def from_contents(
         cls,
         contents: D,
-        default_specification: Specification[D] = ...,  # type: ignore[assignment]  # noqa: E501
+        default_specification: Specification[D] = ...,
     ) -> Resource[D]:
         """
         Attempt to discern which specification applies to the given contents.
         """
         specification = default_specification
         if isinstance(contents, Mapping):
-            jsonschema_dialect_id = contents.get("$schema")
+            jsonschema_dialect_id = contents.get("$schema")  # type: ignore[reportUnknownMemberType]  # noqa: E501
             if jsonschema_dialect_id is not None:
                 from referencing import jsonschema
 
-                specification = jsonschema.BY_ID.get(jsonschema_dialect_id)
+                specification = jsonschema.BY_ID.get(jsonschema_dialect_id)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
                 if specification is None:
-                    raise jsonschema.UnknownDialect(jsonschema_dialect_id)
+                    raise jsonschema.UnknownDialect(jsonschema_dialect_id)  # type: ignore[reportUnknownVariableType]  # noqa: E501
 
-        if specification is ...:  # type: ignore[comparison-overlap]
+        if specification is ...:
             raise CannotDetermineSpecification(contents)
-        return cls(contents=contents, specification=specification)
+        return cls(contents=contents, specification=specification)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
 
     def id(self) -> URI | None:
         """
@@ -126,7 +126,7 @@ class Registry(Generic[D]):
         r"""
         Add the given `Resource`\ s to the registry, without crawling them.
         """
-        return evolve(self, contents=self._contents.update(pmap(pairs)))
+        return evolve(self, contents=self._contents.update(pmap(pairs)))  # type: ignore[reportUnknownArgumentType]  # noqa: E501
 
     def with_contents(
         self,

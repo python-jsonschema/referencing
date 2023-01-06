@@ -49,6 +49,7 @@ include_trailing_comma = true
 multi_line_output = 3
 
 [tool.pyright]
+strict = ["**/*"]
 exclude = [
     "**/tests/__init__.py",
     "**/tests/test_*.py",
