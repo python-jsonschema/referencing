@@ -18,7 +18,7 @@ Schema = Union[bool, ObjectSchema]
 
 def _dollar_id(contents: Schema) -> URI | None:
     if isinstance(contents, bool):
-        return None
+        return
     return contents.get("$id")
 
 

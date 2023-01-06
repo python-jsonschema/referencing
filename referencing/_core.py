@@ -3,8 +3,8 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 from typing import Any, Callable, ClassVar, Generic
 
-from attrs import evolve
-from pyrsistent import pmap
+from attrs import evolve, field
+from pyrsistent import m, pmap
 from pyrsistent.typing import PMap
 
 from referencing._attrs import frozen
@@ -49,7 +49,7 @@ class Resource(Generic[D]):
     """
 
     contents: D
-    _specification: Specification[D]
+    _specification: Specification[D] = field(alias="specification")
 
     @classmethod
     def from_contents(
@@ -97,7 +97,7 @@ class Registry(Generic[D]):
     registry with the additional resources added to them.
     """
 
-    _contents: PMap[URI, Resource[D]] = pmap()
+    _contents: PMap[URI, Resource[D]] = m()
 
     def __getitem__(self, uri: URI) -> Resource[D]:
         """

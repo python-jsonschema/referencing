@@ -1,27 +1,28 @@
-from typing import TYPE_CHECKING, NoReturn
+from typing import NoReturn
 
-if TYPE_CHECKING:
-    # Yak stack:
-    #   - PyCQA/pylint#6006
-    #   - python/mypy#5406
-    from attrs import define as define, frozen as frozen  # noqa: I250
-else:
-    from attrs import define as _define, frozen as _frozen
+# Yak stack:
+#   - PyCQA/pylint#6006
+#   - python/mypy#5406
+from attrs import define as _define, frozen as _frozen
 
-    def define(cls):
-        cls.__init_subclass__ = UnsupportedSubclassing.complain
-        return _define(cls)
 
-    def frozen(cls):
-        cls.__init_subclass__ = UnsupportedSubclassing.complain
-        return _frozen(cls)
+def define(cls):
+    cls.__init_subclass__ = _do_not_subclass
+    return _define(cls)
+
+
+def frozen(cls):
+    cls.__init_subclass__ = _do_not_subclass
+    return _frozen(cls)
 
 
 class UnsupportedSubclassing(Exception):
-    @classmethod
-    def complain(this) -> NoReturn:
-        raise UnsupportedSubclassing(
-            "Subclassing is not part of referencing's public API. "
-            "If no other suitable API exists for what you're trying to do, "
-            "feel free to file an issue asking for one.",
-        )
+    pass
+
+
+def _do_not_subclass() -> NoReturn:
+    raise UnsupportedSubclassing(
+        "Subclassing is not part of referencing's public API. "
+        "If no other suitable API exists for what you're trying to do, "
+        "feel free to file an issue asking for one.",
+    )

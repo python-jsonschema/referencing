@@ -58,8 +58,8 @@ def style(session):
 @session()
 def typing(session):
     # FIXME: Don't repeat dependencies.
-    session.install("attrs", "mypy", "pyrsistent", ROOT)
-    session.run("mypy", "--config-file", PYPROJECT, REFERENCING)
+    session.install("attrs", "pyright", "pyrsistent", ROOT)
+    session.run("pyright", REFERENCING)
 
 
 @session(tags=["docs"])
