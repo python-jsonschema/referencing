@@ -105,3 +105,13 @@ def test_resource_id_delegates_to_specification():
         specification=specification,
     )
     assert resource.id() == "urn:fixedID"
+
+
+def test_specification_create_resource():
+    specification = Specification(id_of=lambda contents: "urn:fixedID")
+    resource = specification.create_resource(contents={"foo": "baz"})
+    assert resource == Resource(
+        contents={"foo": "baz"},
+        specification=specification,
+    )
+    assert resource.id() == "urn:fixedID"

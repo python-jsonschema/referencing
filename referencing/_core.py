@@ -38,6 +38,12 @@ class Specification(Generic[D]):
     #: nor internal identifiers.
     OPAQUE: ClassVar[Specification[Any]]
 
+    def create_resource(self, contents: D) -> Resource[D]:
+        """
+        Create a resource which is interpreted using this specification.
+        """
+        return Resource(contents=contents, specification=self)
+
 
 Specification.OPAQUE = Specification(id_of=lambda contents: None)
 
