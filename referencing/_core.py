@@ -8,19 +8,8 @@ from pyrsistent import pmap
 from pyrsistent.typing import PMap
 
 from referencing._attrs import frozen
+from referencing.exceptions import CannotDetermineSpecification
 from referencing.typing import URI, D
-
-
-@frozen
-class CannotDetermineSpecification(Exception):
-    """
-    Attempting to detect the appropriate `Specification` failed.
-
-    This happens if no discernible information is found in the contents of the
-    new resource which would help identify it.
-    """
-
-    contents: Any
 
 
 @frozen

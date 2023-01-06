@@ -18,6 +18,14 @@ referencing.jsonschema
    :undoc-members:
 
 
+referencing.exceptions
+^^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: referencing.exceptions
+   :members:
+   :undoc-members:
+
+
 referencing.typing
 ^^^^^^^^^^^^^^^^^^
 

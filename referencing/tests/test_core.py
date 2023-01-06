@@ -1,11 +1,6 @@
 import pytest
 
-from referencing import (
-    CannotDetermineSpecification,
-    Registry,
-    Resource,
-    Specification,
-)
+from referencing import Registry, Resource, Specification, exceptions
 
 
 def test_registry_with_resource():
@@ -48,7 +43,7 @@ def test_resource_from_contents_with_no_discernible_information():
     belongs to (e.g. no $schema keyword for JSON Schema) raises an error.
     """
 
-    with pytest.raises(CannotDetermineSpecification):
+    with pytest.raises(exceptions.CannotDetermineSpecification):
         Resource.from_contents({"foo": "bar"})
 
 
