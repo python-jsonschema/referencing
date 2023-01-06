@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Iterator
 from typing import Any, Callable, ClassVar, Generic
 
 from attrs import evolve, field
@@ -9,7 +9,7 @@ from pyrsistent.typing import PMap
 
 from referencing._attrs import frozen
 from referencing.exceptions import CannotDetermineSpecification
-from referencing.typing import URI, D
+from referencing.typing import URI, D, Mapping
 
 
 @frozen
@@ -82,7 +82,7 @@ class Resource(Generic[D]):
 
 
 @frozen
-class Registry(Generic[D]):
+class Registry(Mapping[URI, Resource[D]]):
     r"""
     A registry of `Resource`\ s, each identified by their canonical URIs.
 
@@ -106,6 +106,18 @@ class Registry(Generic[D]):
         Return the `Resource` identified by the given URI.
         """
         return self._contents[uri]
+
+    def __iter__(self) -> Iterator[URI]:
+        """
+        Iterate over all known URIs in the registry.
+        """
+        return iter(self._contents)
+
+    def __len__(self) -> int:
+        """
+        Count the total number of (fully crawled) resources  in this registry.
+        """
+        return len(self._contents)
 
     def contents(self, uri: URI) -> D:
         """

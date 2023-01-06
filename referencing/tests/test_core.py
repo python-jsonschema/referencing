@@ -40,6 +40,23 @@ def test_registry_with_contents_and_default_specification():
     assert registry[uri] == expected
 
 
+def test_registry_len():
+    total = 5
+    registry = Registry().with_contents(
+        [(str(i), {"foo": "bar"}) for i in range(total)],
+        default_specification=Specification.OPAQUE,
+    )
+    assert len(registry) == total
+
+
+def test_registry_iter():
+    registry = Registry().with_contents(
+        [(str(i), {"foo": "bar"}) for i in range(8)],
+        default_specification=Specification.OPAQUE,
+    )
+    assert set(registry) == {str(i) for i in range(8)}
+
+
 def test_registry_crawl_still_has_top_level_resource():
     resource = Resource(
         contents={"foo": "bar"},
