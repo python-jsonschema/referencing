@@ -63,3 +63,36 @@ def test_unknown_dialect():
 def test_id_of(id, specification):
     uri = "http://example.com/some-schema"
     assert specification.id_of({id: uri}) == uri
+
+
+@pytest.mark.parametrize(
+    "uri, expected",
+    [
+        (
+            "https://json-schema.org/draft/2020-12/schema",
+            referencing.jsonschema.DRAFT202012,
+        ),
+        (
+            "https://json-schema.org/draft/2019-09/schema",
+            referencing.jsonschema.DRAFT201909,
+        ),
+        (
+            "http://json-schema.org/draft-07/schema#",
+            referencing.jsonschema.DRAFT7,
+        ),
+        (
+            "http://json-schema.org/draft-06/schema#",
+            referencing.jsonschema.DRAFT6,
+        ),
+        (
+            "http://json-schema.org/draft-04/schema#",
+            referencing.jsonschema.DRAFT4,
+        ),
+        (
+            "http://json-schema.org/draft-03/schema#",
+            referencing.jsonschema.DRAFT3,
+        ),
+    ],
+)
+def test_specification_with(uri, expected):
+    assert referencing.jsonschema.specification_with(uri) == expected
