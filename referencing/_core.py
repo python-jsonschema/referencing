@@ -118,7 +118,7 @@ class Registry(Generic[D]):
 
     def contents(self, uri: URI) -> D:
         """
-        Retreive the contents identified by the given URI.
+        Retrieve the contents identified by the given URI.
         """
         return self._contents[uri].contents
 
