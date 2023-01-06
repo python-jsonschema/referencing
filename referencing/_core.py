@@ -64,11 +64,9 @@ class Resource(Generic[D]):
         if isinstance(contents, Mapping):
             jsonschema_dialect_id = contents.get("$schema")  # type: ignore[reportUnknownMemberType]  # noqa: E501
             if jsonschema_dialect_id is not None:
-                from referencing import jsonschema
+                from referencing.jsonschema import specification_with
 
-                specification = jsonschema.BY_ID.get(jsonschema_dialect_id)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
-                if specification is None:
-                    raise jsonschema.UnknownDialect(jsonschema_dialect_id)  # type: ignore[reportUnknownVariableType]  # noqa: E501
+                specification = specification_with(jsonschema_dialect_id)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
 
         if specification is ...:
             raise CannotDetermineSpecification(contents)

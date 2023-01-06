@@ -6,9 +6,7 @@ from __future__ import annotations
 
 from typing import Any, Union
 
-from pyrsistent import pmap
-
-from referencing import Specification
+from referencing import Registry, Resource, Specification
 from referencing._attrs import frozen
 from referencing.typing import URI, Mapping
 
@@ -48,13 +46,23 @@ DRAFT4 = Specification(id_of=_legacy_id)
 DRAFT3 = Specification(id_of=_legacy_id)
 
 
-BY_ID = pmap(
-    {
-        "https://json-schema.org/draft/2020-12/schema": DRAFT202012,
-        "https://json-schema.org/draft/2019-09/schema": DRAFT201909,
-        "http://json-schema.org/draft-07/schema#": DRAFT7,
-        "http://json-schema.org/draft-06/schema#": DRAFT6,
-        "http://json-schema.org/draft-04/schema#": DRAFT4,
-        "http://json-schema.org/draft-03/schema#": DRAFT3,
-    },
+SPECIFICATIONS: Registry[Specification[Schema]] = Registry().with_resources(  # type: ignore[reportUnknownMemberType]  # noqa: E501
+    (dialect_id, Resource(contents=specification, specification=specification))  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+    for dialect_id, specification in [
+        ("https://json-schema.org/draft/2020-12/schema", DRAFT202012),
+        ("https://json-schema.org/draft/2019-09/schema", DRAFT201909),
+        ("http://json-schema.org/draft-07/schema#", DRAFT7),
+        ("http://json-schema.org/draft-06/schema#", DRAFT6),
+        ("http://json-schema.org/draft-04/schema#", DRAFT4),
+        ("http://json-schema.org/draft-03/schema#", DRAFT3),
+    ]
 )
+
+
+def specification_with(dialect_id: URI) -> Specification[Any]:
+    """
+    Retrieve the `Specification` with the given dialect identifier.
+    """
+    if dialect_id not in SPECIFICATIONS:
+        raise UnknownDialect(dialect_id)
+    return SPECIFICATIONS.contents(dialect_id)
