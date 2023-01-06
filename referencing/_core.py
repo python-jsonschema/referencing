@@ -62,11 +62,13 @@ class Resource(Generic[D]):
         """
         specification = default_specification
         if isinstance(contents, Mapping):
-            jsonschema_dialect_identifier = contents.get("$schema")
-            if jsonschema_dialect_identifier is not None:
+            jsonschema_dialect_id = contents.get("$schema")
+            if jsonschema_dialect_id is not None:
                 from referencing import jsonschema
 
-                specification = jsonschema.BY_ID[jsonschema_dialect_identifier]
+                specification = jsonschema.BY_ID.get(jsonschema_dialect_id)
+                if specification is None:
+                    raise jsonschema.UnknownDialect(jsonschema_dialect_id)
 
         if specification is ...:  # type: ignore[comparison-overlap]
             raise CannotDetermineSpecification(contents)

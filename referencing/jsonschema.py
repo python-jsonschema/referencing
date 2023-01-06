@@ -7,6 +7,7 @@ from __future__ import annotations
 from typing import Any, Union
 
 from referencing import Specification
+from referencing._attrs import frozen
 from referencing.typing import URI, Mapping
 
 #: A JSON Schema which is a JSON object
@@ -14,6 +15,11 @@ ObjectSchema = Mapping[str, Any]
 
 #: A JSON Schema of any kind
 Schema = Union[bool, ObjectSchema]
+
+
+@frozen
+class UnknownDialect(Exception):
+    uri: URI
 
 
 def _dollar_id(contents: Schema) -> URI | None:

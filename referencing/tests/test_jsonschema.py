@@ -42,6 +42,13 @@ def test_schemas_with_explicit_schema_keywords_are_detected(uri, expected):
     assert resource == Resource(contents=contents, specification=expected)
 
 
+def test_unknown_dialect():
+    dialect_id = "http://example.com/unknown-json-schema-dialect-id"
+    with pytest.raises(referencing.jsonschema.UnknownDialect) as excinfo:
+        Resource.from_contents({"$schema": dialect_id})
+    assert excinfo.value.uri == dialect_id
+
+
 @pytest.mark.parametrize(
     "id, specification",
     [
