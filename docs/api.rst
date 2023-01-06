@@ -5,6 +5,7 @@ API Reference
    :members:
    :undoc-members:
    :imported-members:
+   :special-members: __getitem__
 
 
 Submodules
