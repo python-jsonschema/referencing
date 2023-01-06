@@ -19,6 +19,12 @@ Schema = Union[bool, ObjectSchema]
 
 @frozen
 class UnknownDialect(Exception):
+    """
+    A dialect identifier was found for a dialect unknown by this library.
+
+    If it's a custom ("unofficial") dialect, be sure you've registered it.
+    """
+
     uri: URI
 
 
