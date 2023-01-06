@@ -125,3 +125,16 @@ class Registry(Generic[D]):
         Add the given `Resource`\ s to the registry, without crawling them.
         """
         return evolve(self, contents=self._contents.update(pmap(pairs)))
+
+    def with_contents(
+        self,
+        pairs: Iterable[tuple[URI, D]],
+        **kwargs: Any,
+    ) -> Registry[D]:
+        r"""
+        Add the given contents to the registry, autodetecting when necessary.
+        """
+        return self.with_resources(
+            (uri, Resource.from_contents(each, **kwargs))
+            for uri, each in pairs
+        )

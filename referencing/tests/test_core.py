@@ -1,6 +1,7 @@
 import pytest
 
 from referencing import Registry, Resource, Specification, exceptions
+from referencing.jsonschema import DRAFT202012
 
 
 def test_registry_with_resource():
@@ -15,6 +16,28 @@ def test_registry_with_resource():
     uri = "urn:example"
     registry = Registry().with_resources([(uri, resource)])
     assert registry[uri] is resource
+
+
+def test_registry_with_contents():
+    uri = "urn:example"
+    schema = {"$schema": "https://json-schema.org/draft/2020-12/schema"}
+    registry = Registry().with_contents([(uri, schema)])
+
+    expected = Resource(contents=schema, specification=DRAFT202012)
+    assert registry[uri] == expected
+
+
+def test_registry_with_contents_and_default_specification():
+    uri = "urn:example"
+    registry = Registry().with_contents(
+        [(uri, {"foo": "bar"})],
+        default_specification=Specification.OPAQUE,
+    )
+    expected = Resource(
+        contents={"foo": "bar"},
+        specification=Specification.OPAQUE,
+    )
+    assert registry[uri] == expected
 
 
 def test_registry_crawl_still_has_top_level_resource():
@@ -59,8 +82,6 @@ def test_resource_from_contents_with_no_discernible_information_and_default():
 
 
 def test_resource_from_contents_unneeded_default():
-    from referencing.jsonschema import DRAFT202012
-
     resource = Resource.from_contents(
         {"$schema": "https://json-schema.org/draft/2020-12/schema"},
         default_specification=Specification.OPAQUE,
