@@ -6,6 +6,8 @@ from __future__ import annotations
 
 from typing import Any, Union
 
+from pyrsistent import pmap
+
 from referencing import Specification
 from referencing._attrs import frozen
 from referencing.typing import URI, Mapping
@@ -46,11 +48,13 @@ DRAFT4 = Specification(id_of=_legacy_id)
 DRAFT3 = Specification(id_of=_legacy_id)
 
 
-BY_ID: Mapping[URI, Specification[Any]] = {
-    "https://json-schema.org/draft/2020-12/schema": DRAFT202012,
-    "https://json-schema.org/draft/2019-09/schema": DRAFT201909,
-    "http://json-schema.org/draft-07/schema#": DRAFT7,
-    "http://json-schema.org/draft-06/schema#": DRAFT6,
-    "http://json-schema.org/draft-04/schema#": DRAFT4,
-    "http://json-schema.org/draft-03/schema#": DRAFT3,
-}
+BY_ID = pmap(
+    {
+        "https://json-schema.org/draft/2020-12/schema": DRAFT202012,
+        "https://json-schema.org/draft/2019-09/schema": DRAFT201909,
+        "http://json-schema.org/draft-07/schema#": DRAFT7,
+        "http://json-schema.org/draft-06/schema#": DRAFT6,
+        "http://json-schema.org/draft-04/schema#": DRAFT4,
+        "http://json-schema.org/draft-03/schema#": DRAFT3,
+    },
+)
