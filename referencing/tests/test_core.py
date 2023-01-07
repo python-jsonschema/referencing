@@ -77,6 +77,23 @@ def test_registry_contents():
     assert registry.contents(uri) == {"foo": "bar"}
 
 
+def test_registry_init():
+    one = Resource(contents={}, specification=Specification.OPAQUE)
+    two = Resource(contents={"foo": "bar"}, specification=DRAFT202012)
+    registry = Registry(
+        {
+            "http://example.com/1": one,
+            "http://example.com/foo/bar": two,
+        },
+    )
+    assert registry == Registry().with_resources(
+        [
+            ("http://example.com/1", one),
+            ("http://example.com/foo/bar", two),
+        ]
+    )
+
+
 def test_resource_from_contents_with_no_discernible_information():
     """
     Creating a resource with no discernible way to see what specification it
