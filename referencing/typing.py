@@ -9,7 +9,7 @@ try:
     from collections.abc import Mapping as Mapping
 
     Mapping[str, str]
-except TypeError:
+except TypeError:  # pragma: no cover
     from typing import Mapping as Mapping
 
 #: A URI which identifies a `Resource`.

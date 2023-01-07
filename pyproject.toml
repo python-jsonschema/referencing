@@ -47,6 +47,9 @@ branch = true
 source = ["referencing"]
 dynamic_context = "test_function"
 
+[tool.coverage.report]
+fail_under = 100
+
 [tool.isort]
 combine_as_imports = true
 from_first = true

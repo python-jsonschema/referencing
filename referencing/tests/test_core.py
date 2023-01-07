@@ -224,3 +224,27 @@ class TestSpecification:
             specification=specification,
         )
         assert resource.id() == "urn:fixedID"
+
+
+class TestOpaqueSpecification:
+    @pytest.mark.parametrize(
+        "thing",
+        [{"foo": "bar"}, True, 37, "foo", object()],
+    )
+    def test_no_id(self, thing):
+        """
+        An arbitrary thing has no ID.
+        """
+
+        assert Specification.OPAQUE.id_of(thing) is None
+
+
+@pytest.mark.parametrize(
+    "cls",
+    [Registry, Resource, Specification],
+)
+def test_nonsubclassable(cls):
+    with pytest.raises(Exception):
+
+        class Boom(cls):  # pragma: no cover
+            pass
