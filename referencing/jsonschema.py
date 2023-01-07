@@ -46,7 +46,7 @@ DRAFT4 = Specification(id_of=_legacy_id)
 DRAFT3 = Specification(id_of=_legacy_id)
 
 
-SPECIFICATIONS: Registry[Specification[Schema]] = Registry().with_resources(  # type: ignore[reportUnknownMemberType]  # noqa: E501
+_SPECIFICATIONS: Registry[Specification[Schema]] = Registry().with_resources(  # type: ignore[reportUnknownMemberType]  # noqa: E501
     (dialect_id, Resource(contents=specification, specification=specification))  # type: ignore[reportUnknownArgumentType]  # noqa: E501
     for dialect_id, specification in [
         ("https://json-schema.org/draft/2020-12/schema", DRAFT202012),
@@ -66,7 +66,7 @@ def specification_with(
     """
     Retrieve the `Specification` with the given dialect identifier.
     """
-    resource = SPECIFICATIONS.get(dialect_id)
+    resource = _SPECIFICATIONS.get(dialect_id)
     if resource is not None:
         return resource.contents
     if default is None:
