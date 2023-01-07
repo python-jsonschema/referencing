@@ -22,8 +22,13 @@ def session(default=True, **kwargs):
 
 @session(python=["3.8", "3.9", "3.10", "3.11", "pypy3"])
 def tests(session):
-    session.install("pytest", ROOT)
-    session.run("pytest")
+    if session.posargs == ["coverage"]:
+        session.install("coverage[toml]", "pytest", ROOT)
+        session.run("coverage", "run", "-m", "pytest")
+        session.run("coverage", "report")
+    else:
+        session.install("pytest", ROOT)
+        session.run("pytest", *session.posargs)
 
 
 @session(tags=["build"])

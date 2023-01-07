@@ -42,6 +42,11 @@ Homepage = "https://github.com/python-jsonschema/referencing"
 Issues = "https://github.com/python-jsonschema/referencing/issues/"
 Source = "https://github.com/python-jsonschema/referencing"
 
+[tool.coverage.run]
+branch = true
+source = ["referencing"]
+dynamic_context = "test_function"
+
 [tool.isort]
 combine_as_imports = true
 from_first = true
