@@ -215,6 +215,17 @@ class TestResource:
         assert resource.id() == "urn:fixedID"
 
 
+class TestResolver:
+    def test_lookup_exact_uri(self):
+        resource = Resource(
+            contents={"foo": "baz"},
+            specification=Specification.OPAQUE,
+        )
+        resolver = Registry({"http://example.com/1": resource}).resolver()
+        resolved = resolver.lookup("http://example.com/1")
+        assert resolved.contents == resource.contents
+
+
 class TestSpecification:
     def test_create_resource(self):
         specification = Specification(id_of=lambda contents: "urn:fixedID")

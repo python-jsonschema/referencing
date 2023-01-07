@@ -166,3 +166,45 @@ class Registry(Mapping[URI, Resource[D]]):
         """
         contents = (registry._contents for registry in registries)
         return evolve(self, contents=self._contents.update(*contents))  # type: ignore[reportUnknownMemberType]  # noqa: E501
+
+    def resolver(self) -> Resolver[D]:
+        """
+        Return a `Resolver` which resolves references against this registry.
+        """
+        return Resolver(registry=self)
+
+
+@frozen
+class Resolved(Generic[D]):
+    """
+    A resolved reference.
+    """
+
+    contents: D
+    resolver: Resolver[D]
+
+
+@frozen
+class Resolver(Generic[D]):
+    """
+    A reference resolver.
+
+    Resolvers help resolve references (including relative ones) by
+    pairing a fixed base URI with a `Registry`.
+
+    References are resolved against the base URI, and the combined URI
+    is then looked up within the registry.
+
+    The process of resolving a reference may itself involve calculating
+    a *new* base URI for future reference resolution (e.g. if an
+    intermediate resource sets a new base URI).
+    """
+
+    _registry: Registry[D] = field(alias="registry")
+
+    def lookup(self, uri: URI) -> Resolved[D]:
+        """
+        Look up the resource at the given URI.
+        """
+        contents = self._registry.contents(uri)
+        return Resolved(contents=contents, resolver=self)

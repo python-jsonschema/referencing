@@ -1,5 +1,6 @@
-Submodules
 autodetecting
 deserialized
 referenceable
+resolvers
+submodules
 subresources

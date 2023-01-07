@@ -8,6 +8,16 @@ API Reference
    :special-members: __iter__, __getitem__, __len__
 
 
+.. autoclass:: referencing._core.Resolved
+   :members:
+   :undoc-members:
+
+
+.. autoclass:: referencing._core.Resolver
+   :members:
+   :undoc-members:
+
+
 Submodules
 ----------
 
