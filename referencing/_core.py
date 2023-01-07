@@ -55,7 +55,7 @@ class Resource(Generic[D]):
     def from_contents(
         cls,
         contents: D,
-        default_specification: Specification[D] = ...,
+        default_specification: Specification[D] = None,  # type: ignore[reportGeneralTypeIssues]  # noqa: E501
     ) -> Resource[D]:
         """
         Attempt to discern which specification applies to the given contents.
@@ -66,9 +66,12 @@ class Resource(Generic[D]):
             if jsonschema_dialect_id is not None:
                 from referencing.jsonschema import specification_with
 
-                specification = specification_with(jsonschema_dialect_id)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+                specification = specification_with(
+                    jsonschema_dialect_id,  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+                    default=default_specification,
+                )
 
-        if specification is ...:
+        if specification is None:
             raise CannotDetermineSpecification(contents)
         return cls(contents=contents, specification=specification)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
 

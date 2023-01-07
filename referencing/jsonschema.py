@@ -59,10 +59,16 @@ SPECIFICATIONS: Registry[Specification[Schema]] = Registry().with_resources(  # 
 )
 
 
-def specification_with(dialect_id: URI) -> Specification[Any]:
+def specification_with(
+    dialect_id: URI,
+    default: Specification[Any] = None,  # type: ignore[reportGeneralTypeIssues]  # noqa: E501
+) -> Specification[Any]:
     """
     Retrieve the `Specification` with the given dialect identifier.
     """
-    if dialect_id not in SPECIFICATIONS:
+    resource = SPECIFICATIONS.get(dialect_id)
+    if resource is not None:
+        return resource.contents
+    if default is None:
         raise UnknownDialect(dialect_id)
-    return SPECIFICATIONS.contents(dialect_id)
+    return default
