@@ -100,7 +100,7 @@ class Registry(Mapping[URI, Resource[D]]):
     registry with the additional resources added to them.
     """
 
-    _contents: PMap[URI, Resource[D]] = m()
+    _contents: PMap[URI, Resource[D]] = field(default=m(), converter=pmap)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
 
     def __getitem__(self, uri: URI) -> Resource[D]:
         """
@@ -132,6 +132,12 @@ class Registry(Mapping[URI, Resource[D]]):
         """
         return self
 
+    def with_resource(self, uri: URI, resource: Resource[D]):
+        """
+        Add the given `Resource` to the registry, without crawling it.
+        """
+        return self.with_resources([(uri, resource)])
+
     def with_resources(
         self,
         pairs: Iterable[tuple[URI, Resource[D]]],
@@ -153,3 +159,10 @@ class Registry(Mapping[URI, Resource[D]]):
             (uri, Resource.from_contents(each, **kwargs))
             for uri, each in pairs
         )
+
+    def combine(self, *registries: Registry[D]) -> Registry[D]:
+        """
+        Combine together one or more other registries, producing a unified one.
+        """
+        contents = (registry._contents for registry in registries)
+        return evolve(self, contents=self._contents.update(*contents))  # type: ignore[reportUnknownMemberType]  # noqa: E501

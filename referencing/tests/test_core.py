@@ -14,8 +14,30 @@ def test_registry_with_resource():
         specification=Specification.OPAQUE,
     )
     uri = "urn:example"
-    registry = Registry().with_resources([(uri, resource)])
+    registry = Registry().with_resource(uri=uri, resource=resource)
     assert registry[uri] is resource
+
+
+def test_registry_with_resources():
+    """
+    Adding multiple resources to the registry is like adding each one.
+    """
+
+    one = Resource(contents={}, specification=Specification.OPAQUE)
+    two = Resource(contents={"foo": "bar"}, specification=DRAFT202012)
+    registry = Registry().with_resources(
+        [
+            ("http://example.com/1", one),
+            ("http://example.com/foo/bar", two),
+        ],
+    )
+    assert registry == Registry().with_resource(
+        uri="http://example.com/1",
+        resource=one,
+    ).with_resource(
+        uri="http://example.com/foo/bar",
+        resource=two,
+    )
 
 
 def test_registry_with_contents():
@@ -90,7 +112,49 @@ def test_registry_init():
         [
             ("http://example.com/1", one),
             ("http://example.com/foo/bar", two),
-        ]
+        ],
+    )
+
+
+def test_registry_created_with_dict_is_updateable():
+    """
+    Passing a `dict` to `Registry` gets converted to a `pmap`.
+
+    So continuing to use the registry works.
+    """
+
+    one = Resource(contents={}, specification=Specification.OPAQUE)
+    two = Resource(contents={"foo": "bar"}, specification=DRAFT202012)
+    registry = Registry(
+        {"http://example.com/1": one},
+    ).with_resources([("http://example.com/foo/bar", two)])
+    assert registry == Registry().with_resources(
+        [
+            ("http://example.com/1", one),
+            ("http://example.com/foo/bar", two),
+        ],
+    )
+
+
+def test_registry_combine():
+    one = Resource(contents={}, specification=Specification.OPAQUE)
+    two = Resource(contents={"foo": "bar"}, specification=DRAFT202012)
+    three = Resource(contents={"baz": "quux"}, specification=DRAFT202012)
+
+    first = Registry({"http://example.com/1": one})
+    second = Registry({"http://example.com/foo/bar": two})
+    third = Registry(
+        {
+            "http://example.com/1": one,
+            "http://example.com/baz": three,
+        },
+    )
+    assert first.combine(second, third) == Registry(
+        [
+            ("http://example.com/1", one),
+            ("http://example.com/foo/bar", two),
+            ("http://example.com/baz", three),
+        ],
     )
 
 
