@@ -42,7 +42,7 @@ packaging==22.0
     # via sphinx
 pyenchant==3.2.2
     # via sphinxcontrib-spelling
-pygments==2.13.0
+pygments==2.14.0
     # via
     #   furo
     #   pygments-github-lexers
@@ -61,7 +61,7 @@ snowballstemmer==2.2.0
     # via sphinx
 soupsieve==2.3.2.post1
     # via beautifulsoup4
-sphinx==6.0.0
+sphinx==6.1.1
     # via
     #   -r docs/requirements.in
     #   furo
