@@ -241,6 +241,13 @@ class TestResolver:
         resolved = resolver.lookup("http://example.com/1")
         assert resolved.contents == resource.contents
 
+    def test_lookup_unknown_reference(self):
+        resolver = Registry().resolver()
+        ref = "http://example.com/does/not/exist"
+        with pytest.raises(exceptions.Unresolvable) as e:
+            resolver.lookup(ref)
+        assert e.value == exceptions.Unresolvable(ref=ref)
+
 
 class TestSpecification:
     def test_create_resource(self):

@@ -3,7 +3,10 @@ Errors, oh no!
 """
 from typing import Any
 
+import attrs
+
 from referencing._attrs import frozen
+from referencing.typing import URI
 
 
 @frozen
@@ -16,3 +19,17 @@ class CannotDetermineSpecification(Exception):
     """
 
     contents: Any
+
+
+@frozen
+class Unresolvable(Exception):
+    """
+    A reference was unresolvable.
+    """
+
+    ref: URI
+
+    def __eq__(self, other: Any) -> bool:
+        if self.__class__ is not other.__class__:
+            return NotImplemented
+        return attrs.astuple(self) == attrs.astuple(other)

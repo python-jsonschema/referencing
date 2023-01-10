@@ -10,6 +10,8 @@ ignore =
     B008,
     # See https://github.com/PyCQA/flake8-bugbear/issues/131
     B306,
+    # It's fine for some magic methods to not have docstrings.
+    D105,
     # This rule makes diffs uglier when expanding docstrings (and it's uglier)
     D200,
     # This rule misses sassy docstrings ending with ! or ?.

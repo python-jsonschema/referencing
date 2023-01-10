@@ -9,7 +9,7 @@ from pyrsistent import m, pmap
 from pyrsistent.typing import PMap
 
 from referencing._attrs import frozen
-from referencing.exceptions import CannotDetermineSpecification
+from referencing.exceptions import CannotDetermineSpecification, Unresolvable
 from referencing.typing import URI, D, Mapping
 
 
@@ -222,7 +222,10 @@ class Resolver(Generic[D]):
         Resolve the given reference to the resource it points to.
         """
         uri, fragment = urldefrag(urljoin(self._base_uri, ref))
-        resource = self._registry[uri]
+        try:
+            resource = self._registry[uri]
+        except KeyError:
+            raise Unresolvable(ref=ref) from None
         if fragment.startswith("/"):
             return resource.pointer(pointer=fragment, resolver=self)
 
