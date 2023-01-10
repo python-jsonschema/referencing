@@ -220,6 +220,13 @@ class Resolver(Generic[D]):
     def lookup(self, ref: URI) -> Resolved[D]:
         """
         Resolve the given reference to the resource it points to.
+
+
+        Raises:
+
+            `Unresolvable`
+
+                if the reference isn't resolvable
         """
         uri, fragment = urldefrag(urljoin(self._base_uri, ref))
         try:
