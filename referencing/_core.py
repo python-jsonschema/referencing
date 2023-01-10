@@ -76,6 +76,15 @@ class Resource(Generic[D]):
             raise CannotDetermineSpecification(contents)
         return cls(contents=contents, specification=specification)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
 
+    @classmethod
+    def opaque(cls, contents: D) -> Resource[D]:
+        """
+        Create an opaque `Resource` -- i.e. one with opaque specification.
+
+        See `Specification.OPAQUE` for details.
+        """
+        return cls(contents=contents, specification=Specification.OPAQUE)
+
     def id(self) -> URI | None:
         """
         Retrieve this resource's (specification-specific) identifier.
@@ -220,7 +229,6 @@ class Resolver(Generic[D]):
     def lookup(self, ref: URI) -> Resolved[D]:
         """
         Resolve the given reference to the resource it points to.
-
 
         Raises:
 

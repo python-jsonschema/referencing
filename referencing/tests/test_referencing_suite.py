@@ -8,7 +8,7 @@ except ImportError:
 
 import pytest
 
-from referencing import Registry, Resource, Specification
+from referencing import Registry, Resource
 
 
 class SuiteNotFound(Exception):
@@ -34,7 +34,7 @@ def test_referencing_suite(test_path):
     loaded = toml.loads(test_path.read_text())
     registry = loaded["registry"]
     registry = Registry().with_resources(
-        (uri, Resource(contents=contents, specification=Specification.OPAQUE))
+        (uri, Resource.opaque(contents=contents))
         for uri, contents in loaded["registry"].items()
     )
     for test in loaded["tests"]:

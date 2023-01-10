@@ -10,10 +10,7 @@ class TestRegistry:
         Adding a resource to the registry then allows re-retrieving it.
         """
 
-        resource = Resource(
-            contents={"foo": "bar"},
-            specification=Specification.OPAQUE,
-        )
+        resource = Resource.opaque(contents={"foo": "bar"})
         uri = "urn:example"
         registry = Registry().with_resource(uri=uri, resource=resource)
         assert registry[uri] is resource
@@ -23,7 +20,7 @@ class TestRegistry:
         Adding multiple resources to the registry is like adding each one.
         """
 
-        one = Resource(contents={}, specification=Specification.OPAQUE)
+        one = Resource.opaque(contents={})
         two = Resource(contents={"foo": "bar"}, specification=DRAFT202012)
         registry = Registry().with_resources(
             [
@@ -53,11 +50,7 @@ class TestRegistry:
             [(uri, {"foo": "bar"})],
             default_specification=Specification.OPAQUE,
         )
-        expected = Resource(
-            contents={"foo": "bar"},
-            specification=Specification.OPAQUE,
-        )
-        assert registry[uri] == expected
+        assert registry[uri] == Resource.opaque({"foo": "bar"})
 
     def test_len(self):
         total = 5
@@ -75,25 +68,19 @@ class TestRegistry:
         assert set(registry) == {str(i) for i in range(8)}
 
     def test_crawl_still_has_top_level_resource(self):
-        resource = Resource(
-            contents={"foo": "bar"},
-            specification=Specification.OPAQUE,
-        )
+        resource = Resource.opaque({"foo": "bar"})
         uri = "urn:example"
         registry = Registry().with_resources([(uri, resource)]).crawl()
         assert registry[uri] is resource
 
     def test_contents(self):
-        resource = Resource(
-            contents={"foo": "bar"},
-            specification=Specification.OPAQUE,
-        )
+        resource = Resource.opaque({"foo": "bar"})
         uri = "urn:example"
         registry = Registry().with_resources([(uri, resource)])
         assert registry.contents(uri) == {"foo": "bar"}
 
     def test_init(self):
-        one = Resource(contents={}, specification=Specification.OPAQUE)
+        one = Resource.opaque(contents={})
         two = Resource(contents={"foo": "bar"}, specification=DRAFT202012)
         registry = Registry(
             {
@@ -115,7 +102,7 @@ class TestRegistry:
         So continuing to use the registry works.
         """
 
-        one = Resource(contents={}, specification=Specification.OPAQUE)
+        one = Resource.opaque(contents={})
         two = Resource(contents={"foo": "bar"}, specification=DRAFT202012)
         registry = Registry(
             {"http://example.com/1": one},
@@ -128,7 +115,7 @@ class TestRegistry:
         )
 
     def test_combine(self):
-        one = Resource(contents={}, specification=Specification.OPAQUE)
+        one = Resource.opaque(contents={})
         two = Resource(contents={"foo": "bar"}, specification=DRAFT202012)
         three = Resource(contents={"baz": "quux"}, specification=DRAFT202012)
 
@@ -170,10 +157,7 @@ class TestResource:
             {"foo": "bar"},
             default_specification=Specification.OPAQUE,
         )
-        assert resource == Resource(
-            contents={"foo": "bar"},
-            specification=Specification.OPAQUE,
-        )
+        assert resource == Resource.opaque(contents={"foo": "bar"})
 
     def test_from_contents_unneeded_default(self):
         schema = {"$schema": "https://json-schema.org/draft/2020-12/schema"}
@@ -189,22 +173,16 @@ class TestResource:
     def test_non_mapping_from_contents(self):
         resource = Resource.from_contents(
             True,
-            default_specification=Specification.OPAQUE,
+            default_specification=DRAFT202012,
         )
-        assert resource == Resource(
-            contents=True,
-            specification=Specification.OPAQUE,
-        )
+        assert resource == Resource(contents=True, specification=DRAFT202012)
 
     def test_from_contents_with_fallback(self):
         resource = Resource.from_contents(
             {"foo": "bar"},
             default_specification=Specification.OPAQUE,
         )
-        assert resource == Resource(
-            contents={"foo": "bar"},
-            specification=Specification.OPAQUE,
-        )
+        assert resource == Resource.opaque(contents={"foo": "bar"})
 
     def test_id_delegates_to_specification(self):
         specification = Specification(id_of=lambda contents: "urn:fixedID")
@@ -215,28 +193,26 @@ class TestResource:
         assert resource.id() == "urn:fixedID"
 
     def test_pointer_to_mapping(self):
-        resource = Resource(
-            contents={"foo": "baz"},
-            specification=Specification.OPAQUE,
-        )
+        resource = Resource.opaque(contents={"foo": "baz"})
         resolver = Registry().resolver()
         assert resource.pointer("/foo", resolver=resolver).contents == "baz"
 
     def test_pointer_to_array(self):
-        resource = Resource(
-            contents={"foo": {"bar": [3]}},
-            specification=Specification.OPAQUE,
-        )
+        resource = Resource.opaque(contents={"foo": {"bar": [3]}})
         resolver = Registry().resolver()
         assert resource.pointer("/foo/bar/0", resolver=resolver).contents == 3
+
+    def test_opaque(self):
+        contents = {"foo": "bar"}
+        assert Resource.opaque(contents) == Resource(
+            contents=contents,
+            specification=Specification.OPAQUE,
+        )
 
 
 class TestResolver:
     def test_lookup_exact_uri(self):
-        resource = Resource(
-            contents={"foo": "baz"},
-            specification=Specification.OPAQUE,
-        )
+        resource = Resource.opaque(contents={"foo": "baz"})
         resolver = Registry({"http://example.com/1": resource}).resolver()
         resolved = resolver.lookup("http://example.com/1")
         assert resolved.contents == resource.contents
