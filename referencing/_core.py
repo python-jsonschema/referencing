@@ -239,9 +239,9 @@ class Resolver(Generic[D]):
         uri, fragment = urldefrag(urljoin(self._base_uri, ref))
         try:
             resource = self._registry[uri]
+            if fragment.startswith("/"):
+                return resource.pointer(pointer=fragment, resolver=self)
         except KeyError:
             raise Unresolvable(ref=ref) from None
-        if fragment.startswith("/"):
-            return resource.pointer(pointer=fragment, resolver=self)
 
         return Resolved(contents=resource.contents, resolver=self)

@@ -224,6 +224,14 @@ class TestResolver:
             resolver.lookup(ref)
         assert e.value == exceptions.Unresolvable(ref=ref)
 
+    def test_lookup_non_existent_pointer(self):
+        resource = Resource.opaque({"foo": {}})
+        resolver = Registry({"http://example.com/1": resource}).resolver()
+        ref = "http://example.com/1#/foo/bar"
+        with pytest.raises(exceptions.Unresolvable) as e:
+            resolver.lookup(ref)
+        assert e.value == exceptions.Unresolvable(ref=ref)
+
 
 class TestSpecification:
     def test_create_resource(self):
