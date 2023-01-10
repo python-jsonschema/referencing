@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator
+from collections.abc import Iterable, Iterator, Sequence
 from typing import Any, Callable, ClassVar, Generic
+from urllib.parse import unquote, urldefrag, urljoin
 
 from attrs import evolve, field
 from pyrsistent import m, pmap
@@ -80,6 +81,19 @@ class Resource(Generic[D]):
         Retrieve this resource's (specification-specific) identifier.
         """
         return self._specification.id_of(self.contents)
+
+    def pointer(self, pointer: str, resolver: Resolver[D]) -> Resolved[D]:
+        """
+        Resolve the given JSON pointer.
+        """
+        contents = self.contents
+        for segment in unquote(pointer[1:]).split("/"):
+            if isinstance(contents, Sequence):
+                segment = int(segment)
+            else:
+                segment = segment.replace("~1", "/").replace("~0", "~")
+            contents = contents[segment]  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+        return Resolved(contents=contents, resolver=resolver)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
 
 
 @frozen
@@ -167,11 +181,11 @@ class Registry(Mapping[URI, Resource[D]]):
         contents = (registry._contents for registry in registries)
         return evolve(self, contents=self._contents.update(*contents))  # type: ignore[reportUnknownMemberType]  # noqa: E501
 
-    def resolver(self) -> Resolver[D]:
+    def resolver(self, base_uri: URI = "") -> Resolver[D]:
         """
         Return a `Resolver` which resolves references against this registry.
         """
-        return Resolver(registry=self)
+        return Resolver(base_uri=base_uri, registry=self)
 
 
 @frozen
@@ -200,11 +214,16 @@ class Resolver(Generic[D]):
     intermediate resource sets a new base URI).
     """
 
+    _base_uri: str = field(alias="base_uri")
     _registry: Registry[D] = field(alias="registry")
 
-    def lookup(self, uri: URI) -> Resolved[D]:
+    def lookup(self, ref: URI) -> Resolved[D]:
         """
-        Look up the resource at the given URI.
+        Resolve the given reference to the resource it points to.
         """
-        contents = self._registry.contents(uri)
-        return Resolved(contents=contents, resolver=self)
+        uri, fragment = urldefrag(urljoin(self._base_uri, ref))
+        resource = self._registry[uri]
+        if fragment.startswith("/"):
+            return resource.pointer(pointer=fragment, resolver=self)
+
+        return Resolved(contents=resource.contents, resolver=self)

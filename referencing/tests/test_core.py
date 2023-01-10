@@ -214,6 +214,22 @@ class TestResource:
         )
         assert resource.id() == "urn:fixedID"
 
+    def test_pointer_to_mapping(self):
+        resource = Resource(
+            contents={"foo": "baz"},
+            specification=Specification.OPAQUE,
+        )
+        resolver = Registry().resolver()
+        assert resource.pointer("/foo", resolver=resolver).contents == "baz"
+
+    def test_pointer_to_array(self):
+        resource = Resource(
+            contents={"foo": {"bar": [3]}},
+            specification=Specification.OPAQUE,
+        )
+        resolver = Registry().resolver()
+        assert resource.pointer("/foo/bar/0", resolver=resolver).contents == 3
+
 
 class TestResolver:
     def test_lookup_exact_uri(self):
