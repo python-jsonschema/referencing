@@ -60,9 +60,23 @@ def test_unknown_dialect():
         ("id", referencing.jsonschema.DRAFT3),
     ],
 )
-def test_id_of(id, specification):
+def test_id_of_mapping(id, specification):
     uri = "http://example.com/some-schema"
     assert specification.id_of({id: uri}) == uri
+
+
+@pytest.mark.parametrize(
+    "specification",
+    [
+        referencing.jsonschema.DRAFT202012,
+        referencing.jsonschema.DRAFT201909,
+        referencing.jsonschema.DRAFT7,
+        referencing.jsonschema.DRAFT6,
+    ],
+)
+@pytest.mark.parametrize("value", [True, False])
+def test_id_of_bool(specification, value):
+    assert specification.id_of(value) is None
 
 
 @pytest.mark.parametrize(

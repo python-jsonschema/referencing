@@ -28,7 +28,9 @@ class UnknownDialect(Exception):
     uri: URI
 
 
-def _dollar_id(contents: ObjectSchema) -> URI | None:
+def _dollar_id(contents: Schema) -> URI | None:
+    if isinstance(contents, bool):
+        return
     return contents.get("$id")
 
 
