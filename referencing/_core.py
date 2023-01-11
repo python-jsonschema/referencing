@@ -60,6 +60,14 @@ class Resource(Generic[D]):
     ) -> Resource[D]:
         """
         Attempt to discern which specification applies to the given contents.
+
+        Raises:
+
+            `CannotDetermineSpecification`
+
+                if the given contents don't have any discernible
+                information which could be used to guess which
+                specification they identify as
         """
         specification = default_specification
         if isinstance(contents, Mapping):

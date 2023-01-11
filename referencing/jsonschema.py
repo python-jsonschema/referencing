@@ -65,6 +65,12 @@ def specification_with(
 ) -> Specification[Any]:
     """
     Retrieve the `Specification` with the given dialect identifier.
+
+    Raises:
+
+        `UnknownDialect`
+
+            if the given ``dialect_id`` isn't known
     """
     resource = _SPECIFICATIONS.get(dialect_id)
     if resource is not None:
