@@ -50,6 +50,11 @@ dynamic_context = "test_function"
 [tool.coverage.report]
 fail_under = 100
 
+[tool.doc8]
+ignore = [
+    "D001",  # one sentence per line, so max length doesn't make sense
+]
+
 [tool.isort]
 combine_as_imports = true
 from_first = true

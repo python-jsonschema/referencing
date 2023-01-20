@@ -112,4 +112,4 @@ def docs_style(session):
         "pygments",
         "pygments-github-lexers",
     )
-    session.run("python", "-m", "doc8", "--max-line-length", "1000", DOCS)
+    session.run("python", "-m", "doc8", "--config", PYPROJECT, DOCS)
