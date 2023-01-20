@@ -24,6 +24,7 @@ class UnsupportedSubclassing(Exception):
     pass
 
 
+@staticmethod
 def _do_not_subclass() -> NoReturn:  # pragma: no cover
     raise UnsupportedSubclassing(
         "Subclassing is not part of referencing's public API. "

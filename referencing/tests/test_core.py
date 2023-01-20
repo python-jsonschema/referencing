@@ -262,7 +262,7 @@ class TestOpaqueSpecification:
     [Registry, Resource, Specification],
 )
 def test_nonsubclassable(cls):
-    with pytest.raises(Exception):
+    with pytest.raises(Exception, match="(?i)subclassing"):  # noqa: B017
 
         class Boom(cls):  # pragma: no cover
             pass
