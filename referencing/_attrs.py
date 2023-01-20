@@ -2,9 +2,6 @@ from __future__ import annotations
 
 from typing import NoReturn, TypeVar
 
-# Yak stack:
-#   - PyCQA/pylint#6006
-#   - python/mypy#5406
 from attrs import define as _define, frozen as _frozen
 
 _T = TypeVar("_T")
