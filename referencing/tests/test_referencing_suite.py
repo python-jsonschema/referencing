@@ -1,10 +1,6 @@
 from pathlib import Path
+import json
 import os
-
-try:
-    import tomllib as toml
-except ImportError:
-    import tomli as toml
 
 import pytest
 
@@ -22,16 +18,16 @@ class SuiteNotFound(Exception):
 
 
 if "REFERENCING_SUITE" in os.environ:
-    REFERENCING_SUITE = Path(os.environ["REFERENCING_SUITE"])
+    REFERENCING_SUITE = Path(os.environ["REFERENCING_SUITE"]) / "tests"
 else:
-    REFERENCING_SUITE = Path(__file__).parent.parent.parent / "suite"
+    REFERENCING_SUITE = Path(__file__).parent.parent.parent / "suite/tests"
 if not REFERENCING_SUITE.is_dir():
     raise SuiteNotFound()
 
 
-@pytest.mark.parametrize("test_path", REFERENCING_SUITE.rglob("*.toml"))
+@pytest.mark.parametrize("test_path", REFERENCING_SUITE.rglob("*.json"))
 def test_referencing_suite(test_path):
-    loaded = toml.loads(test_path.read_text())
+    loaded = json.loads(test_path.read_text())
     registry = loaded["registry"]
     registry = Registry().with_resources(
         (uri, Resource.opaque(contents=contents))

@@ -22,11 +22,7 @@ def session(default=True, **kwargs):
 
 @session(python=["3.8", "3.9", "3.10", "3.11", "pypy3"])
 def tests(session):
-    dependencies = [
-        "pytest",
-        "tomli; python_version<'3.11'",
-        ROOT,
-    ]
+    dependencies = ["pytest", ROOT]
     if session.posargs == ["coverage"]:
         dependencies.append("coverage[toml]")
         session.install(*dependencies)
