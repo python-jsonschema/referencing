@@ -46,16 +46,18 @@ DRAFT4 = Specification(id_of=_legacy_id)
 DRAFT3 = Specification(id_of=_legacy_id)
 
 
-_SPECIFICATIONS: Registry[Specification[Schema]] = Registry().with_resources(  # type: ignore[reportUnknownMemberType]  # noqa: E501
-    (dialect_id, Resource(contents=specification, specification=specification))  # type: ignore[reportUnknownArgumentType]  # noqa: E501
-    for dialect_id, specification in [
-        ("https://json-schema.org/draft/2020-12/schema", DRAFT202012),
-        ("https://json-schema.org/draft/2019-09/schema", DRAFT201909),
-        ("http://json-schema.org/draft-07/schema#", DRAFT7),
-        ("http://json-schema.org/draft-06/schema#", DRAFT6),
-        ("http://json-schema.org/draft-04/schema#", DRAFT4),
-        ("http://json-schema.org/draft-03/schema#", DRAFT3),
-    ]
+_SPECIFICATIONS: Registry[Specification[Schema]] = Registry(
+    {
+        dialect_id: Resource.opaque(specification)
+        for dialect_id, specification in [
+            ("https://json-schema.org/draft/2020-12/schema", DRAFT202012),
+            ("https://json-schema.org/draft/2019-09/schema", DRAFT201909),
+            ("http://json-schema.org/draft-07/schema#", DRAFT7),
+            ("http://json-schema.org/draft-06/schema#", DRAFT6),
+            ("http://json-schema.org/draft-04/schema#", DRAFT4),
+            ("http://json-schema.org/draft-03/schema#", DRAFT3),
+        ]
+    },
 )
 
 

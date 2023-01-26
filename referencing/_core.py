@@ -6,7 +6,6 @@ from urllib.parse import unquote, urldefrag, urljoin
 
 from attrs import evolve, field
 from pyrsistent import m, pmap
-from pyrsistent.typing import PMap
 
 from referencing._attrs import frozen
 from referencing.exceptions import CannotDetermineSpecification, Unresolvable
@@ -92,7 +91,7 @@ class Resource(Generic[D]):
 
         See `Specification.OPAQUE` for details.
         """
-        return cls(contents=contents, specification=Specification.OPAQUE)
+        return Specification.OPAQUE.create_resource(contents=contents)
 
     def id(self) -> URI | None:
         """
@@ -132,31 +131,31 @@ class Registry(Mapping[URI, Resource[D]]):
     registry with the additional resources added to them.
     """
 
-    _contents: PMap[URI, Resource[D]] = field(default=m(), converter=pmap)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+    _resources: Mapping[URI, Resource[D]] = field(default=m(), converter=pmap)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
 
     def __getitem__(self, uri: URI) -> Resource[D]:
         """
         Return the `Resource` identified by the given URI.
         """
-        return self._contents[uri]
+        return self._resources[uri]
 
     def __iter__(self) -> Iterator[URI]:
         """
         Iterate over all known URIs in the registry.
         """
-        return iter(self._contents)
+        return iter(self._resources)
 
     def __len__(self) -> int:
         """
         Count the total number of (fully crawled) resources in this registry.
         """
-        return len(self._contents)
+        return len(self._resources)
 
     def contents(self, uri: URI) -> D:
         """
         Retrieve the contents identified by the given URI.
         """
-        return self._contents[uri].contents
+        return self._resources[uri].contents
 
     def crawl(self) -> Registry[D]:
         """
@@ -177,7 +176,7 @@ class Registry(Mapping[URI, Resource[D]]):
         r"""
         Add the given `Resource`\ s to the registry, without crawling them.
         """
-        return evolve(self, contents=self._contents.update(pmap(pairs)))  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+        return evolve(self, resources=self._resources.update(pmap(pairs)))  # type: ignore[reportUnknownArgumentType]  # noqa: E501
 
     def with_contents(
         self,
@@ -196,8 +195,8 @@ class Registry(Mapping[URI, Resource[D]]):
         """
         Combine together one or more other registries, producing a unified one.
         """
-        contents = (registry._contents for registry in registries)
-        return evolve(self, contents=self._contents.update(*contents))  # type: ignore[reportUnknownMemberType]  # noqa: E501
+        contents = (registry._resources for registry in registries)
+        return evolve(self, resources=self._resources.update(*contents))  # type: ignore[reportUnknownMemberType]  # noqa: E501
 
     def resolver(self, base_uri: URI = "") -> Resolver[D]:
         """
@@ -229,7 +228,8 @@ class Resolver(Generic[D]):
 
     The process of resolving a reference may itself involve calculating
     a *new* base URI for future reference resolution (e.g. if an
-    intermediate resource sets a new base URI).
+    intermediate resource sets a new base URI), or may involve encountering
+    additional subresources and adding them to a new registry.
     """
 
     _base_uri: str = field(alias="base_uri")

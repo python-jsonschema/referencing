@@ -70,7 +70,7 @@ class TestRegistry:
     def test_crawl_still_has_top_level_resource(self):
         resource = Resource.opaque({"foo": "bar"})
         uri = "urn:example"
-        registry = Registry().with_resources([(uri, resource)]).crawl()
+        registry = Registry({uri: resource}).crawl()
         assert registry[uri] is resource
 
     def test_contents(self):
