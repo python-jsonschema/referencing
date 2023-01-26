@@ -21,7 +21,7 @@ class CannotDetermineSpecification(Exception):
     contents: Any
 
 
-@frozen
+@attrs.frozen
 class Unresolvable(Exception):
     """
     A reference was unresolvable.
@@ -33,3 +33,12 @@ class Unresolvable(Exception):
         if self.__class__ is not other.__class__:
             return NotImplemented
         return attrs.astuple(self) == attrs.astuple(other)
+
+
+@frozen
+class PointerToNowhere(Unresolvable):
+    """
+    A JSON Pointer leads to a part of a document that does not exist.
+    """
+
+    resource: Any

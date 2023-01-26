@@ -8,8 +8,8 @@ from attrs import evolve, field
 from pyrsistent import m, pmap, s
 from pyrsistent.typing import PMap, PSet
 
+from referencing import exceptions
 from referencing._attrs import frozen
-from referencing.exceptions import CannotDetermineSpecification, Unresolvable
 from referencing.typing import URI, D, Mapping
 
 
@@ -89,7 +89,7 @@ class Resource(Generic[D]):
                 )
 
         if specification is None:
-            raise CannotDetermineSpecification(contents)
+            raise exceptions.CannotDetermineSpecification(contents)
         return cls(contents=contents, specification=specification)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
 
     @classmethod
@@ -122,6 +122,12 @@ class Resource(Generic[D]):
     def pointer(self, pointer: str, resolver: Resolver[D]) -> Resolved[D]:
         """
         Resolve the given JSON pointer.
+
+        Raises:
+
+            `exceptions.PointerToNowhere`
+
+                if the pointer points to a location not present in the document
         """
         contents = self.contents
         for segment in unquote(pointer[1:]).split("/"):
@@ -129,7 +135,10 @@ class Resource(Generic[D]):
                 segment = int(segment)
             else:
                 segment = segment.replace("~1", "/").replace("~0", "~")
-            contents = contents[segment]  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+            try:
+                contents = contents[segment]  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+            except LookupError:
+                raise exceptions.PointerToNowhere(ref=pointer, resource=self)
         return Resolved(contents=contents, resolver=resolver)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
 
 
@@ -295,21 +304,21 @@ class Resolver(Generic[D]):
 
         Raises:
 
-            `Unresolvable`
+            `exceptions.Unresolvable`
 
                 if the reference isn't resolvable
         """
         uri, fragment = urldefrag(urljoin(self._base_uri, ref))
         resolver, registry = self, self._registry
         resource = registry.get(uri)
-        try:
-            if resource is None:
-                registry = registry.crawl()
+        if resource is None:
+            registry = registry.crawl()
+            try:
                 resource = registry[uri]
-                resolver = evolve(resolver, registry=registry)
-            if fragment.startswith("/"):
-                return resource.pointer(pointer=fragment, resolver=resolver)
-        except KeyError:
-            raise Unresolvable(ref=ref) from None
+            except KeyError:
+                raise exceptions.Unresolvable(ref=ref) from None
+            resolver = evolve(resolver, registry=registry)
+        if fragment.startswith("/"):
+            return resource.pointer(pointer=fragment, resolver=resolver)
 
         return Resolved(contents=resource.contents, resolver=resolver)
