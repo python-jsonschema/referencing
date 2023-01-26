@@ -22,6 +22,7 @@ class Specification(Generic[D]):
     behavior across JSON Schema specification versions, etc.
     """
 
+    #: Find the ID of a given document.
     id_of: Callable[[D], URI | None]
 
     #: An opaque specification where resources have no subresources
