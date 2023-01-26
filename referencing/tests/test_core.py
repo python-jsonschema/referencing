@@ -4,6 +4,7 @@ from referencing import Registry, Resource, Specification, exceptions
 from referencing.jsonschema import DRAFT202012
 
 ID_AND_CHILDREN = Specification(
+    name="id-and-children",
     id_of=lambda contents: contents.get("ID"),
     subresources_of=lambda contents: contents.get("children", []),
 )
@@ -274,6 +275,7 @@ class TestResource:
 
     def test_id_delegates_to_specification(self):
         specification = Specification(
+            name="",
             id_of=lambda contents: "urn:fixedID",
             subresources_of=lambda contents: [],
         )
@@ -367,6 +369,7 @@ class TestResolver:
 class TestSpecification:
     def test_create_resource(self):
         specification = Specification(
+            name="",
             id_of=lambda contents: "urn:fixedID",
             subresources_of=lambda contents: [],
         )
@@ -376,6 +379,11 @@ class TestSpecification:
             specification=specification,
         )
         assert resource.id() == "urn:fixedID"
+
+    def test_repr(self):
+        assert (
+            repr(ID_AND_CHILDREN) == "<Specification name='id-and-children'>"
+        )
 
 
 class TestOpaqueSpecification:

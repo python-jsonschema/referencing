@@ -22,6 +22,9 @@ class Specification(Generic[D]):
     behavior across JSON Schema specification versions, etc.
     """
 
+    #: A short human-readable name for the specification, used for debugging.
+    name: str
+
     #: Find the ID of a given document.
     id_of: Callable[[D], URI | None]
 
@@ -33,6 +36,9 @@ class Specification(Generic[D]):
     #: nor internal identifiers.
     OPAQUE: ClassVar[Specification[Any]]
 
+    def __repr__(self):
+        return f"<Specification name={self.name!r}>"
+
     def create_resource(self, contents: D) -> Resource[D]:
         """
         Create a resource which is interpreted using this specification.
@@ -41,6 +47,7 @@ class Specification(Generic[D]):
 
 
 Specification.OPAQUE = Specification(
+    name="opaque",
     id_of=lambda contents: None,
     subresources_of=lambda contents: [],
 )

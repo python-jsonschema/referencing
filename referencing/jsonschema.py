@@ -56,26 +56,32 @@ def _subresources_of(values: Set[str] = frozenset()):
 
 
 DRAFT202012 = Specification(
+    name="draft2020-12",
     id_of=_dollar_id,
     subresources_of=lambda contents: [],
 )
 DRAFT201909 = Specification(
+    name="draft2019-09",
     id_of=_dollar_id,
     subresources_of=lambda contents: [],
 )
 DRAFT7 = Specification(
+    name="draft-07",
     id_of=_dollar_id,
     subresources_of=_subresources_of(values={"if", "then", "else"}),
 )
 DRAFT6 = Specification(
+    name="draft-06",
     id_of=_dollar_id,
     subresources_of=lambda contents: [],
 )
 DRAFT4 = Specification(
+    name="draft-04",
     id_of=_legacy_id,
     subresources_of=lambda contents: [],
 )
 DRAFT3 = Specification(
+    name="draft-03",
     id_of=_legacy_id,
     subresources_of=lambda contents: [],
 )
