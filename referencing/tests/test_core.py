@@ -3,6 +3,11 @@ import pytest
 from referencing import Registry, Resource, Specification, exceptions
 from referencing.jsonschema import DRAFT202012
 
+ID_AND_CHILDREN = Specification(
+    id_of=lambda contents: contents.get("ID"),
+    subresources_of=lambda contents: contents.get("children", []),
+)
+
 
 class TestRegistry:
     def test_with_resource(self):
@@ -21,7 +26,7 @@ class TestRegistry:
         """
 
         one = Resource.opaque(contents={})
-        two = Resource(contents={"foo": "bar"}, specification=DRAFT202012)
+        two = Resource(contents={"foo": "bar"}, specification=ID_AND_CHILDREN)
         registry = Registry().with_resources(
             [
                 ("http://example.com/1", one),
@@ -36,7 +41,7 @@ class TestRegistry:
             resource=two,
         )
 
-    def test_with_contents(self):
+    def test_with_contents_from_json_schema(self):
         uri = "urn:example"
         schema = {"$schema": "https://json-schema.org/draft/2020-12/schema"}
         registry = Registry().with_contents([(uri, schema)])
@@ -81,7 +86,7 @@ class TestRegistry:
 
     def test_init(self):
         one = Resource.opaque(contents={})
-        two = Resource(contents={"foo": "bar"}, specification=DRAFT202012)
+        two = ID_AND_CHILDREN.create_resource({"foo": "bar"})
         registry = Registry(
             {
                 "http://example.com/1": one,
@@ -103,7 +108,7 @@ class TestRegistry:
         """
 
         one = Resource.opaque(contents={})
-        two = Resource(contents={"foo": "bar"}, specification=DRAFT202012)
+        two = ID_AND_CHILDREN.create_resource({"foo": "bar"})
         registry = Registry(
             {"http://example.com/1": one},
         ).with_resources([("http://example.com/foo/bar", two)])
@@ -116,8 +121,8 @@ class TestRegistry:
 
     def test_combine(self):
         one = Resource.opaque(contents={})
-        two = Resource(contents={"foo": "bar"}, specification=DRAFT202012)
-        three = Resource(contents={"baz": "quux"}, specification=DRAFT202012)
+        two = ID_AND_CHILDREN.create_resource({"foo": "bar"})
+        three = ID_AND_CHILDREN.create_resource({"baz": "quux"})
 
         first = Registry({"http://example.com/1": one})
         second = Registry({"http://example.com/foo/bar": two})
@@ -137,7 +142,7 @@ class TestRegistry:
 
     def test_repr(self):
         one = Resource.opaque(contents={})
-        two = Resource(contents={"foo": "bar"}, specification=DRAFT202012)
+        two = ID_AND_CHILDREN.create_resource({"foo": "bar"})
         registry = Registry().with_resources(
             [
                 ("http://example.com/1", one),
@@ -194,9 +199,12 @@ class TestResource:
     def test_non_mapping_from_contents(self):
         resource = Resource.from_contents(
             True,
-            default_specification=DRAFT202012,
+            default_specification=ID_AND_CHILDREN,
         )
-        assert resource == Resource(contents=True, specification=DRAFT202012)
+        assert resource == Resource(
+            contents=True,
+            specification=ID_AND_CHILDREN,
+        )
 
     def test_from_contents_with_fallback(self):
         resource = Resource.from_contents(
