@@ -151,6 +151,11 @@ class Registry(Mapping[URI, Resource[D]]):
         """
         return len(self._resources)
 
+    def __repr__(self) -> str:
+        size = len(self)
+        pluralized = "resource" if size == 1 else "resources"
+        return f"<Registry ({size} {pluralized})>"
+
     def contents(self, uri: URI) -> D:
         """
         Retrieve the contents identified by the given URI.

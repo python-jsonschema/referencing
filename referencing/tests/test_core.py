@@ -135,6 +135,27 @@ class TestRegistry:
             ],
         )
 
+    def test_repr(self):
+        one = Resource.opaque(contents={})
+        two = Resource(contents={"foo": "bar"}, specification=DRAFT202012)
+        registry = Registry().with_resources(
+            [
+                ("http://example.com/1", one),
+                ("http://example.com/foo/bar", two),
+            ],
+        )
+        assert repr(registry) == "<Registry (2 resources)>"
+
+    def test_repr_one_resource(self):
+        registry = Registry().with_resource(
+            uri="http://example.com/1",
+            resource=Resource.opaque(contents={}),
+        )
+        assert repr(registry) == "<Registry (1 resource)>"
+
+    def test_repr_empty(self):
+        assert repr(Registry()) == "<Registry (0 resources)>"
+
 
 class TestResource:
     def test_from_contents_from_json_schema(self):
