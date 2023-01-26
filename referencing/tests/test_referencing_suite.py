@@ -4,7 +4,8 @@ import os
 
 import pytest
 
-from referencing import Registry, Resource
+from referencing import Registry
+import referencing.jsonschema
 
 
 class SuiteNotFound(Exception):
@@ -18,19 +19,22 @@ class SuiteNotFound(Exception):
 
 
 if "REFERENCING_SUITE" in os.environ:
-    REFERENCING_SUITE = Path(os.environ["REFERENCING_SUITE"]) / "tests"
+    SUITE = Path(os.environ["REFERENCING_SUITE"]) / "tests"
 else:
-    REFERENCING_SUITE = Path(__file__).parent.parent.parent / "suite/tests"
-if not REFERENCING_SUITE.is_dir():
+    SUITE = Path(__file__).parent.parent.parent / "suite/tests"
+if not SUITE.is_dir():
     raise SuiteNotFound()
+DIALECT_IDS = json.loads(SUITE.joinpath("specifications.json").read_text())
 
 
-@pytest.mark.parametrize("test_path", REFERENCING_SUITE.rglob("*.json"))
+@pytest.mark.parametrize("test_path", SUITE.glob("*/**/*.json"))
 def test_referencing_suite(test_path):
+    dialect_id = DIALECT_IDS[test_path.relative_to(SUITE).parts[0]]
+    specification = referencing.jsonschema.specification_with(dialect_id)
     loaded = json.loads(test_path.read_text())
     registry = loaded["registry"]
     registry = Registry().with_resources(
-        (uri, Resource.opaque(contents=contents))
+        (uri, specification.create_resource(contents))
         for uri, contents in loaded["registry"].items()
     )
     for test in loaded["tests"]:

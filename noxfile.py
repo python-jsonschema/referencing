@@ -30,7 +30,7 @@ def tests(session):
         session.run("coverage", "report")
     else:
         session.install(*dependencies)
-        session.run("pytest", *session.posargs)
+        session.run("pytest", *session.posargs, REFERENCING)
 
 
 @session(tags=["build"])

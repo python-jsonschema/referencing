@@ -5,7 +5,8 @@ from typing import Any, Callable, ClassVar, Generic
 from urllib.parse import unquote, urldefrag, urljoin
 
 from attrs import evolve, field
-from pyrsistent import m, pmap
+from pyrsistent import m, pmap, s
+from pyrsistent.typing import PMap, PSet
 
 from referencing._attrs import frozen
 from referencing.exceptions import CannotDetermineSpecification, Unresolvable
@@ -24,6 +25,10 @@ class Specification(Generic[D]):
     #: Find the ID of a given document.
     id_of: Callable[[D], URI | None]
 
+    #: Retrieve the subresources of the given document (without traversing into
+    #: the subresources themselves).
+    subresources_of: Callable[[D], Iterable[D]]
+
     #: An opaque specification where resources have no subresources
     #: nor internal identifiers.
     OPAQUE: ClassVar[Specification[Any]]
@@ -35,7 +40,10 @@ class Specification(Generic[D]):
         return Resource(contents=contents, specification=self)
 
 
-Specification.OPAQUE = Specification(id_of=lambda contents: None)
+Specification.OPAQUE = Specification(
+    id_of=lambda contents: None,
+    subresources_of=lambda contents: [],
+)
 
 
 @frozen
@@ -99,6 +107,18 @@ class Resource(Generic[D]):
         """
         return self._specification.id_of(self.contents)
 
+    def subresources(self) -> Iterable[Resource[D]]:
+        """
+        Retrieve this resource's subresources.
+        """
+        return (
+            Resource.from_contents(
+                each,
+                default_specification=self._specification,
+            )
+            for each in self._specification.subresources_of(self.contents)
+        )
+
     def pointer(self, pointer: str, resolver: Resolver[D]) -> Resolved[D]:
         """
         Resolve the given JSON pointer.
@@ -131,7 +151,8 @@ class Registry(Mapping[URI, Resource[D]]):
     registry with the additional resources added to them.
     """
 
-    _resources: Mapping[URI, Resource[D]] = field(default=m(), converter=pmap)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+    _resources: PMap[URI, Resource[D]] = field(default=m(), converter=pmap)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+    _uncrawled: PSet[URI] = field(default=s())  # type: ignore[reportUnknownArgumentType]  # noqa: E501
 
     def __getitem__(self, uri: URI) -> Resource[D]:
         """
@@ -154,7 +175,15 @@ class Registry(Mapping[URI, Resource[D]]):
     def __repr__(self) -> str:
         size = len(self)
         pluralized = "resource" if size == 1 else "resources"
-        return f"<Registry ({size} {pluralized})>"
+        if self._uncrawled:
+            uncrawled = len(self._uncrawled)
+            if uncrawled == size:
+                summary = f"uncrawled {pluralized}"
+            else:
+                summary = f"{pluralized}, {uncrawled} uncrawled"
+        else:
+            summary = f"{pluralized}"
+        return f"<Registry ({size} {summary})>"
 
     def contents(self, uri: URI) -> D:
         """
@@ -166,7 +195,18 @@ class Registry(Mapping[URI, Resource[D]]):
         """
         Immediately crawl all added resources, discovering subresources.
         """
-        return self
+        resources = self._resources.evolver()
+        uncrawled = [(uri, resources[uri]) for uri in self._uncrawled]
+        while uncrawled:
+            uri, resource = uncrawled.pop()
+            id = resource.id()
+            if id is None:
+                pass
+            else:
+                uri = urljoin(uri, id)
+                resources[uri] = resource
+            uncrawled.extend((uri, each) for each in resource.subresources())
+        return evolve(self, resources=resources.persistent(), uncrawled=s())
 
     def with_resource(self, uri: URI, resource: Resource[D]):
         """
@@ -181,7 +221,16 @@ class Registry(Mapping[URI, Resource[D]]):
         r"""
         Add the given `Resource`\ s to the registry, without crawling them.
         """
-        return evolve(self, resources=self._resources.update(pmap(pairs)))  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+        resources = self._resources.evolver()
+        uncrawled = self._uncrawled.evolver()
+        for uri, resource in pairs:
+            uncrawled.add(uri)
+            resources[uri] = resource
+        return evolve(
+            self,
+            resources=resources.persistent(),
+            uncrawled=uncrawled.persistent(),
+        )
 
     def with_contents(
         self,
@@ -251,11 +300,16 @@ class Resolver(Generic[D]):
                 if the reference isn't resolvable
         """
         uri, fragment = urldefrag(urljoin(self._base_uri, ref))
+        resolver, registry = self, self._registry
+        resource = registry.get(uri)
         try:
-            resource = self._registry[uri]
+            if resource is None:
+                registry = registry.crawl()
+                resource = registry[uri]
+                resolver = evolve(resolver, registry=registry)
             if fragment.startswith("/"):
-                return resource.pointer(pointer=fragment, resolver=self)
+                return resource.pointer(pointer=fragment, resolver=resolver)
         except KeyError:
             raise Unresolvable(ref=ref) from None
 
-        return Resolved(contents=resource.contents, resolver=self)
+        return Resolved(contents=resource.contents, resolver=resolver)

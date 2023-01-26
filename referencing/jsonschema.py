@@ -4,7 +4,8 @@ Referencing implementations for JSON Schema specs (historic & current).
 
 from __future__ import annotations
 
-from typing import Any, Union
+from collections.abc import Set
+from typing import Any, Iterable, Union
 
 from referencing import Registry, Resource, Specification
 from referencing._attrs import frozen
@@ -38,16 +39,50 @@ def _legacy_id(contents: ObjectSchema) -> URI | None:
     return contents.get("id")
 
 
-DRAFT202012 = Specification(id_of=_dollar_id)
-DRAFT201909 = Specification(id_of=_dollar_id)
-DRAFT7 = Specification(id_of=_dollar_id)
-DRAFT6 = Specification(id_of=_dollar_id)
-DRAFT4 = Specification(id_of=_legacy_id)
-DRAFT3 = Specification(id_of=_legacy_id)
+def _subresources_of(values: Set[str] = frozenset()):
+    """
+    Create a callable returning JSON Schema specification-style subschemas.
+
+    Relies on specifying the set of keywords containing subschemas in their
+    values, in a subobject's values, or in a subarray.
+    """
+
+    def subresources_of(resource: ObjectSchema) -> Iterable[ObjectSchema]:
+        for each in values:
+            if each in resource:
+                yield resource[each]
+
+    return subresources_of
+
+
+DRAFT202012 = Specification(
+    id_of=_dollar_id,
+    subresources_of=lambda contents: [],
+)
+DRAFT201909 = Specification(
+    id_of=_dollar_id,
+    subresources_of=lambda contents: [],
+)
+DRAFT7 = Specification(
+    id_of=_dollar_id,
+    subresources_of=_subresources_of(values={"if", "then", "else"}),
+)
+DRAFT6 = Specification(
+    id_of=_dollar_id,
+    subresources_of=lambda contents: [],
+)
+DRAFT4 = Specification(
+    id_of=_legacy_id,
+    subresources_of=lambda contents: [],
+)
+DRAFT3 = Specification(
+    id_of=_legacy_id,
+    subresources_of=lambda contents: [],
+)
 
 
 _SPECIFICATIONS: Registry[Specification[Schema]] = Registry(
-    {
+    {  # type: ignore[reportGeneralTypeIssues]  # :/ internal vs external types
         dialect_id: Resource.opaque(specification)
         for dialect_id, specification in [
             ("https://json-schema.org/draft/2020-12/schema", DRAFT202012),
