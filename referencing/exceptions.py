@@ -42,3 +42,6 @@ class PointerToNowhere(Unresolvable):
     """
 
     resource: Any
+
+    def __str__(self):
+        return f"{self.ref!r} does not exist within {self.resource.contents!r}"

@@ -353,6 +353,7 @@ class TestResolver:
             ref="/foo/bar",
             resource=resource,
         )
+        assert str(e.value) == "'/foo/bar' does not exist within {'foo': {}}"
 
     def test_lookup_non_existent_pointer_to_array_index(self):
         resource = Resource.opaque([1, 2, 4, 8])
