@@ -5,6 +5,7 @@ import os
 import pytest
 
 from referencing import Registry
+from referencing.exceptions import Unresolvable
 import referencing.jsonschema
 
 
@@ -39,4 +40,9 @@ def test_referencing_suite(test_path):
     )
     for test in loaded["tests"]:
         resolver = registry.resolver(base_uri=test.get("base_uri", ""))
-        assert resolver.lookup(test["ref"]).contents == test["target"]
+
+        if test.get("error"):
+            with pytest.raises(Unresolvable):
+                resolver.lookup(test["ref"])
+        else:
+            assert resolver.lookup(test["ref"]).contents == test["target"]
