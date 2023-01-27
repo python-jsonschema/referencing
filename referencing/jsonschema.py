@@ -35,6 +35,12 @@ def _dollar_id(contents: Schema) -> URI | None:
     return contents.get("$id")
 
 
+def _dollar_id_pre2019(contents: Schema) -> URI | None:
+    if isinstance(contents, bool) or "$ref" in contents:
+        return
+    return contents.get("$id")
+
+
 def _legacy_id(contents: ObjectSchema) -> URI | None:
     return contents.get("id")
 
@@ -42,6 +48,7 @@ def _legacy_id(contents: ObjectSchema) -> URI | None:
 def _subresources_of(
     in_value: Set[str] = frozenset(),
     in_subvalues: Set[str] = frozenset(),
+    in_subarray: Set[str] = frozenset(),
 ):
     """
     Create a callable returning JSON Schema specification-style subschemas.
@@ -54,6 +61,9 @@ def _subresources_of(
         for each in in_value:
             if each in resource:
                 yield resource[each]
+        for each in in_subarray:
+            if each in resource:
+                yield from resource[each]
         for each in in_subvalues:
             if each in resource:
                 yield from resource[each].values()
@@ -73,9 +83,10 @@ DRAFT201909 = Specification(
 )
 DRAFT7 = Specification(
     name="draft-07",
-    id_of=_dollar_id,
+    id_of=_dollar_id_pre2019,
     subresources_of=_subresources_of(
         in_value={"if", "then", "else"},
+        in_subarray={"allOf", "anyOf", "oneOf"},
         in_subvalues={"definitions"},
     ),
 )
