@@ -367,6 +367,21 @@ class TestResolver:
             resolver.lookup(ref)
         assert e.value == exceptions.Unresolvable(ref=ref)
 
+    def test_multiple_lookup_pointer(self):
+        registry = Registry(
+            {
+                "http://example.com/": Resource.opaque({}),
+                "http://example.com/foo/": Resource.opaque({"foo": "bar"}),
+            },
+        )
+
+        resolver = registry.resolver()
+        first = resolver.lookup("http://example.com/foo/")
+        assert first.contents == {"foo": "bar"}
+
+        second = first.resolver.lookup("#/foo")
+        assert second.contents == "bar"
+
     def test_lookup_non_existent_pointer(self):
         resource = Resource.opaque({"foo": {}})
         resolver = Registry({"http://example.com/1": resource}).resolver()
