@@ -336,6 +336,30 @@ class TestResolver:
         resolved = resolver.lookup("http://example.com/a")
         assert resolved.contents == {"ID": "http://example.com/a", "foo": 12}
 
+    def test_multiple_lookup(self):
+        """
+        Continuing to lookup resources maintains the new base URI.
+        """
+        # FIXME: Ideally there'd be some way to represent this test in the
+        #        referencing suite, but I can't think of one yet.
+        registry = Registry(
+            {
+                "http://example.com/": Resource.opaque({}),
+                "http://example.com/foo/": Resource.opaque({"foo": "bar"}),
+                "http://example.com/foo/bar": Resource.opaque({"baz": "quux"}),
+            },
+        )
+
+        resolver = registry.resolver()
+        first = resolver.lookup("http://example.com/")
+        assert first.contents == {}
+
+        second = first.resolver.lookup("foo/")
+        assert second.contents == {"foo": "bar"}
+
+        third = second.resolver.lookup("bar")
+        assert third.contents == {"baz": "quux"}
+
     def test_lookup_unknown_reference(self):
         resolver = Registry().resolver()
         ref = "http://example.com/does/not/exist"

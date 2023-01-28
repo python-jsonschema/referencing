@@ -316,7 +316,7 @@ class Resolver(Generic[D]):
                 if the reference isn't resolvable
         """
         uri, fragment = urldefrag(urljoin(self._base_uri, ref))
-        resolver, registry = self, self._registry
+        registry = self._registry
         resource = registry.get(uri)
         if resource is None:
             registry = registry.crawl()
@@ -324,7 +324,8 @@ class Resolver(Generic[D]):
                 resource = registry[uri]
             except KeyError:
                 raise exceptions.Unresolvable(ref=ref) from None
-            resolver = evolve(resolver, registry=registry)
+
+        resolver = evolve(self, registry=registry, base_uri=uri)
         if fragment.startswith("/"):
             return resource.pointer(pointer=fragment, resolver=resolver)
 
