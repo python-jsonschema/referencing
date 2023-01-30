@@ -106,7 +106,7 @@ DRAFT7 = Specification(
     subresources_of=_subresources_of(
         in_value={"if", "then", "else"},
         in_subarray={"allOf", "anyOf", "oneOf"},
-        in_subvalues={"definitions"},
+        in_subvalues={"definitions", "properties"},
     ),
     anchors_in=_legacy_anchor_in_id,
 )
