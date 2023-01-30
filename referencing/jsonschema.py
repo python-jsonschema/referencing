@@ -49,8 +49,10 @@ def _legacy_id(contents: ObjectSchema) -> URI | None:
 
 def _legacy_anchor_in_id(
     specification: Specification[ObjectSchema],
-    contents: ObjectSchema,
+    contents: Schema,
 ) -> Iterable[Anchor[ObjectSchema]]:
+    if isinstance(contents, bool):
+        return []
     id = contents.get("$id", "")
     if not id.startswith("#"):
         return []
