@@ -45,6 +45,7 @@ _TYPE_ALIASES = dict(
     D=("data", "D"),
     ObjectSchema=("data", "ObjectSchema"),
     Schema=("data", "Schema"),
+    URI=("attr", "URI"),  # ?!?!?! Sphinx...
 )
 
 

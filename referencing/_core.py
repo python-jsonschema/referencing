@@ -10,7 +10,7 @@ from pyrsistent.typing import PMap, PSet
 
 from referencing import exceptions
 from referencing._attrs import frozen
-from referencing.typing import URI, D, Mapping
+from referencing.typing import URI, Anchor as AnchorType, D, Mapping
 
 
 @frozen
@@ -32,12 +32,24 @@ class Specification(Generic[D]):
     #: the subresources themselves).
     subresources_of: Callable[[D], Iterable[D]]
 
+    #: Retrieve the anchors contained in the given document.
+    _anchors_in: Callable[
+        [Specification[D], D],
+        Iterable[AnchorType[D]],
+    ] = field(alias="anchors_in")
+
     #: An opaque specification where resources have no subresources
     #: nor internal identifiers.
     OPAQUE: ClassVar[Specification[Any]]
 
     def __repr__(self):
         return f"<Specification name={self.name!r}>"
+
+    def anchors_in(self, contents: D):
+        """
+        Retrieve the anchors contained in the given document.
+        """
+        return self._anchors_in(self, contents)
 
     def create_resource(self, contents: D) -> Resource[D]:
         """
@@ -50,6 +62,7 @@ Specification.OPAQUE = Specification(
     name="opaque",
     id_of=lambda contents: None,
     subresources_of=lambda contents: [],
+    anchors_in=lambda specification, contents: [],
 )
 
 
@@ -126,6 +139,12 @@ class Resource(Generic[D]):
             for each in self._specification.subresources_of(self.contents)
         )
 
+    def anchors(self) -> Iterable[AnchorType[D]]:
+        """
+        Retrieve this resource's (specification-specific) identifier.
+        """
+        return self._specification.anchors_in(self.contents)
+
     def pointer(self, pointer: str, resolver: Resolver[D]) -> Resolved[D]:
         """
         Resolve the given JSON pointer.
@@ -168,6 +187,7 @@ class Registry(Mapping[URI, Resource[D]]):
     """
 
     _resources: PMap[URI, Resource[D]] = field(default=m(), converter=pmap)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+    _anchors: PMap[tuple[URI, str], AnchorType[D]] = field(default=m())  # type: ignore[reportUnknownArgumentType]  # noqa: E501
     _uncrawled: PSet[URI] = field(default=s())  # type: ignore[reportUnknownArgumentType]  # noqa: E501
 
     def __getitem__(self, uri: URI) -> Resource[D]:
@@ -201,6 +221,12 @@ class Registry(Mapping[URI, Resource[D]]):
             summary = f"{pluralized}"
         return f"<Registry ({size} {summary})>"
 
+    def anchor(self, uri: URI, name: str):
+        """
+        Retrieve the given anchor, which must already have been found.
+        """
+        return self._anchors[uri, name]
+
     def contents(self, uri: URI) -> D:
         """
         Retrieve the contents identified by the given URI.
@@ -212,17 +238,24 @@ class Registry(Mapping[URI, Resource[D]]):
         Immediately crawl all added resources, discovering subresources.
         """
         resources = self._resources.evolver()
+        anchors = self._anchors.evolver()
         uncrawled = [(uri, resources[uri]) for uri in self._uncrawled]
         while uncrawled:
             uri, resource = uncrawled.pop()
+
             id = resource.id()
-            if id is None:
-                pass
-            else:
+            if id is not None:
                 uri = urljoin(uri, id)
                 resources[uri] = resource
+            for each in resource.anchors():
+                anchors.set((uri, each.name), each)
             uncrawled.extend((uri, each) for each in resource.subresources())
-        return evolve(self, resources=resources.persistent(), uncrawled=s())
+        return evolve(
+            self,
+            resources=resources.persistent(),
+            anchors=anchors.persistent(),
+            uncrawled=s(),
+        )
 
     def with_resource(self, uri: URI, resource: Resource[D]):
         """
@@ -315,7 +348,10 @@ class Resolver(Generic[D]):
 
                 if the reference isn't resolvable
         """
-        uri, fragment = urldefrag(urljoin(self._base_uri, ref))
+        if ref.startswith("#"):
+            uri, fragment = self._base_uri, ref[1:]
+        else:
+            uri, fragment = urldefrag(urljoin(self._base_uri, ref))
         registry = self._registry
         resource = registry.get(uri)
         if resource is None:
@@ -325,8 +361,37 @@ class Resolver(Generic[D]):
             except KeyError:
                 raise exceptions.Unresolvable(ref=ref) from None
 
-        resolver = evolve(self, registry=registry, base_uri=uri)
         if fragment.startswith("/"):
-            return resource.pointer(pointer=fragment, resolver=resolver)
+            return resource.pointer(
+                pointer=fragment,
+                resolver=evolve(self, registry=registry, base_uri=uri),
+            )
 
-        return Resolved(contents=resource.contents, resolver=resolver)
+        if fragment:
+            try:
+                anchor = registry.anchor(uri, fragment)
+            except LookupError:
+                registry = registry.crawl()
+                anchor = registry.anchor(uri, fragment)
+
+            resource = anchor.resolve()
+        return Resolved(
+            contents=resource.contents,
+            resolver=evolve(self, registry=registry, base_uri=uri),
+        )
+
+
+@frozen
+class Anchor(Generic[D]):
+    """
+    A simple anchor in a `Resource`.
+    """
+
+    name: str
+    resource: Resource[D]
+
+    def resolve(self):
+        """
+        Return the resource for this anchor.
+        """
+        return self.resource

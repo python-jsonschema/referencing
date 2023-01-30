@@ -7,7 +7,7 @@ from __future__ import annotations
 from collections.abc import Set
 from typing import Any, Iterable, Union
 
-from referencing import Registry, Resource, Specification
+from referencing import Anchor, Registry, Resource, Specification
 from referencing._attrs import frozen
 from referencing.typing import URI, Mapping
 
@@ -38,11 +38,28 @@ def _dollar_id(contents: Schema) -> URI | None:
 def _dollar_id_pre2019(contents: Schema) -> URI | None:
     if isinstance(contents, bool) or "$ref" in contents:
         return
-    return contents.get("$id")
+    id = contents.get("$id")
+    if id is not None and not id.startswith("#"):
+        return id
 
 
 def _legacy_id(contents: ObjectSchema) -> URI | None:
     return contents.get("id")
+
+
+def _legacy_anchor_in_id(
+    specification: Specification[ObjectSchema],
+    contents: ObjectSchema,
+) -> Iterable[Anchor[ObjectSchema]]:
+    id = contents.get("$id", "")
+    if not id.startswith("#"):
+        return []
+    return [
+        Anchor(
+            name=id[1:],
+            resource=specification.create_resource(contents),
+        ),
+    ]
 
 
 def _subresources_of(
@@ -75,11 +92,13 @@ DRAFT202012 = Specification(
     name="draft2020-12",
     id_of=_dollar_id,
     subresources_of=lambda contents: [],
+    anchors_in=lambda specification, contents: [],
 )
 DRAFT201909 = Specification(
     name="draft2019-09",
     id_of=_dollar_id,
     subresources_of=lambda contents: [],
+    anchors_in=lambda specification, contents: [],
 )
 DRAFT7 = Specification(
     name="draft-07",
@@ -89,21 +108,25 @@ DRAFT7 = Specification(
         in_subarray={"allOf", "anyOf", "oneOf"},
         in_subvalues={"definitions"},
     ),
+    anchors_in=_legacy_anchor_in_id,
 )
 DRAFT6 = Specification(
     name="draft-06",
     id_of=_dollar_id,
     subresources_of=lambda contents: [],
+    anchors_in=lambda specification, contents: [],
 )
 DRAFT4 = Specification(
     name="draft-04",
     id_of=_legacy_id,
     subresources_of=lambda contents: [],
+    anchors_in=lambda specification, contents: [],
 )
 DRAFT3 = Specification(
     name="draft-03",
     id_of=_legacy_id,
     subresources_of=lambda contents: [],
+    anchors_in=lambda specification, contents: [],
 )
 
 

@@ -1,12 +1,19 @@
 import pytest
 
-from referencing import Registry, Resource, Specification, exceptions
+from referencing import Anchor, Registry, Resource, Specification, exceptions
 from referencing.jsonschema import DRAFT202012
 
 ID_AND_CHILDREN = Specification(
     name="id-and-children",
     id_of=lambda contents: contents.get("ID"),
     subresources_of=lambda contents: contents.get("children", []),
+    anchors_in=lambda specification, contents: [
+        Anchor(
+            name=name,
+            resource=specification.create_resource(contents=each),
+        )
+        for name, each in contents.get("anchors", {}).items()
+    ],
 )
 
 
@@ -90,6 +97,30 @@ class TestRegistry:
 
         expected = ID_AND_CHILDREN.create_resource({"ID": child_id, "foo": 12})
         assert registry.crawl()[child_id] == expected
+
+    def test_crawl_finds_anchors_with_id(self):
+        resource = ID_AND_CHILDREN.create_resource(
+            {"ID": "urn:bar", "anchors": {"foo": 12}},
+        )
+        registry = Registry().with_resource(resource.id(), resource)
+        with pytest.raises(LookupError):
+            registry.anchor(resource.id(), "foo")
+
+        assert registry.crawl().anchor(resource.id(), "foo") == Anchor(
+            name="foo",
+            resource=ID_AND_CHILDREN.create_resource(12),
+        )
+
+    def test_crawl_finds_anchors_no_id(self):
+        resource = ID_AND_CHILDREN.create_resource({"anchors": {"foo": 12}})
+        registry = Registry().with_resource("urn:root", resource)
+        with pytest.raises(LookupError):
+            registry.anchor("urn:root", "foo")
+
+        assert registry.crawl().anchor("urn:root", "foo") == Anchor(
+            name="foo",
+            resource=ID_AND_CHILDREN.create_resource(12),
+        )
 
     def test_contents(self):
         resource = Resource.opaque({"foo": "bar"})
@@ -278,6 +309,7 @@ class TestResource:
             name="",
             id_of=lambda contents: "urn:fixedID",
             subresources_of=lambda contents: [],
+            anchors_in=lambda specification, contents: [],
         )
         resource = Resource(
             contents={"foo": "baz"},
@@ -296,6 +328,16 @@ class TestResource:
         resource = ID_AND_CHILDREN.create_resource({"children": [schema]})
         assert list(resource.subresources()) == [
             DRAFT202012.create_resource(schema),
+        ]
+
+    def test_anchors_delegates_to_specification(self):
+        resource = ID_AND_CHILDREN.create_resource(
+            {"anchors": {"foo": {}, "bar": 1, "baz": ""}},
+        )
+        assert list(resource.anchors()) == [
+            Anchor(name="foo", resource=ID_AND_CHILDREN.create_resource({})),
+            Anchor(name="bar", resource=ID_AND_CHILDREN.create_resource(1)),
+            Anchor(name="baz", resource=ID_AND_CHILDREN.create_resource("")),
         ]
 
     def test_pointer_to_mapping(self):
@@ -335,6 +377,23 @@ class TestResolver:
         resolver = Registry().with_resource(root.id(), root).resolver()
         resolved = resolver.lookup("http://example.com/a")
         assert resolved.contents == {"ID": "http://example.com/a", "foo": 12}
+
+    def test_lookup_anchor_with_id(self):
+        root = ID_AND_CHILDREN.create_resource(
+            {
+                "ID": "http://example.com/",
+                "anchors": {"foo": 12},
+            },
+        )
+        resolver = Registry().with_resource(root.id(), root).resolver()
+        resolved = resolver.lookup("http://example.com/#foo")
+        assert resolved.contents == 12
+
+    def test_lookup_anchor_without_id(self):
+        root = ID_AND_CHILDREN.create_resource({"anchors": {"foo": 12}})
+        resolver = Registry().with_resource("urn:example", root).resolver()
+        resolved = resolver.lookup("urn:example#foo")
+        assert resolved.contents == 12
 
     def test_multiple_lookup(self):
         """
@@ -382,6 +441,17 @@ class TestResolver:
         second = first.resolver.lookup("#/foo")
         assert second.contents == "bar"
 
+    def test_multiple_lookup_anchor(self):
+        root = ID_AND_CHILDREN.create_resource({"anchors": {"foo": 12}})
+        registry = Registry().with_resource("http://example.com/", root)
+
+        resolver = registry.resolver()
+        first = resolver.lookup("http://example.com/")
+        assert first.contents == {"anchors": {"foo": 12}}
+
+        second = first.resolver.lookup("#foo")
+        assert second.contents == 12
+
     def test_lookup_non_existent_pointer(self):
         resource = Resource.opaque({"foo": {}})
         resolver = Registry({"http://example.com/1": resource}).resolver()
@@ -412,6 +482,7 @@ class TestSpecification:
             name="",
             id_of=lambda contents: "urn:fixedID",
             subresources_of=lambda contents: [],
+            anchors_in=lambda specification, contents: [],
         )
         resource = specification.create_resource(contents={"foo": "baz"})
         assert resource == Resource(
@@ -445,6 +516,14 @@ class TestOpaqueSpecification:
         """
 
         assert list(Specification.OPAQUE.subresources_of(thing)) == []
+
+    @pytest.mark.parametrize("thing", THINGS)
+    def test_no_anchors(self, thing):
+        """
+        An arbitrary thing has no anchors.
+        """
+
+        assert list(Specification.OPAQUE.anchors_in(thing)) == []
 
 
 @pytest.mark.parametrize(
