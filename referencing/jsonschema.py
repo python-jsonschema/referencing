@@ -76,16 +76,18 @@ def _subresources_of(
     values, in a subobject's values, or in a subarray.
     """
 
-    def subresources_of(resource: ObjectSchema) -> Iterable[ObjectSchema]:
+    def subresources_of(contents: Schema) -> Iterable[ObjectSchema]:
+        if isinstance(contents, bool):
+            return
         for each in in_value:
-            if each in resource:
-                yield resource[each]
+            if each in contents:
+                yield contents[each]
         for each in in_subarray:
-            if each in resource:
-                yield from resource[each]
+            if each in contents:
+                yield from contents[each]
         for each in in_subvalues:
-            if each in resource:
-                yield from resource[each].values()
+            if each in contents:
+                yield from contents[each].values()
 
     return subresources_of
 
