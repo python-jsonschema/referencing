@@ -54,7 +54,7 @@ def _legacy_id(contents: ObjectSchema) -> URI | None:
 def _legacy_anchor_in_dollar_id(
     specification: Specification[Schema],
     contents: Schema,
-) -> Iterable[Anchor[ObjectSchema]]:
+) -> Iterable[Anchor[Schema]]:
     if isinstance(contents, bool):
         return []
     id = contents.get("$id", "")
