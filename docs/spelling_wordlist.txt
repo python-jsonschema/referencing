@@ -3,5 +3,6 @@ deserialized
 referenceable
 resolvers
 submodules
+subresource
 subresources
 unresolvable
