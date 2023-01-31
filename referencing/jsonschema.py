@@ -156,8 +156,11 @@ DRAFT4 = Specification(
 DRAFT3 = Specification(
     name="draft-03",
     id_of=_legacy_id,
-    subresources_of=lambda contents: [],
-    anchors_in=lambda specification, contents: [],
+    subresources_of=_subresources_of(
+        in_subarray={"extends"},
+        in_subvalues={"definitions", "properties"},
+    ),
+    anchors_in=_legacy_anchor_in_id,
 )
 
 
