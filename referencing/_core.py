@@ -304,8 +304,19 @@ class Registry(Mapping[URI, Resource[D]]):
         """
         Combine together one or more other registries, producing a unified one.
         """
-        contents = (registry._resources for registry in registries)
-        return evolve(self, resources=self._resources.update(*contents))  # type: ignore[reportUnknownMemberType]  # noqa: E501
+        anchors = self._anchors
+        resources = self._resources
+        uncrawled = self._uncrawled
+        for registry in registries:
+            anchors = anchors.update(registry._anchors)  # type: ignore[reportUnknownMemberType]  # noqa: E501
+            resources = resources.update(registry._resources)  # type: ignore[reportUnknownMemberType]  # noqa: E501
+            uncrawled = uncrawled.update(registry._uncrawled)  # type: ignore[reportUnknownMemberType]  # noqa: E501
+        return evolve(
+            self,
+            anchors=anchors,
+            resources=resources,
+            uncrawled=uncrawled,
+        )
 
     def resolver(self, base_uri: URI = "") -> Resolver[D]:
         """
