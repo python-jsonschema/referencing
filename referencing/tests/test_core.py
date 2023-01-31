@@ -503,6 +503,31 @@ class TestResolver:
         second = sub.lookup("grandchild")
         assert second.contents == {"ID": "grandchild"}
 
+    def test_in_pointer_subresource(self):
+        root = ID_AND_CHILDREN.create_resource(
+            {
+                "ID": "http://example.com/",
+                "children": [
+                    {
+                        "ID": "child/",
+                        "children": [{"ID": "grandchild"}],
+                    },
+                ],
+            },
+        )
+        registry = Registry().with_resource(root.id(), root)
+
+        resolver = registry.resolver()
+        first = resolver.lookup("http://example.com/")
+        assert first.contents == root.contents
+
+        with pytest.raises(exceptions.Unresolvable):
+            first.resolver.lookup("grandchild")
+
+        second = first.resolver.lookup("#/children/0")
+        third = second.resolver.lookup("grandchild")
+        assert third.contents == {"ID": "grandchild"}
+
 
 class TestSpecification:
     def test_create_resource(self):

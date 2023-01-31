@@ -165,6 +165,12 @@ class Resource(Generic[D]):
                 contents = contents[segment]  # type: ignore[reportUnknownArgumentType]  # noqa: E501
             except LookupError:
                 raise exceptions.PointerToNowhere(ref=pointer, resource=self)
+
+            # FIXME: this is slightly wrong, we need to know that we are
+            #        entering a subresource specifically, not just any mapping
+            if not isinstance(contents, Sequence):
+                subresource = self._specification.create_resource(contents)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+                resolver = resolver.in_subresource(subresource)
         return Resolved(contents=contents, resolver=resolver)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
 
 
