@@ -108,7 +108,7 @@ DRAFT7 = Specification(
     name="draft-07",
     id_of=_dollar_id_pre2019,
     subresources_of=_subresources_of(
-        in_value={"if", "then", "else"},
+        in_value={"if", "then", "else", "not"},
         in_subarray={"allOf", "anyOf", "oneOf"},
         in_subvalues={"definitions", "properties"},
     ),
