@@ -116,9 +116,13 @@ DRAFT7 = Specification(
 )
 DRAFT6 = Specification(
     name="draft-06",
-    id_of=_dollar_id,
-    subresources_of=lambda contents: [],
-    anchors_in=lambda specification, contents: [],
+    id_of=_dollar_id_pre2019,
+    subresources_of=_subresources_of(
+        in_value={"not"},
+        in_subarray={"allOf", "anyOf", "oneOf"},
+        in_subvalues={"definitions", "properties"},
+    ),
+    anchors_in=_legacy_anchor_in_id,
 )
 DRAFT4 = Specification(
     name="draft-04",
