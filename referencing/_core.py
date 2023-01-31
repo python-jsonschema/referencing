@@ -380,6 +380,15 @@ class Resolver(Generic[D]):
             resolver=evolve(self, registry=registry, base_uri=uri),
         )
 
+    def in_subresource(self, subresource: Resource[D]) -> Resolver[D]:
+        """
+        Create a resolver for a subresource (which may have a new base URI).
+        """
+        id = subresource.id()
+        if id is None:
+            return self
+        return evolve(self, base_uri=urljoin(self._base_uri, id))
+
 
 @frozen
 class Anchor(Generic[D]):

@@ -395,12 +395,43 @@ class TestResolver:
         resolved = resolver.lookup("urn:example#foo")
         assert resolved.contents == 12
 
+    def test_lookup_unknown_reference(self):
+        resolver = Registry().resolver()
+        ref = "http://example.com/does/not/exist"
+        with pytest.raises(exceptions.Unresolvable) as e:
+            resolver.lookup(ref)
+        assert e.value == exceptions.Unresolvable(ref=ref)
+
+    def test_lookup_non_existent_pointer(self):
+        resource = Resource.opaque({"foo": {}})
+        resolver = Registry({"http://example.com/1": resource}).resolver()
+        ref = "http://example.com/1#/foo/bar"
+        with pytest.raises(exceptions.Unresolvable) as e:
+            resolver.lookup(ref)
+        assert e.value == exceptions.PointerToNowhere(
+            ref="/foo/bar",
+            resource=resource,
+        )
+        assert str(e.value) == "'/foo/bar' does not exist within {'foo': {}}"
+
+    def test_lookup_non_existent_pointer_to_array_index(self):
+        resource = Resource.opaque([1, 2, 4, 8])
+        resolver = Registry({"http://example.com/1": resource}).resolver()
+        ref = "http://example.com/1#/10"
+        with pytest.raises(exceptions.Unresolvable) as e:
+            resolver.lookup(ref)
+        assert e.value == exceptions.PointerToNowhere(
+            ref="/10",
+            resource=resource,
+        )
+
+    # FIXME: Ideally there'd be some way to represent the tests below in the
+    #        referencing suite, but I can't think of ways to do so yet.
+
     def test_multiple_lookup(self):
         """
         Continuing to lookup resources maintains the new base URI.
         """
-        # FIXME: Ideally there'd be some way to represent this test in the
-        #        referencing suite, but I can't think of one yet.
         registry = Registry(
             {
                 "http://example.com/": Resource.opaque({}),
@@ -418,13 +449,6 @@ class TestResolver:
 
         third = second.resolver.lookup("bar")
         assert third.contents == {"baz": "quux"}
-
-    def test_lookup_unknown_reference(self):
-        resolver = Registry().resolver()
-        ref = "http://example.com/does/not/exist"
-        with pytest.raises(exceptions.Unresolvable) as e:
-            resolver.lookup(ref)
-        assert e.value == exceptions.Unresolvable(ref=ref)
 
     def test_multiple_lookup_pointer(self):
         registry = Registry(
@@ -452,28 +476,32 @@ class TestResolver:
         second = first.resolver.lookup("#foo")
         assert second.contents == 12
 
-    def test_lookup_non_existent_pointer(self):
-        resource = Resource.opaque({"foo": {}})
-        resolver = Registry({"http://example.com/1": resource}).resolver()
-        ref = "http://example.com/1#/foo/bar"
-        with pytest.raises(exceptions.Unresolvable) as e:
-            resolver.lookup(ref)
-        assert e.value == exceptions.PointerToNowhere(
-            ref="/foo/bar",
-            resource=resource,
+    def test_in_subresource(self):
+        root = ID_AND_CHILDREN.create_resource(
+            {
+                "ID": "http://example.com/",
+                "children": [
+                    {
+                        "ID": "child/",
+                        "children": [{"ID": "grandchild"}],
+                    },
+                ],
+            },
         )
-        assert str(e.value) == "'/foo/bar' does not exist within {'foo': {}}"
+        registry = Registry().with_resource(root.id(), root)
 
-    def test_lookup_non_existent_pointer_to_array_index(self):
-        resource = Resource.opaque([1, 2, 4, 8])
-        resolver = Registry({"http://example.com/1": resource}).resolver()
-        ref = "http://example.com/1#/10"
-        with pytest.raises(exceptions.Unresolvable) as e:
-            resolver.lookup(ref)
-        assert e.value == exceptions.PointerToNowhere(
-            ref="/10",
-            resource=resource,
+        resolver = registry.resolver()
+        first = resolver.lookup("http://example.com/")
+        assert first.contents == root.contents
+
+        with pytest.raises(exceptions.Unresolvable):
+            first.resolver.lookup("grandchild")
+
+        sub = first.resolver.in_subresource(
+            ID_AND_CHILDREN.create_resource(first.contents["children"][0]),
         )
+        second = sub.lookup("grandchild")
+        assert second.contents == {"ID": "grandchild"}
 
 
 class TestSpecification:
