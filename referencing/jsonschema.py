@@ -35,7 +35,7 @@ def _dollar_id(contents: Schema) -> URI | None:
     return contents.get("$id")
 
 
-def _dollar_id_pre2019(contents: Schema) -> URI | None:
+def _legacy_dollar_id(contents: Schema) -> URI | None:
     if isinstance(contents, bool) or "$ref" in contents:
         return
     id = contents.get("$id")
@@ -44,16 +44,35 @@ def _dollar_id_pre2019(contents: Schema) -> URI | None:
 
 
 def _legacy_id(contents: ObjectSchema) -> URI | None:
-    return contents.get("id")
+    if "$ref" in contents:
+        return
+    id = contents.get("id")
+    if id is not None and not id.startswith("#"):
+        return id
 
 
-def _legacy_anchor_in_id(
-    specification: Specification[ObjectSchema],
+def _legacy_anchor_in_dollar_id(
+    specification: Specification[Schema],
     contents: Schema,
 ) -> Iterable[Anchor[ObjectSchema]]:
     if isinstance(contents, bool):
         return []
     id = contents.get("$id", "")
+    if not id.startswith("#"):
+        return []
+    return [
+        Anchor(
+            name=id[1:],
+            resource=specification.create_resource(contents),
+        ),
+    ]
+
+
+def _legacy_anchor_in_id(
+    specification: Specification[ObjectSchema],
+    contents: ObjectSchema,
+) -> Iterable[Anchor[ObjectSchema]]:
+    id = contents.get("id", "")
     if not id.startswith("#"):
         return []
     return [
@@ -106,29 +125,33 @@ DRAFT201909 = Specification(
 )
 DRAFT7 = Specification(
     name="draft-07",
-    id_of=_dollar_id_pre2019,
+    id_of=_legacy_dollar_id,
     subresources_of=_subresources_of(
         in_value={"if", "then", "else", "not"},
         in_subarray={"allOf", "anyOf", "oneOf"},
         in_subvalues={"definitions", "properties"},
     ),
-    anchors_in=_legacy_anchor_in_id,
+    anchors_in=_legacy_anchor_in_dollar_id,
 )
 DRAFT6 = Specification(
     name="draft-06",
-    id_of=_dollar_id_pre2019,
+    id_of=_legacy_dollar_id,
+    subresources_of=_subresources_of(
+        in_value={"not"},
+        in_subarray={"allOf", "anyOf", "oneOf"},
+        in_subvalues={"definitions", "properties"},
+    ),
+    anchors_in=_legacy_anchor_in_dollar_id,
+)
+DRAFT4 = Specification(
+    name="draft-04",
+    id_of=_legacy_id,
     subresources_of=_subresources_of(
         in_value={"not"},
         in_subarray={"allOf", "anyOf", "oneOf"},
         in_subvalues={"definitions", "properties"},
     ),
     anchors_in=_legacy_anchor_in_id,
-)
-DRAFT4 = Specification(
-    name="draft-04",
-    id_of=_legacy_id,
-    subresources_of=lambda contents: [],
-    anchors_in=lambda specification, contents: [],
 )
 DRAFT3 = Specification(
     name="draft-03",
