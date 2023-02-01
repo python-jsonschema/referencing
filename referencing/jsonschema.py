@@ -51,6 +51,23 @@ def _legacy_id(contents: ObjectSchema) -> URI | None:
         return id
 
 
+def _anchor_2019(
+    specification: Specification[Schema],
+    contents: Schema,
+) -> Iterable[Anchor[Schema]]:
+    if isinstance(contents, bool):
+        return []
+    anchor = contents.get("$anchor")
+    if anchor is None:
+        return []
+    return [
+        Anchor(
+            name=anchor,
+            resource=specification.create_resource(contents),
+        ),
+    ]
+
+
 def _legacy_anchor_in_dollar_id(
     specification: Specification[Schema],
     contents: Schema,
@@ -120,8 +137,12 @@ DRAFT202012 = Specification(
 DRAFT201909 = Specification(
     name="draft2019-09",
     id_of=_dollar_id,
-    subresources_of=lambda contents: [],
-    anchors_in=lambda specification, contents: [],
+    subresources_of=_subresources_of(
+        in_value={"if", "then", "else", "not"},
+        in_subarray={"allOf", "anyOf", "oneOf"},
+        in_subvalues={"$defs", "properties"},
+    ),
+    anchors_in=_anchor_2019,
 )
 DRAFT7 = Specification(
     name="draft-07",
