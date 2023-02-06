@@ -285,12 +285,13 @@ def lookup_recursive_ref(resolver: _Resolver[Schema]) -> _Resolved[Schema]:
     """
     resolved = resolver.lookup("#")
     if isinstance(resolved.contents, Mapping) and resolved.contents.get(
-        "$recursiveAnchor"
+        "$recursiveAnchor",
     ):
         for uri, _ in resolver.dynamic_scope():
             next_resolved = resolver.lookup(uri)
             if not isinstance(
-                next_resolved.contents, Mapping
+                next_resolved.contents,
+                Mapping,
             ) or not next_resolved.contents.get("$recursiveAnchor"):
                 break
             resolved = next_resolved
