@@ -217,6 +217,6 @@ def specification_with(
     resource = _SPECIFICATIONS.get(dialect_id)
     if resource is not None:
         return resource.contents
-    if default is None:
+    if default is None:  # type: ignore[reportUnnecessaryComparison]
         raise UnknownDialect(dialect_id)
     return default

@@ -108,7 +108,7 @@ class Resource(Generic[D]):
                     default=default_specification,
                 )
 
-        if specification is None:
+        if specification is None:  # type: ignore[reportUnnecessaryComparison]
             raise exceptions.CannotDetermineSpecification(contents)
         return cls(contents=contents, specification=specification)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
 
