@@ -5,8 +5,8 @@ from typing import Any, Callable, ClassVar, Generic
 from urllib.parse import unquote, urldefrag, urljoin
 
 from attrs import evolve, field
-from pyrsistent import m, pmap, s
-from pyrsistent.typing import PMap, PSet
+from pyrsistent import m, plist, pmap, s
+from pyrsistent.typing import PList, PMap, PSet
 
 from referencing import exceptions
 from referencing._attrs import frozen
@@ -354,6 +354,11 @@ class Resolver(Generic[D]):
 
     _base_uri: str = field(alias="base_uri")
     _registry: Registry[D] = field(alias="registry")
+    _previous: PList[URI] = field(
+        default=plist(),  # type: ignore[reportUnknownArgumentType]
+        repr=False,
+        alias="previous",
+    )
 
     def lookup(self, ref: URI) -> Resolved[D]:
         """
@@ -378,24 +383,21 @@ class Resolver(Generic[D]):
             except KeyError:
                 raise exceptions.Unresolvable(ref=ref) from None
 
+        resolver = self._evolve(registry=registry, base_uri=uri)
         if fragment.startswith("/"):
-            return resource.pointer(
-                pointer=fragment,
-                resolver=evolve(self, registry=registry, base_uri=uri),
-            )
+            return resource.pointer(pointer=fragment, resolver=resolver)
 
         if fragment:
             try:
                 anchor = registry.anchor(uri, fragment)
             except LookupError:
                 registry = registry.crawl()
+                resolver = evolve(resolver, registry=registry)
                 anchor = registry.anchor(uri, fragment)
 
-            resource = anchor.resolve()
-        return Resolved(
-            contents=resource.contents,
-            resolver=evolve(self, registry=registry, base_uri=uri),
-        )
+            return anchor.resolve(resolver=resolver)
+
+        return Resolved(contents=resource.contents, resolver=resolver)
 
     def in_subresource(self, subresource: Resource[D]) -> Resolver[D]:
         """
@@ -404,7 +406,23 @@ class Resolver(Generic[D]):
         id = subresource.id()
         if id is None:
             return self
-        return evolve(self, base_uri=urljoin(self._base_uri, id))
+        return self._evolve(base_uri=urljoin(self._base_uri, id))
+
+    def dynamic_scope(self) -> Iterable[tuple[URI, Registry[D]]]:
+        """
+        In specs with such a notion, return the URIs in the dynamic scope.
+        """
+        for uri in self._previous:
+            yield uri, self._registry
+
+    def _evolve(self, base_uri: str, **kwargs: Any):
+        """
+        Evolve, appending to the dynamic scope.
+        """
+        previous = self._previous
+        if self._base_uri and base_uri != self._base_uri:
+            previous = previous.cons(self._base_uri)
+        return evolve(self, base_uri=base_uri, previous=previous, **kwargs)
 
 
 @frozen
@@ -416,8 +434,8 @@ class Anchor(Generic[D]):
     name: str
     resource: Resource[D]
 
-    def resolve(self):
+    def resolve(self, resolver: Resolver[D]):
         """
         Return the resource for this anchor.
         """
-        return self.resource
+        return Resolved(contents=self.resource.contents, resolver=resolver)

@@ -546,6 +546,33 @@ class TestResolver:
         third = second.resolver.lookup("grandchild")
         assert third.contents == {"ID": "grandchild"}
 
+    def test_dynamic_scope(self):
+        root = ID_AND_CHILDREN.create_resource(
+            {
+                "ID": "http://example.com/",
+                "children": [
+                    {
+                        "ID": "child/",
+                        "children": [{"ID": "grandchild"}],
+                    },
+                ],
+            },
+        )
+        registry = Registry().with_resource(root.id(), root)
+
+        resolver = registry.resolver()
+        first = resolver.lookup("http://example.com/")
+        second = first.resolver.lookup("#/children/0")
+        third = second.resolver.lookup("grandchild")
+        assert list(third.resolver.dynamic_scope()) == [
+            ("http://example.com/child/", third.resolver._registry),
+            ("http://example.com/", third.resolver._registry),
+        ]
+        assert list(second.resolver.dynamic_scope()) == [
+            ("http://example.com/", second.resolver._registry),
+        ]
+        assert list(first.resolver.dynamic_scope()) == []
+
 
 class TestSpecification:
     def test_create_resource(self):

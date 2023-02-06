@@ -14,7 +14,7 @@ except TypeError:  # pragma: no cover
 
 
 if TYPE_CHECKING:
-    from referencing._core import Resource
+    from referencing._core import Resolved, Resolver
 
 #: A URI which identifies a `Resource`.
 URI = str
@@ -38,7 +38,7 @@ class Anchor(Protocol[D]):
         """
         ...
 
-    def resolve(self) -> Resource[D]:
+    def resolve(self, resolver: Resolver[D]) -> Resolved[D]:
         """
         Return the resource for this anchor.
         """

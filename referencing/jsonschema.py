@@ -9,7 +9,8 @@ from typing import Any, Iterable, Union
 
 from referencing import Anchor, Registry, Resource, Specification
 from referencing._attrs import frozen
-from referencing.typing import URI, Mapping
+from referencing._core import Resolved as _Resolved, Resolver as _Resolver
+from referencing.typing import URI, Anchor as AnchorType, Mapping
 
 #: A JSON Schema which is a JSON object
 ObjectSchema = Mapping[str, Any]
@@ -49,6 +50,27 @@ def _legacy_id(contents: ObjectSchema) -> URI | None:
     id = contents.get("id")
     if id is not None and not id.startswith("#"):
         return id
+
+
+def _anchor(
+    specification: Specification[Schema],
+    contents: Schema,
+) -> Iterable[AnchorType[Schema]]:
+    if isinstance(contents, bool):
+        return
+    anchor = contents.get("$anchor")
+    if anchor is not None:
+        yield Anchor(
+            name=anchor,
+            resource=specification.create_resource(contents),
+        )
+
+    dynamic_anchor = contents.get("$dynamicAnchor")
+    if dynamic_anchor is not None:
+        yield DynamicAnchor(
+            name=dynamic_anchor,
+            resource=specification.create_resource(contents),
+        )
 
 
 def _anchor_2019(
@@ -131,8 +153,12 @@ def _subresources_of(
 DRAFT202012 = Specification(
     name="draft2020-12",
     id_of=_dollar_id,
-    subresources_of=lambda contents: [],
-    anchors_in=lambda specification, contents: [],
+    subresources_of=_subresources_of(
+        in_value={"additionalProperties", "if", "then", "else", "not"},
+        in_subarray={"allOf", "anyOf", "oneOf"},
+        in_subvalues={"$defs", "properties"},
+    ),
+    anchors_in=_anchor,
 )
 DRAFT201909 = Specification(
     name="draft2019-09",
@@ -220,3 +246,52 @@ def specification_with(
     if default is None:  # type: ignore[reportUnnecessaryComparison]
         raise UnknownDialect(dialect_id)
     return default
+
+
+@frozen
+class DynamicAnchor:
+    """
+    Dynamic anchors, introduced in draft 2020.
+    """
+
+    name: str
+    resource: Resource[Schema]
+
+    def resolve(self, resolver: _Resolver[Schema]):
+        """
+        Resolve this anchor dynamically.
+        """
+        last = self.resource
+        for uri, registry in resolver.dynamic_scope():
+            try:
+                anchor = registry.anchor(uri, self.name)
+            except LookupError:
+                continue
+            if isinstance(anchor, DynamicAnchor):
+                last = anchor.resource
+        return _Resolved(
+            contents=last.contents,
+            resolver=resolver.in_subresource(last),
+        )
+
+
+def lookup_recursive_ref(resolver: _Resolver[Schema]) -> _Resolved[Schema]:
+    """
+    Recursive references (via recursive anchors), present only in draft 2019.
+
+    As per the 2019 specification (§ 8.2.4.2.1), only the ``#`` recursive
+    reference is supported (and is therefore assumed to be the relevant
+    reference).
+    """
+    resolved = resolver.lookup("#")
+    if isinstance(resolved.contents, Mapping) and resolved.contents.get(
+        "$recursiveAnchor"
+    ):
+        for uri, _ in resolver.dynamic_scope():
+            next_resolved = resolver.lookup(uri)
+            if not isinstance(
+                next_resolved.contents, Mapping
+            ) or not next_resolved.contents.get("$recursiveAnchor"):
+                break
+            resolved = next_resolved
+    return resolved
