@@ -90,7 +90,7 @@ def test_id_of_bool(specification, value):
 )
 @pytest.mark.parametrize("value", [True, False])
 def test_anchors_in_bool(specification, value):
-    assert specification.anchors_in(value) == []
+    assert list(specification.anchors_in(value)) == []
 
 
 @pytest.mark.parametrize(
