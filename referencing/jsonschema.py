@@ -138,7 +138,7 @@ DRAFT201909 = Specification(
     name="draft2019-09",
     id_of=_dollar_id,
     subresources_of=_subresources_of(
-        in_value={"if", "then", "else", "not"},
+        in_value={"additionalProperties", "if", "then", "else", "not"},
         in_subarray={"allOf", "anyOf", "oneOf"},
         in_subvalues={"$defs", "properties"},
     ),
@@ -148,7 +148,7 @@ DRAFT7 = Specification(
     name="draft-07",
     id_of=_legacy_dollar_id,
     subresources_of=_subresources_of(
-        in_value={"if", "then", "else", "not"},
+        in_value={"additionalProperties", "if", "then", "else", "not"},
         in_subarray={"allOf", "anyOf", "oneOf"},
         in_subvalues={"definitions", "properties"},
     ),
@@ -158,7 +158,7 @@ DRAFT6 = Specification(
     name="draft-06",
     id_of=_legacy_dollar_id,
     subresources_of=_subresources_of(
-        in_value={"not"},
+        in_value={"additionalProperties", "not"},
         in_subarray={"allOf", "anyOf", "oneOf"},
         in_subvalues={"definitions", "properties"},
     ),
@@ -168,7 +168,7 @@ DRAFT4 = Specification(
     name="draft-04",
     id_of=_legacy_id,
     subresources_of=_subresources_of(
-        in_value={"not"},
+        in_value={"additionalProperties", "not"},
         in_subarray={"allOf", "anyOf", "oneOf"},
         in_subvalues={"definitions", "properties"},
     ),
@@ -178,6 +178,7 @@ DRAFT3 = Specification(
     name="draft-03",
     id_of=_legacy_id,
     subresources_of=_subresources_of(
+        in_value={"additionalProperties"},
         in_subarray={"extends"},
         in_subvalues={"definitions", "properties"},
     ),
