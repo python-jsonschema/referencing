@@ -64,8 +64,7 @@ def style(session):
 
 @session()
 def typing(session):
-    # FIXME: Don't repeat dependencies.
-    session.install("attrs", "pyright", "pyrsistent", ROOT)
+    session.install("pyright", ROOT)
     session.run("pyright", REFERENCING)
 
 
