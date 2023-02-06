@@ -25,10 +25,10 @@
   :target: https://results.pre-commit.ci/latest/github/python-jsonschema/referencing/main
 
 
-A (very early) playground for exploring:
+An implementation-agnostic implementation of JSON reference resolution.
 
-    * the budding JSON `reference specification(s) <https://github.com/json-schema-org/referencing>`_ (currently housed within the JSON Schema organization but intended to be more broadly applicable)
+In other words, a way for e.g. JSON Schema tooling to resolve the ``$ref`` keyword across all drafts (without needing to implement support themselves).
 
-    * a newer / better integration of reference resolution into `jsonschema <https://pypi.org/project/jsonschema/>`_, likely built on top of the more generic interface which will come out of the above
+What's here is inspired in part by the budding JSON `reference specification(s) <https://github.com/json-schema-org/referencing>`_ (currently housed within the JSON Schema organization but intended to be more broadly applicable), which intend to detach some of the referencing behavior from JSON Schema's own specifications.
 
-What's here (if any of it even functions) is highly experimental and will change.
+See `the documentation <https://referencing.readthedocs.io/>`_ for more details.
