@@ -396,16 +396,17 @@ class Resolver(Generic[D]):
             except KeyError:
                 raise exceptions.Unresolvable(ref=ref) from None
 
-        resolver = self._evolve(registry=registry, base_uri=uri)
         if fragment.startswith("/"):
-            return resource.pointer(pointer=fragment, resolver=resolver)
+            return resource.pointer(
+                pointer=fragment,
+                resolver=self._evolve(registry=registry, base_uri=uri),
+            )
 
         if fragment:
             try:
                 anchor = registry.anchor(uri, fragment)
             except LookupError:
                 registry = registry.crawl()
-                resolver = evolve(resolver, registry=registry)
                 try:
                     anchor = registry.anchor(uri, fragment)
                 except LookupError:
@@ -414,10 +415,14 @@ class Resolver(Generic[D]):
                         resource=resource,
                         anchor=fragment,
                     )
+            return anchor.resolve(
+                resolver=self._evolve(registry=registry, base_uri=uri),
+            )
 
-            return anchor.resolve(resolver=resolver)
-
-        return Resolved(contents=resource.contents, resolver=resolver)
+        return Resolved(
+            contents=resource.contents,
+            resolver=self._evolve(registry=registry, base_uri=uri),
+        )
 
     def in_subresource(self, subresource: Resource[D]) -> Resolver[D]:
         """
