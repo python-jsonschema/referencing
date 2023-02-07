@@ -368,7 +368,20 @@ class Resolver(Generic[D]):
 
             `exceptions.Unresolvable`
 
-                if the reference isn't resolvable
+                or a subclass thereof (see below) if the reference isn't
+                resolvable
+
+            `exceptions.NoSuchAnchor`
+
+                if the reference is to a URI where a resource exists but
+                contains a plain name fragment which does not exist within
+                the resource
+
+            `exceptions.PointerToNowhere`
+
+                if the reference is to a URI where a resource exists but
+                contains a JSON pointer to a location within the resource
+                that does not exist
         """
         if ref.startswith("#"):
             uri, fragment = self._base_uri, ref[1:]
@@ -393,7 +406,14 @@ class Resolver(Generic[D]):
             except LookupError:
                 registry = registry.crawl()
                 resolver = evolve(resolver, registry=registry)
-                anchor = registry.anchor(uri, fragment)
+                try:
+                    anchor = registry.anchor(uri, fragment)
+                except LookupError:
+                    raise exceptions.NoSuchAnchor(
+                        ref=ref,
+                        resource=resource,
+                        anchor=fragment,
+                    )
 
             return anchor.resolve(resolver=resolver)
 

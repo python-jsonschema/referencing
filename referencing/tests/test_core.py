@@ -443,6 +443,21 @@ class TestResolver:
             resource=resource,
         )
 
+    def test_lookup_non_existent_anchor(self):
+        root = ID_AND_CHILDREN.create_resource({"anchors": {}})
+        resolver = Registry().with_resource("urn:example", root).resolver()
+        resolved = resolver.lookup("urn:example")
+        assert resolved.contents == root.contents
+
+        ref = "urn:example#noSuchAnchor"
+        with pytest.raises(exceptions.Unresolvable) as e:
+            resolver.lookup(ref)
+        assert e.value == exceptions.NoSuchAnchor(
+            ref=ref,
+            resource=root,
+            anchor="noSuchAnchor",
+        )
+
     # FIXME: Ideally there'd be some way to represent the tests below in the
     #        referencing suite, but I can't think of ways to do so yet.
 

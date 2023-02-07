@@ -45,3 +45,18 @@ class PointerToNowhere(Unresolvable):
 
     def __str__(self):
         return f"{self.ref!r} does not exist within {self.resource.contents!r}"
+
+
+@frozen
+class NoSuchAnchor(Unresolvable):
+    """
+    An anchor does not exist within a particular resource.
+    """
+
+    resource: Any
+    anchor: str
+
+    def __str__(self):
+        return (
+            f"{self.anchor!r} does not exist within {self.resource.contents!r}"
+        )
