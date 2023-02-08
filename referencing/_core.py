@@ -219,7 +219,7 @@ class Registry(Mapping[URI, Resource[D]]):
             except exceptions.NoSuchResource:
                 raise
             except Exception:
-                raise exceptions.NoSuchResource(ref=uri)
+                raise exceptions.Unretrievable(ref=uri)
 
     def __iter__(self) -> Iterator[URI]:
         """
@@ -414,6 +414,8 @@ class Resolver(Generic[D]):
                 resource = registry[uri]
             except exceptions.NoSuchResource:
                 raise exceptions.Unresolvable(ref=ref) from None
+            except exceptions.Unretrievable:
+                raise exceptions.Unresolvable(ref=ref)
 
         if fragment.startswith("/"):
             return resource.pointer(

@@ -174,6 +174,12 @@ class TestRegistry:
             .crawl()
         )
 
+    def test_no_such_resource(self):
+        registry = Registry()
+        with pytest.raises(exceptions.NoSuchResource) as e:
+            registry["urn:bigboom"]
+        assert e.value == exceptions.NoSuchResource(ref="urn:bigboom")
+
     def test_combine(self):
         one = Resource.opaque(contents={})
         two = ID_AND_CHILDREN.create_resource({"foo": "bar"})
@@ -388,7 +394,7 @@ class TestResource:
 
         registry = Registry(retrieve=retrieve)
         assert registry["urn:succeed"] == {}
-        with pytest.raises(exceptions.NoSuchResource):
+        with pytest.raises(exceptions.Unretrievable):
             registry["urn:uhoh"]
 
     def test_retrieve_already_available_resource(self):

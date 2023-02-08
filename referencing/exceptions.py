@@ -17,6 +17,20 @@ class NoSuchResource(KeyError):
 
     ref: URI
 
+    def __eq__(self, other: Any) -> bool:
+        if self.__class__ is not other.__class__:
+            return NotImplemented
+        return attrs.astuple(self) == attrs.astuple(other)
+
+
+@frozen
+class Unretrievable(KeyError):
+    """
+    The given URI is not present in a registry, and retrieving it failed.
+    """
+
+    ref: URI
+
 
 @frozen
 class CannotDetermineSpecification(Exception):
