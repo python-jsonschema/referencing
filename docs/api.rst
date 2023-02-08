@@ -34,6 +34,7 @@ referencing.exceptions
 
 .. automodule:: referencing.exceptions
    :members:
+   :show-inheritance:
    :undoc-members:
 
 
