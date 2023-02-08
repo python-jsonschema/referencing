@@ -242,6 +242,102 @@ class TestRegistry:
         assert combined != expected
         assert combined.crawl() == expected
 
+    def test_combine_with_single_retrieve(self):
+        one = Resource.opaque(contents={})
+        two = ID_AND_CHILDREN.create_resource({"foo": "bar"})
+        three = ID_AND_CHILDREN.create_resource({"baz": "quux"})
+
+        def retrieve(uri):
+            pass
+
+        first = Registry().with_resource("http://example.com/1", one)
+        second = Registry(
+            retrieve=retrieve,
+        ).with_resource("http://example.com/2", two)
+        third = Registry().with_resource("http://example.com/3", three)
+
+        assert first.combine(second, third) == Registry(
+            retrieve=retrieve,
+        ).with_resources(
+            [
+                ("http://example.com/1", one),
+                ("http://example.com/2", two),
+                ("http://example.com/3", three),
+            ],
+        )
+        assert second.combine(first, third) == Registry(
+            retrieve=retrieve,
+        ).with_resources(
+            [
+                ("http://example.com/1", one),
+                ("http://example.com/2", two),
+                ("http://example.com/3", three),
+            ],
+        )
+
+    def test_combine_with_common_retrieve(self):
+        one = Resource.opaque(contents={})
+        two = ID_AND_CHILDREN.create_resource({"foo": "bar"})
+        three = ID_AND_CHILDREN.create_resource({"baz": "quux"})
+
+        def retrieve(uri):
+            pass
+
+        first = Registry(retrieve=retrieve).with_resource(
+            "http://example.com/1",
+            one,
+        )
+        second = Registry(
+            retrieve=retrieve,
+        ).with_resource("http://example.com/2", two)
+        third = Registry(retrieve=retrieve).with_resource(
+            "http://example.com/3",
+            three,
+        )
+
+        assert first.combine(second, third) == Registry(
+            retrieve=retrieve,
+        ).with_resources(
+            [
+                ("http://example.com/1", one),
+                ("http://example.com/2", two),
+                ("http://example.com/3", three),
+            ],
+        )
+        assert second.combine(first, third) == Registry(
+            retrieve=retrieve,
+        ).with_resources(
+            [
+                ("http://example.com/1", one),
+                ("http://example.com/2", two),
+                ("http://example.com/3", three),
+            ],
+        )
+
+    def test_combine_conflicting_retrieve(self):
+        one = Resource.opaque(contents={})
+        two = ID_AND_CHILDREN.create_resource({"foo": "bar"})
+        three = ID_AND_CHILDREN.create_resource({"baz": "quux"})
+
+        def foo_retrieve(uri):
+            pass
+
+        def bar_retrieve(uri):
+            pass
+
+        first = Registry(retrieve=foo_retrieve).with_resource(
+            "http://example.com/1",
+            one,
+        )
+        second = Registry().with_resource("http://example.com/2", two)
+        third = Registry(retrieve=bar_retrieve).with_resource(
+            "http://example.com/3",
+            three,
+        )
+
+        with pytest.raises(Exception, match="conflict.*retriev"):  # noqa: B017
+            first.combine(second, third)
+
     def test_repr(self):
         one = Resource.opaque(contents={})
         two = ID_AND_CHILDREN.create_resource({"foo": "bar"})

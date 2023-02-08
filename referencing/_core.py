@@ -326,15 +326,25 @@ class Registry(Mapping[URI, Resource[D]]):
         anchors = self._anchors
         resources = self._resources
         uncrawled = self._uncrawled
+        retrieve = self._retrieve
         for registry in registries:
             anchors = anchors.update(registry._anchors)  # type: ignore[reportUnknownMemberType]  # noqa: E501
             resources = resources.update(registry._resources)  # type: ignore[reportUnknownMemberType]  # noqa: E501
             uncrawled = uncrawled.update(registry._uncrawled)  # type: ignore[reportUnknownMemberType]  # noqa: E501
+
+            if registry._retrieve != _fail_to_retrieve:
+                if registry._retrieve != retrieve != _fail_to_retrieve:
+                    raise ValueError(
+                        "Cannot combine registries with conflicting retrieval "
+                        "functions.",
+                    )
+                retrieve = registry._retrieve
         return evolve(
             self,
             anchors=anchors,
             resources=resources,
             uncrawled=uncrawled,
+            retrieve=retrieve,
         )
 
     def resolver(self, base_uri: URI = "") -> Resolver[D]:
