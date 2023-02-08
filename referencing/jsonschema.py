@@ -126,6 +126,7 @@ def _subresources_of(
     in_value: Set[str] = frozenset(),
     in_subvalues: Set[str] = frozenset(),
     in_subarray: Set[str] = frozenset(),
+    in_value_or_subarray: Set[str] = frozenset(),
 ):
     """
     Create a callable returning JSON Schema specification-style subschemas.
@@ -146,6 +147,13 @@ def _subresources_of(
         for each in in_subvalues:
             if each in contents:
                 yield from contents[each].values()
+        for each in in_value_or_subarray:
+            if each in contents:
+                value = contents[each]
+                if isinstance(value, Mapping):
+                    yield value
+                else:
+                    yield from value
 
     return subresources_of
 
@@ -154,9 +162,26 @@ DRAFT202012 = Specification(
     name="draft2020-12",
     id_of=_dollar_id,
     subresources_of=_subresources_of(
-        in_value={"additionalProperties", "if", "then", "else", "not"},
-        in_subarray={"allOf", "anyOf", "oneOf"},
-        in_subvalues={"$defs", "properties"},
+        in_value={
+            "additionalProperties",
+            "contains",
+            "contentSchema",
+            "else",
+            "if",
+            "items",
+            "not",
+            "propertyNames",
+            "then",
+            "unevaluatedItems",
+            "unevaluatedProperties",
+        },
+        in_subarray={"allOf", "anyOf", "oneOf", "prefixItems"},
+        in_subvalues={
+            "$defs",
+            "dependentSchemas",
+            "patternProperties",
+            "properties",
+        },
     ),
     anchors_in=_anchor,
 )
@@ -164,9 +189,27 @@ DRAFT201909 = Specification(
     name="draft2019-09",
     id_of=_dollar_id,
     subresources_of=_subresources_of(
-        in_value={"additionalProperties", "if", "then", "else", "not"},
+        in_value={
+            "additionalItems",
+            "additionalProperties",
+            "contains",
+            "contentSchema",
+            "if",
+            "then",
+            "else",
+            "not",
+            "propertyNames",
+            "unevaluatedItems",
+            "unevaluatedProperties",
+        },
         in_subarray={"allOf", "anyOf", "oneOf"},
-        in_subvalues={"$defs", "properties"},
+        in_subvalues={
+            "$defs",
+            "dependentSchemas",
+            "patternProperties",
+            "properties",
+        },
+        in_value_or_subarray={"items"},
     ),
     anchors_in=_anchor_2019,
 )
