@@ -4,7 +4,7 @@ Referencing implementations for JSON Schema specs (historic & current).
 
 from __future__ import annotations
 
-from collections.abc import Set
+from collections.abc import Sequence, Set
 from typing import Any, Iterable, Union
 
 from referencing import Anchor, Registry, Resource, Specification
@@ -174,10 +174,10 @@ def _subresources_of_with_crazy_items(
 
         items = contents.get("items")
         if items is not None:
-            if isinstance(items, Mapping):
-                yield items
-            else:
+            if isinstance(items, Sequence):
                 yield from items
+            else:
+                yield items
 
     return subresources_of
 
@@ -206,10 +206,10 @@ def _subresources_of_with_crazy_items_dependencies(
 
         items = contents.get("items")
         if items is not None:
-            if isinstance(items, Mapping):
-                yield items
-            else:
+            if isinstance(items, Sequence):
                 yield from items
+            else:
+                yield items
         dependencies = contents.get("dependencies")
         if dependencies is not None:
             values = iter(dependencies.values())
@@ -257,11 +257,11 @@ DRAFT201909 = Specification(
             "additionalProperties",
             "contains",
             "contentSchema",
-            "if",
-            "then",
             "else",
+            "if",
             "not",
             "propertyNames",
+            "then",
             "unevaluatedItems",
             "unevaluatedProperties",
         },
