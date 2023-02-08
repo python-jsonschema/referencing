@@ -10,6 +10,15 @@ from referencing.typing import URI
 
 
 @frozen
+class NoSuchResource(KeyError):
+    """
+    The given URI is not present in a registry.
+    """
+
+    ref: URI
+
+
+@frozen
 class CannotDetermineSpecification(Exception):
     """
     Attempting to detect the appropriate `Specification` failed.

@@ -174,6 +174,10 @@ class Resource(Generic[D]):
         return Resolved(contents=contents, resolver=resolver)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
 
 
+def _fail_to_retrieve(uri: URI):
+    raise exceptions.NoSuchResource(ref=uri)
+
+
 @frozen
 class Registry(Mapping[URI, Resource[D]]):
     r"""
@@ -190,17 +194,32 @@ class Registry(Mapping[URI, Resource[D]]):
 
     Registries are immutable, and their methods return new instances of the
     registry with the additional resources added to them.
+
+    The ``retrieve`` argument can be used to configure retrieval of resources
+    dynamically, either over the network, from a database, or the like.
+    Pass it a callable which will be called if any URI not present in the
+    registry is accessed. It must either return a `Resource` or else raise an
+    exception indicating that the resource is not retrievable.
     """
 
     _resources: PMap[URI, Resource[D]] = field(default=m(), converter=pmap)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
     _anchors: PMap[tuple[URI, str], AnchorType[D]] = field(default=m())  # type: ignore[reportUnknownArgumentType]  # noqa: E501
     _uncrawled: PSet[URI] = field(default=s())  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+    _retrieve: Callable[[URI], Resource[D]] = field(default=_fail_to_retrieve)
 
     def __getitem__(self, uri: URI) -> Resource[D]:
         """
         Return the `Resource` identified by the given URI.
         """
-        return self._resources[uri]
+        try:
+            return self._resources[uri]
+        except LookupError:
+            try:
+                return self._retrieve(uri)
+            except exceptions.NoSuchResource:
+                raise
+            except Exception:
+                raise exceptions.NoSuchResource(ref=uri)
 
     def __iter__(self) -> Iterator[URI]:
         """
@@ -393,7 +412,7 @@ class Resolver(Generic[D]):
             registry = registry.crawl()
             try:
                 resource = registry[uri]
-            except KeyError:
+            except exceptions.NoSuchResource:
                 raise exceptions.Unresolvable(ref=ref) from None
 
         if fragment.startswith("/"):

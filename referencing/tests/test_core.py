@@ -375,6 +375,39 @@ class TestResource:
             specification=Specification.OPAQUE,
         )
 
+    def test_retrieve(self):
+        foo = Resource.opaque({"foo": "bar"})
+        registry = Registry(retrieve=lambda uri: foo)
+        assert registry["urn:example"] == foo
+
+    def test_retrieve_error(self):
+        def retrieve(uri):
+            if uri == "urn:succeed":
+                return {}
+            raise Exception("Oh no!")
+
+        registry = Registry(retrieve=retrieve)
+        assert registry["urn:succeed"] == {}
+        with pytest.raises(exceptions.NoSuchResource):
+            registry["urn:uhoh"]
+
+    def test_retrieve_already_available_resource(self):
+        def retrieve(uri):
+            raise Exception("Oh no!")
+
+        foo = Resource.opaque({"foo": "bar"})
+        registry = Registry({"urn:example": foo})
+        assert registry["urn:example"] == foo
+
+    def test_retrieve_crawlable_resource(self):
+        def retrieve(uri):
+            raise Exception("Oh no!")
+
+        child = ID_AND_CHILDREN.create_resource({"ID": "urn:child", "foo": 12})
+        root = ID_AND_CHILDREN.create_resource({"children": [child.contents]})
+        registry = Registry(retrieve=retrieve).with_resource("urn:root", root)
+        assert registry.crawl()["urn:child"] == child
+
 
 class TestResolver:
     def test_lookup_exact_uri(self):
