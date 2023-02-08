@@ -611,7 +611,6 @@ class TestSpecification:
 
 
 class TestOpaqueSpecification:
-
     THINGS = [{"foo": "bar"}, True, 37, "foo", object()]
 
     @pytest.mark.parametrize("thing", THINGS)
