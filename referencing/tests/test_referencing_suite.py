@@ -28,7 +28,13 @@ if not SUITE.is_dir():
 DIALECT_IDS = json.loads(SUITE.joinpath("specifications.json").read_text())
 
 
-@pytest.mark.parametrize("test_path", SUITE.glob("*/**/*.json"))
+@pytest.mark.parametrize(
+    "test_path",
+    [
+        pytest.param(each, id=f"{each.parent.name}-{each.stem}")
+        for each in SUITE.glob("*/**/*.json")
+    ],
+)
 def test_referencing_suite(test_path):
     dialect_id = DIALECT_IDS[test_path.relative_to(SUITE).parts[0]]
     specification = referencing.jsonschema.specification_with(dialect_id)
