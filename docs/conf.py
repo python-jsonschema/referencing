@@ -89,8 +89,14 @@ autosectionlabel_prefix_document = True
 # -- Options for intersphinx extension ---------------------------------------
 
 intersphinx_mapping = {
+    "hatch": ("https://hatch.pypa.io/latest/", None),
+    "jsonschema-specifications": (
+        "https://jsonschema-specifications.readthedocs.io/en/latest/",
+        None,
+    ),
     "pyrsistent": ("https://pyrsistent.readthedocs.io/en/latest/", None),
     "python": ("https://docs.python.org/", None),
+    "setuptools": ("https://setuptools.pypa.io/en/latest/", None),
 }
 
 # -- Options for extlinks extension ------------------------------------------
@@ -98,6 +104,7 @@ intersphinx_mapping = {
 extlinks = {
     "gh": (str(HOMEPAGE) + "/%s", None),
     "github": (str(GITHUB) + "/%s", None),
+    "hatch": ("https://hatch.pypa.io/latest/%s", None),
 }
 
 # -- Options for the linkcheck builder ---------------------------------------

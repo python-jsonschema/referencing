@@ -1,7 +1,10 @@
 autodetecting
 deserialized
+discoverability
 referenceable
 resolvers
+runtime
+schemas
 submodules
 subresource
 subresources

@@ -8,4 +8,5 @@ Contents
     :glob:
     :maxdepth: 2
 
+    schema-packages
     api
