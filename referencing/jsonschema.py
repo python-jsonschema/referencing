@@ -126,7 +126,6 @@ def _subresources_of(
     in_value: Set[str] = frozenset(),
     in_subvalues: Set[str] = frozenset(),
     in_subarray: Set[str] = frozenset(),
-    in_value_or_subarray: Set[str] = frozenset(),
 ):
     """
     Create a callable returning JSON Schema specification-style subschemas.
@@ -147,13 +146,77 @@ def _subresources_of(
         for each in in_subvalues:
             if each in contents:
                 yield from contents[each].values()
-        for each in in_value_or_subarray:
+
+    return subresources_of
+
+
+def _subresources_of_with_crazy_items(
+    in_value: Set[str] = frozenset(),
+    in_subvalues: Set[str] = frozenset(),
+    in_subarray: Set[str] = frozenset(),
+):
+    """
+    Specifically handle older drafts where there are some funky keywords.
+    """
+
+    def subresources_of(contents: Schema) -> Iterable[ObjectSchema]:
+        if isinstance(contents, bool):
+            return
+        for each in in_value:
             if each in contents:
-                value = contents[each]
-                if isinstance(value, Mapping):
-                    yield value
-                else:
-                    yield from value
+                yield contents[each]
+        for each in in_subarray:
+            if each in contents:
+                yield from contents[each]
+        for each in in_subvalues:
+            if each in contents:
+                yield from contents[each].values()
+
+        items = contents.get("items")
+        if items is not None:
+            if isinstance(items, Mapping):
+                yield items
+            else:
+                yield from items
+
+    return subresources_of
+
+
+def _subresources_of_with_crazy_items_dependencies(
+    in_value: Set[str] = frozenset(),
+    in_subvalues: Set[str] = frozenset(),
+    in_subarray: Set[str] = frozenset(),
+):
+    """
+    Specifically handle older drafts where there are some funky keywords.
+    """
+
+    def subresources_of(contents: Schema) -> Iterable[ObjectSchema]:
+        if isinstance(contents, bool):
+            return
+        for each in in_value:
+            if each in contents:
+                yield contents[each]
+        for each in in_subarray:
+            if each in contents:
+                yield from contents[each]
+        for each in in_subvalues:
+            if each in contents:
+                yield from contents[each].values()
+
+        items = contents.get("items")
+        if items is not None:
+            if isinstance(items, Mapping):
+                yield items
+            else:
+                yield from items
+        dependencies = contents.get("dependencies")
+        if dependencies is not None:
+            values = iter(dependencies.values())
+            value = next(values, None)
+            if isinstance(value, Mapping):
+                yield value
+                yield from values
 
     return subresources_of
 
@@ -188,7 +251,7 @@ DRAFT202012 = Specification(
 DRAFT201909 = Specification(
     name="draft2019-09",
     id_of=_dollar_id,
-    subresources_of=_subresources_of(
+    subresources_of=_subresources_of_with_crazy_items(
         in_value={
             "additionalItems",
             "additionalProperties",
@@ -209,47 +272,61 @@ DRAFT201909 = Specification(
             "patternProperties",
             "properties",
         },
-        in_value_or_subarray={"items"},
     ),
     anchors_in=_anchor_2019,
 )
 DRAFT7 = Specification(
     name="draft-07",
     id_of=_legacy_dollar_id,
-    subresources_of=_subresources_of(
-        in_value={"additionalProperties", "if", "then", "else", "not"},
+    subresources_of=_subresources_of_with_crazy_items_dependencies(
+        in_value={
+            "additionalItems",
+            "additionalProperties",
+            "contains",
+            "else",
+            "if",
+            "not",
+            "propertyNames",
+            "then",
+        },
         in_subarray={"allOf", "anyOf", "oneOf"},
-        in_subvalues={"definitions", "properties"},
+        in_subvalues={"definitions", "patternProperties", "properties"},
     ),
     anchors_in=_legacy_anchor_in_dollar_id,
 )
 DRAFT6 = Specification(
     name="draft-06",
     id_of=_legacy_dollar_id,
-    subresources_of=_subresources_of(
-        in_value={"additionalProperties", "not"},
+    subresources_of=_subresources_of_with_crazy_items_dependencies(
+        in_value={
+            "additionalItems",
+            "additionalProperties",
+            "contains",
+            "not",
+            "propertyNames",
+        },
         in_subarray={"allOf", "anyOf", "oneOf"},
-        in_subvalues={"definitions", "properties"},
+        in_subvalues={"definitions", "patternProperties", "properties"},
     ),
     anchors_in=_legacy_anchor_in_dollar_id,
 )
 DRAFT4 = Specification(
     name="draft-04",
     id_of=_legacy_id,
-    subresources_of=_subresources_of(
-        in_value={"additionalProperties", "not"},
+    subresources_of=_subresources_of_with_crazy_items_dependencies(
+        in_value={"additionalItems", "additionalProperties", "not"},
         in_subarray={"allOf", "anyOf", "oneOf"},
-        in_subvalues={"definitions", "properties"},
+        in_subvalues={"definitions", "patternProperties", "properties"},
     ),
     anchors_in=_legacy_anchor_in_id,
 )
 DRAFT3 = Specification(
     name="draft-03",
     id_of=_legacy_id,
-    subresources_of=_subresources_of(
-        in_value={"additionalProperties"},
+    subresources_of=_subresources_of_with_crazy_items_dependencies(
+        in_value={"additionalItems", "additionalProperties"},
         in_subarray={"extends"},
-        in_subvalues={"definitions", "properties"},
+        in_subvalues={"definitions", "patternProperties", "properties"},
     ),
     anchors_in=_legacy_anchor_in_id,
 )
