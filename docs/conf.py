@@ -105,6 +105,7 @@ extlinks = {
     "gh": (str(HOMEPAGE) + "/%s", None),
     "github": (str(GITHUB) + "/%s", None),
     "hatch": ("https://hatch.pypa.io/latest/%s", None),
+    "httpx": ("https://www.python-httpx.org/%s", None),
 }
 
 # -- Options for the linkcheck builder ---------------------------------------

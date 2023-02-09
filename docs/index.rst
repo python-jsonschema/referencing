@@ -8,5 +8,6 @@ Contents
     :glob:
     :maxdepth: 2
 
+    external-retrieval
     schema-packages
     api

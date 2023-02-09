@@ -1,6 +1,8 @@
 autodetecting
 deserialized
 discoverability
+filesystem
+metaschemas
 referenceable
 resolvers
 runtime
