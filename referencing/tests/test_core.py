@@ -126,7 +126,7 @@ class TestRegistry:
     def test_contents(self):
         resource = Resource.opaque({"foo": "bar"})
         uri = "urn:example"
-        registry = Registry().with_resources([(uri, resource)])
+        registry = Registry().with_resource(uri, resource)
         assert registry.contents(uri) == {"foo": "bar"}
 
     def test_init(self):
