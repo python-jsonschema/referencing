@@ -380,6 +380,39 @@ class TestRegistry:
             Registry().remove("urn:doesNotExist")
         assert e.value == exceptions.NoSuchResource(ref="urn:doesNotExist")
 
+    def test_retrieve(self):
+        foo = Resource.opaque({"foo": "bar"})
+        registry = Registry(retrieve=lambda uri: foo)
+        assert registry["urn:example"] == foo
+
+    def test_retrieve_error(self):
+        def retrieve(uri):
+            if uri == "urn:succeed":
+                return {}
+            raise Exception("Oh no!")
+
+        registry = Registry(retrieve=retrieve)
+        assert registry["urn:succeed"] == {}
+        with pytest.raises(exceptions.Unretrievable):
+            registry["urn:uhoh"]
+
+    def test_retrieve_already_available_resource(self):
+        def retrieve(uri):
+            raise Exception("Oh no!")
+
+        foo = Resource.opaque({"foo": "bar"})
+        registry = Registry({"urn:example": foo})
+        assert registry["urn:example"] == foo
+
+    def test_retrieve_crawlable_resource(self):
+        def retrieve(uri):
+            raise Exception("Oh no!")
+
+        child = ID_AND_CHILDREN.create_resource({"ID": "urn:child", "foo": 12})
+        root = ID_AND_CHILDREN.create_resource({"children": [child.contents]})
+        registry = Registry(retrieve=retrieve).with_resource("urn:root", root)
+        assert registry.crawl()["urn:child"] == child
+
     def test_repr(self):
         one = Resource.opaque(contents={})
         two = ID_AND_CHILDREN.create_resource({"foo": "bar"})
@@ -518,39 +551,6 @@ class TestResource:
             contents=contents,
             specification=Specification.OPAQUE,
         )
-
-    def test_retrieve(self):
-        foo = Resource.opaque({"foo": "bar"})
-        registry = Registry(retrieve=lambda uri: foo)
-        assert registry["urn:example"] == foo
-
-    def test_retrieve_error(self):
-        def retrieve(uri):
-            if uri == "urn:succeed":
-                return {}
-            raise Exception("Oh no!")
-
-        registry = Registry(retrieve=retrieve)
-        assert registry["urn:succeed"] == {}
-        with pytest.raises(exceptions.Unretrievable):
-            registry["urn:uhoh"]
-
-    def test_retrieve_already_available_resource(self):
-        def retrieve(uri):
-            raise Exception("Oh no!")
-
-        foo = Resource.opaque({"foo": "bar"})
-        registry = Registry({"urn:example": foo})
-        assert registry["urn:example"] == foo
-
-    def test_retrieve_crawlable_resource(self):
-        def retrieve(uri):
-            raise Exception("Oh no!")
-
-        child = ID_AND_CHILDREN.create_resource({"ID": "urn:child", "foo": 12})
-        root = ID_AND_CHILDREN.create_resource({"children": [child.contents]})
-        registry = Registry(retrieve=retrieve).with_resource("urn:root", root)
-        assert registry.crawl()["urn:child"] == child
 
 
 class TestResolver:
@@ -768,11 +768,15 @@ class TestResolver:
         assert list(fourth.resolver.dynamic_scope()) == [
             ("http://example.com/child/grandchild", fourth.resolver._registry),
             ("http://example.com/child/", fourth.resolver._registry),
+            ("http://example.com/", fourth.resolver._registry),
         ]
         assert list(third.resolver.dynamic_scope()) == [
             ("http://example.com/child/", third.resolver._registry),
+            ("http://example.com/", third.resolver._registry),
         ]
-        assert list(second.resolver.dynamic_scope()) == []
+        assert list(second.resolver.dynamic_scope()) == [
+            ("http://example.com/", second.resolver._registry),
+        ]
         assert list(first.resolver.dynamic_scope()) == []
 
 
