@@ -739,7 +739,7 @@ class TestResolver:
         assert third.contents == {"ID": "grandchild"}
 
     def test_dynamic_scope(self):
-        root = ID_AND_CHILDREN.create_resource(
+        one = ID_AND_CHILDREN.create_resource(
             {
                 "ID": "http://example.com/",
                 "children": [
@@ -750,19 +750,29 @@ class TestResolver:
                 ],
             },
         )
-        registry = Registry().with_resource(root.id(), root)
+        two = ID_AND_CHILDREN.create_resource(
+            {
+                "ID": "http://example.com/two",
+                "children": [{"ID": "two-child/"}],
+            },
+        )
+        registry = Registry().with_resources(
+            [(one.id(), one), (two.id(), two)],
+        )
 
         resolver = registry.resolver()
         first = resolver.lookup("http://example.com/")
         second = first.resolver.lookup("#/children/0")
         third = second.resolver.lookup("grandchild")
+        fourth = third.resolver.lookup("http://example.com/two")
+        assert list(fourth.resolver.dynamic_scope()) == [
+            ("http://example.com/child/grandchild", fourth.resolver._registry),
+            ("http://example.com/child/", fourth.resolver._registry),
+        ]
         assert list(third.resolver.dynamic_scope()) == [
             ("http://example.com/child/", third.resolver._registry),
-            ("http://example.com/", third.resolver._registry),
         ]
-        assert list(second.resolver.dynamic_scope()) == [
-            ("http://example.com/", second.resolver._registry),
-        ]
+        assert list(second.resolver.dynamic_scope()) == []
         assert list(first.resolver.dynamic_scope()) == []
 
 

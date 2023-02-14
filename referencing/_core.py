@@ -478,7 +478,7 @@ class Resolver(Generic[D]):
         id = subresource.id()
         if id is None:
             return self
-        return self._evolve(base_uri=urljoin(self._base_uri, id))
+        return evolve(self, base_uri=urljoin(self._base_uri, id))
 
     def dynamic_scope(self) -> Iterable[tuple[URI, Registry[D]]]:
         """
@@ -492,7 +492,7 @@ class Resolver(Generic[D]):
         Evolve, appending to the dynamic scope.
         """
         previous = self._previous
-        if self._base_uri and base_uri != self._base_uri:
+        if self._base_uri and (not previous or base_uri != self._base_uri):
             previous = previous.cons(self._base_uri)
         return evolve(self, base_uri=base_uri, previous=previous, **kwargs)
 
