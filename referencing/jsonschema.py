@@ -18,6 +18,9 @@ ObjectSchema = Mapping[str, Any]
 #: A JSON Schema of any kind
 Schema = Union[bool, ObjectSchema]
 
+#: A JSON Schema Registry
+SchemaRegistry = Registry[Schema]
+
 
 @frozen
 class UnknownDialect(Exception):
