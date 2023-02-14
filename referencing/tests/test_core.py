@@ -338,6 +338,48 @@ class TestRegistry:
         with pytest.raises(Exception, match="conflict.*retriev"):  # noqa: B017
             first.combine(second, third)
 
+    def test_remove(self):
+        one = Resource.opaque(contents={})
+        two = ID_AND_CHILDREN.create_resource({"foo": "bar"})
+        registry = Registry({"urn:foo": one, "urn:bar": two})
+        assert registry.remove("urn:foo") == Registry({"urn:bar": two})
+
+    def test_remove_uncrawled(self):
+        one = Resource.opaque(contents={})
+        two = ID_AND_CHILDREN.create_resource({"foo": "bar"})
+        registry = Registry().with_resources(
+            [("urn:foo", one), ("urn:bar", two)],
+        )
+        assert registry.remove("urn:foo") == Registry().with_resource(
+            "urn:bar",
+            two,
+        )
+
+    def test_remove_with_anchors(self):
+        one = Resource.opaque(contents={})
+        two = ID_AND_CHILDREN.create_resource({"anchors": {"foo": "bar"}})
+        registry = (
+            Registry()
+            .with_resources(
+                [("urn:foo", one), ("urn:bar", two)],
+            )
+            .crawl()
+        )
+        assert (
+            registry.remove("urn:bar")
+            == Registry()
+            .with_resource(
+                "urn:foo",
+                one,
+            )
+            .crawl()
+        )
+
+    def test_remove_nonexistent_uri(self):
+        with pytest.raises(exceptions.NoSuchResource) as e:
+            Registry().remove("urn:doesNotExist")
+        assert e.value == exceptions.NoSuchResource(ref="urn:doesNotExist")
+
     def test_repr(self):
         one = Resource.opaque(contents={})
         two = ID_AND_CHILDREN.create_resource({"foo": "bar"})

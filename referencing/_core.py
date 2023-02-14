@@ -246,6 +246,22 @@ class Registry(Mapping[URI, Resource[D]]):
             summary = f"{pluralized}"
         return f"<Registry ({size} {summary})>"
 
+    def remove(self, uri: URI):
+        """
+        Return a registry with the resource identified by a given URI removed.
+        """
+        if uri not in self._resources:
+            raise exceptions.NoSuchResource(ref=uri)
+
+        return evolve(
+            self,
+            resources=self._resources.remove(uri),
+            uncrawled=self._uncrawled.discard(uri),
+            anchors=pmap(
+                (k, v) for k, v in self._anchors.items() if k[0] != uri
+            ),
+        )
+
     def anchor(self, uri: URI, name: str):
         """
         Retrieve the given anchor, which must already have been found.
