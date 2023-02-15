@@ -339,6 +339,8 @@ class Registry(Mapping[URI, Resource[D]]):
         """
         Combine together one or more other registries, producing a unified one.
         """
+        if registries == (self,):
+            return self
         anchors = self._anchors
         resources = self._resources
         uncrawled = self._uncrawled

@@ -218,6 +218,18 @@ class TestRegistry:
             ),
         ).with_resource("http://example.com/foo/bar", two)
 
+    def test_combine_self(self):
+        """
+        Combining a registry with itself short-circuits.
+
+        This is a performance optimization -- otherwise we do lots more work
+        (in jsonschema this seems to correspond to making the test suite take
+         *3x* longer).
+        """
+
+        registry = Registry({"urn:foo": "bar"})
+        assert registry.combine(registry) is registry
+
     def test_combine_with_uncrawled_resources(self):
         one = Resource.opaque(contents={})
         two = ID_AND_CHILDREN.create_resource({"foo": "bar"})
