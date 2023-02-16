@@ -374,9 +374,6 @@ class Registry(Mapping[URI, Resource[D]]):
     def resolver_with_root(self, resource: Resource[D]) -> Resolver[D]:
         """
         Return a `Resolver` with a specific root resource.
-
-        The resource must have an internal identifier (e.g. for a JSON Schema
-        resource in recent versions, an ``$id`` keyword).
         """
         uri = resource.id() or ""
         return Resolver(
