@@ -425,6 +425,23 @@ class TestRegistry:
         registry = Registry(retrieve=retrieve).with_resource("urn:root", root)
         assert registry.crawl()["urn:child"] == child
 
+    def test_resolver(self):
+        one = Resource.opaque(contents={})
+        registry = Registry({"http://example.com": one})
+        resolver = registry.resolver(base_uri="http://example.com")
+        assert resolver.lookup("#").contents == {}
+
+    def test_resolver_with_root_identified(self):
+        root = ID_AND_CHILDREN.create_resource({"ID": "http://example.com"})
+        resolver = Registry().resolver_with_root(root)
+        assert resolver.lookup("http://example.com").contents == root.contents
+        assert resolver.lookup("#").contents == root.contents
+
+    def test_resolver_with_root_unidentified(self):
+        root = Resource.opaque(contents={})
+        resolver = Registry().resolver_with_root(root)
+        assert resolver.lookup("#").contents == root.contents
+
     def test_repr(self):
         one = Resource.opaque(contents={})
         two = ID_AND_CHILDREN.create_resource({"foo": "bar"})
