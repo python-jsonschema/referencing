@@ -34,7 +34,6 @@ dynamic = ["version"]
 dependencies = [
   "attrs>=22.2.0",
   "pyrsistent",
-  "yarl",
 ]
 
 [project.urls]
