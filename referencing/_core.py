@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator, Sequence
-from typing import Any, Callable, ClassVar, Generic
+from typing import Any, Callable, ClassVar, Generic, Protocol
 from urllib.parse import unquote, urldefrag, urljoin
 
 from attrs import evolve, field
@@ -11,6 +11,16 @@ from pyrsistent.typing import PList, PMap, PSet
 from referencing import exceptions
 from referencing._attrs import frozen
 from referencing.typing import URI, Anchor as AnchorType, D, Mapping
+
+
+class _MaybeInSubresource(Protocol[D]):
+    def __call__(
+        self,
+        segments: Sequence[int | str],
+        resolver: Resolver[D],
+        subresource: Resource[D],
+    ) -> Resolver[D]:
+        ...
 
 
 @frozen
@@ -31,6 +41,10 @@ class Specification(Generic[D]):
     #: Retrieve the subresources of the given document (without traversing into
     #: the subresources themselves).
     subresources_of: Callable[[D], Iterable[D]]
+
+    #: While resolving a JSON pointer, conditionally enter a subresource
+    #: (if e.g. we have just entered a keyword whose value is a subresource)
+    maybe_in_subresource: _MaybeInSubresource[D]
 
     #: Retrieve the anchors contained in the given document.
     _anchors_in: Callable[
@@ -63,6 +77,7 @@ Specification.OPAQUE = Specification(
     id_of=lambda contents: None,
     subresources_of=lambda contents: [],
     anchors_in=lambda specification, contents: [],
+    maybe_in_subresource=lambda segments, resolver, subresource: resolver,
 )
 
 
@@ -156,6 +171,7 @@ class Resource(Generic[D]):
                 if the pointer points to a location not present in the document
         """
         contents = self.contents
+        segments: list[int | str] = []
         for segment in unquote(pointer[1:]).split("/"):
             if isinstance(contents, Sequence):
                 segment = int(segment)
@@ -166,11 +182,12 @@ class Resource(Generic[D]):
             except LookupError:
                 raise exceptions.PointerToNowhere(ref=pointer, resource=self)
 
-            # FIXME: this is slightly wrong, we need to know that we are
-            #        entering a subresource specifically, not just any mapping
-            if isinstance(contents, Mapping):
-                subresource = self._specification.create_resource(contents)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
-                resolver = resolver.in_subresource(subresource)
+            segments.append(segment)
+            resolver = self._specification.maybe_in_subresource(
+                segments=segments,
+                resolver=resolver,
+                subresource=self._specification.create_resource(contents),  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+            )
         return Resolved(contents=contents, resolver=resolver)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
 
 

@@ -15,6 +15,12 @@ ID_AND_CHILDREN = Specification(
         )
         for name, each in contents.get("anchors", {}).items()
     ],
+    maybe_in_subresource=lambda segments, resolver, subresource: (
+        resolver.in_subresource(subresource)
+        if not len(segments) % 2
+        and all(each == "children" for each in segments[::2])
+        else resolver
+    ),
 )
 
 
@@ -534,6 +540,9 @@ class TestResource:
             id_of=lambda contents: "urn:fixedID",
             subresources_of=lambda contents: [],
             anchors_in=lambda specification, contents: [],
+            maybe_in_subresource=(
+                lambda segments, resolver, subresource: resolver
+            ),
         )
         resource = Resource(
             contents={"foo": "baz"},
@@ -816,6 +825,9 @@ class TestSpecification:
             id_of=lambda contents: "urn:fixedID",
             subresources_of=lambda contents: [],
             anchors_in=lambda specification, contents: [],
+            maybe_in_subresource=(
+                lambda segments, resolver, subresource: resolver
+            ),
         )
         resource = specification.create_resource(contents={"foo": "baz"})
         assert resource == Resource(

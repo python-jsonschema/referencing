@@ -224,6 +224,29 @@ def _subresources_of_with_crazy_items_dependencies(
     return subresources_of
 
 
+def _maybe_in_subresource(
+    in_value: Set[str] = frozenset(),
+    in_subvalues: Set[str] = frozenset(),
+    in_subarray: Set[str] = frozenset(),
+):
+    def maybe_in_subresource(
+        segments: Sequence[int | str],
+        resolver: _Resolver[Any],
+        subresource: Resource[Any],
+    ) -> _Resolver[Any]:
+        _segments = iter(segments)
+        for segment in _segments:
+            if segment in in_value:
+                continue
+            elif segment in in_subarray or segment in in_subvalues:
+                if next(_segments, None) is not None:
+                    continue
+            return resolver
+        return resolver.in_subresource(subresource)
+
+    return maybe_in_subresource
+
+
 DRAFT202012 = Specification(
     name="draft2020-12",
     id_of=_dollar_id,
@@ -250,6 +273,28 @@ DRAFT202012 = Specification(
         },
     ),
     anchors_in=_anchor,
+    maybe_in_subresource=_maybe_in_subresource(
+        in_value={
+            "additionalProperties",
+            "contains",
+            "contentSchema",
+            "else",
+            "if",
+            "items",
+            "not",
+            "propertyNames",
+            "then",
+            "unevaluatedItems",
+            "unevaluatedProperties",
+        },
+        in_subarray={"allOf", "anyOf", "oneOf", "prefixItems"},
+        in_subvalues={
+            "$defs",
+            "dependentSchemas",
+            "patternProperties",
+            "properties",
+        },
+    ),
 )
 DRAFT201909 = Specification(
     name="draft2019-09",
@@ -277,6 +322,28 @@ DRAFT201909 = Specification(
         },
     ),
     anchors_in=_anchor_2019,
+    maybe_in_subresource=_maybe_in_subresource(
+        in_value={
+            "additionalItems",
+            "additionalProperties",
+            "contains",
+            "contentSchema",
+            "else",
+            "if",
+            "not",
+            "propertyNames",
+            "then",
+            "unevaluatedItems",
+            "unevaluatedProperties",
+        },
+        in_subarray={"allOf", "anyOf", "oneOf"},
+        in_subvalues={
+            "$defs",
+            "dependentSchemas",
+            "patternProperties",
+            "properties",
+        },
+    ),
 )
 DRAFT7 = Specification(
     name="draft-07",
@@ -296,6 +363,20 @@ DRAFT7 = Specification(
         in_subvalues={"definitions", "patternProperties", "properties"},
     ),
     anchors_in=_legacy_anchor_in_dollar_id,
+    maybe_in_subresource=_maybe_in_subresource(
+        in_value={
+            "additionalItems",
+            "additionalProperties",
+            "contains",
+            "else",
+            "if",
+            "not",
+            "propertyNames",
+            "then",
+        },
+        in_subarray={"allOf", "anyOf", "oneOf"},
+        in_subvalues={"definitions", "patternProperties", "properties"},
+    ),
 )
 DRAFT6 = Specification(
     name="draft-06",
@@ -312,6 +393,17 @@ DRAFT6 = Specification(
         in_subvalues={"definitions", "patternProperties", "properties"},
     ),
     anchors_in=_legacy_anchor_in_dollar_id,
+    maybe_in_subresource=_maybe_in_subresource(
+        in_value={
+            "additionalItems",
+            "additionalProperties",
+            "contains",
+            "not",
+            "propertyNames",
+        },
+        in_subarray={"allOf", "anyOf", "oneOf"},
+        in_subvalues={"definitions", "patternProperties", "properties"},
+    ),
 )
 DRAFT4 = Specification(
     name="draft-04",
@@ -322,6 +414,11 @@ DRAFT4 = Specification(
         in_subvalues={"definitions", "patternProperties", "properties"},
     ),
     anchors_in=_legacy_anchor_in_id,
+    maybe_in_subresource=_maybe_in_subresource(
+        in_value={"additionalItems", "additionalProperties", "not"},
+        in_subarray={"allOf", "anyOf", "oneOf"},
+        in_subvalues={"definitions", "patternProperties", "properties"},
+    ),
 )
 DRAFT3 = Specification(
     name="draft-03",
@@ -332,6 +429,11 @@ DRAFT3 = Specification(
         in_subvalues={"definitions", "patternProperties", "properties"},
     ),
     anchors_in=_legacy_anchor_in_id,
+    maybe_in_subresource=_maybe_in_subresource(
+        in_value={"additionalItems", "additionalProperties"},
+        in_subarray={"extends"},
+        in_subvalues={"definitions", "patternProperties", "properties"},
+    ),
 )
 
 
