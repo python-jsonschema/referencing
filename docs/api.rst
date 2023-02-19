@@ -18,6 +18,11 @@ API Reference
    :undoc-members:
 
 
+.. autoclass:: referencing._core._MaybeInSubresource
+   :members:
+   :undoc-members:
+
+
 Submodules
 ----------
 
