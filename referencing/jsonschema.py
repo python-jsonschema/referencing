@@ -237,11 +237,12 @@ def _maybe_in_subresource(
         subresource: Resource[Any],
     ) -> _Resolver[Any]:
         _segments = iter(segments)
+        # FIXME: This is a ton of redone work, each time we recheck from the
+        #        beginning of the pointer, so long ones will just keep doing
+        #        that over and over again...
         for segment in _segments:
-            if (
-                segment not in in_value
-                and segment not in in_child
-                or next(_segments, None) is None
+            if segment not in in_value and (
+                segment not in in_child or next(_segments, None) is None
             ):
                 return resolver
         return resolver.in_subresource(subresource)
