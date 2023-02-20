@@ -35,7 +35,7 @@ DIALECT_IDS = json.loads(SUITE.joinpath("specifications.json").read_text())
         for each in SUITE.glob("*/**/*.json")
     ],
 )
-def test_referencing_suite(test_path):
+def test_referencing_suite(test_path, subtests):
     dialect_id = DIALECT_IDS[test_path.relative_to(SUITE).parts[0]]
     specification = referencing.jsonschema.specification_with(dialect_id)
     loaded = json.loads(test_path.read_text())
@@ -45,10 +45,19 @@ def test_referencing_suite(test_path):
         for uri, contents in loaded["registry"].items()
     )
     for test in loaded["tests"]:
-        resolver = registry.resolver(base_uri=test.get("base_uri", ""))
+        with subtests.test(test=test):
+            resolver = registry.resolver(base_uri=test.get("base_uri", ""))
 
-        if test.get("error"):
-            with pytest.raises(Unresolvable):
-                resolver.lookup(test["ref"])
-        else:
-            assert resolver.lookup(test["ref"]).contents == test["target"]
+            if test.get("error"):
+                with pytest.raises(Unresolvable):
+                    resolver.lookup(test["ref"])
+            else:
+                resolved = resolver.lookup(test["ref"])
+                assert resolved.contents == test["target"]
+
+                then = test.get("then")
+                while then:
+                    with subtests.test(test=test, then=then):
+                        resolved = resolved.resolver.lookup(then["ref"])
+                        assert resolved.contents == then["target"]
+                    then = then.get("then")

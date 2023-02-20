@@ -673,56 +673,8 @@ class TestResolver:
             anchor="noSuchAnchor",
         )
 
-    # FIXME: Ideally there'd be some way to represent the tests below in the
-    #        referencing suite, but I can't think of ways to do so yet.
-
-    def test_multiple_lookup(self):
-        """
-        Continuing to lookup resources maintains the new base URI.
-        """
-        registry = Registry(
-            {
-                "http://example.com/": Resource.opaque({}),
-                "http://example.com/foo/": Resource.opaque({"foo": "bar"}),
-                "http://example.com/foo/bar": Resource.opaque({"baz": "quux"}),
-            },
-        )
-
-        resolver = registry.resolver()
-        first = resolver.lookup("http://example.com/")
-        assert first.contents == {}
-
-        second = first.resolver.lookup("foo/")
-        assert second.contents == {"foo": "bar"}
-
-        third = second.resolver.lookup("bar")
-        assert third.contents == {"baz": "quux"}
-
-    def test_multiple_lookup_pointer(self):
-        registry = Registry(
-            {
-                "http://example.com/": Resource.opaque({}),
-                "http://example.com/foo/": Resource.opaque({"foo": "bar"}),
-            },
-        )
-
-        resolver = registry.resolver()
-        first = resolver.lookup("http://example.com/foo/")
-        assert first.contents == {"foo": "bar"}
-
-        second = first.resolver.lookup("#/foo")
-        assert second.contents == "bar"
-
-    def test_multiple_lookup_anchor(self):
-        root = ID_AND_CHILDREN.create_resource({"anchors": {"foo": 12}})
-        registry = Registry().with_resource("http://example.com/", root)
-
-        resolver = registry.resolver()
-        first = resolver.lookup("http://example.com/")
-        assert first.contents == {"anchors": {"foo": 12}}
-
-        second = first.resolver.lookup("#foo")
-        assert second.contents == 12
+    # FIXME: The tests below aren't really representable in the current
+    #        suite, though we should probably think of ways to do so.
 
     def test_in_subresource(self):
         root = ID_AND_CHILDREN.create_resource(

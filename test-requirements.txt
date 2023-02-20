@@ -7,6 +7,7 @@
 attrs==22.2.0
     # via
     #   pytest
+    #   pytest-subtests
     #   referencing
 iniconfig==2.0.0
     # via pytest
@@ -17,6 +18,10 @@ pluggy==1.0.0
 pyrsistent==0.19.3
     # via referencing
 pytest==7.2.1
+    # via
+    #   -r test-requirements.in
+    #   pytest-subtests
+pytest-subtests==0.10.0
     # via -r test-requirements.in
 file:.#egg=referencing
     # via -r test-requirements.in

@@ -1,2 +1,3 @@
 file:.#egg=referencing
 pytest
+pytest-subtests
