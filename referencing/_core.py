@@ -5,7 +5,7 @@ from typing import Any, Callable, ClassVar, Generic, Protocol
 from urllib.parse import unquote, urldefrag, urljoin
 
 from attrs import evolve, field
-from pyrsistent import m, plist, pmap, s
+from pyrsistent import plist, pmap, s
 from pyrsistent.typing import PList, PMap, PSet
 
 from referencing import exceptions
@@ -198,6 +198,10 @@ def _fail_to_retrieve(uri: URI):
     raise exceptions.NoSuchResource(ref=uri)
 
 
+def _to_pmap(mapping: dict[URI, Resource[D]] | PMap[URI, Resource[D]]):
+    return pmap(mapping) if isinstance(mapping, dict) else mapping
+
+
 @frozen
 class Registry(Mapping[URI, Resource[D]]):
     r"""
@@ -222,8 +226,11 @@ class Registry(Mapping[URI, Resource[D]]):
     exception indicating that the resource is not retrievable.
     """
 
-    _resources: PMap[URI, Resource[D]] = field(default=m(), converter=pmap)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
-    _anchors: PMap[tuple[URI, str], AnchorType[D]] = field(default=m())  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+    _resources: PMap[URI, Resource[D]] = field(
+        default=pmap(),  # type: ignore[reportUnknownArgumentType]
+        converter=_to_pmap,
+    )
+    _anchors: PMap[tuple[URI, str], AnchorType[D]] = field(default=pmap())  # type: ignore[reportUnknownArgumentType]  # noqa: E501
     _uncrawled: PSet[URI] = field(default=s())  # type: ignore[reportUnknownArgumentType]  # noqa: E501
     _retrieve: Callable[[URI], Resource[D]] = field(default=_fail_to_retrieve)
 
