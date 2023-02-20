@@ -183,11 +183,14 @@ class Resource(Generic[D]):
                 raise exceptions.PointerToNowhere(ref=pointer, resource=self)
 
             segments.append(segment)
+            last = resolver
             resolver = self._specification.maybe_in_subresource(
                 segments=segments,
                 resolver=resolver,
                 subresource=self._specification.create_resource(contents),  # type: ignore[reportUnknownArgumentType]  # noqa: E501
             )
+            if resolver is not last:
+                segments = []
         return Resolved(contents=contents, resolver=resolver)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
 
 

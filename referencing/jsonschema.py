@@ -237,10 +237,61 @@ def _maybe_in_subresource(
         subresource: Resource[Any],
     ) -> _Resolver[Any]:
         _segments = iter(segments)
-        # FIXME: This is a ton of redone work, each time we recheck from the
-        #        beginning of the pointer, so long ones will just keep doing
-        #        that over and over again...
         for segment in _segments:
+            if segment not in in_value and (
+                segment not in in_child or next(_segments, None) is None
+            ):
+                return resolver
+        return resolver.in_subresource(subresource)
+
+    return maybe_in_subresource
+
+
+def _maybe_in_subresource_crazy_items(
+    in_value: Set[str] = frozenset(),
+    in_subvalues: Set[str] = frozenset(),
+    in_subarray: Set[str] = frozenset(),
+):
+    in_child = in_subvalues | in_subarray
+
+    def maybe_in_subresource(
+        segments: Sequence[int | str],
+        resolver: _Resolver[Any],
+        subresource: Resource[Any],
+    ) -> _Resolver[Any]:
+        _segments = iter(segments)
+        for segment in _segments:
+            if segment == "items" and isinstance(
+                subresource.contents, Mapping
+            ):
+                return resolver.in_subresource(subresource)
+            if segment not in in_value and (
+                segment not in in_child or next(_segments, None) is None
+            ):
+                return resolver
+        return resolver.in_subresource(subresource)
+
+    return maybe_in_subresource
+
+
+def _maybe_in_subresource_crazy_items_dependencies(
+    in_value: Set[str] = frozenset(),
+    in_subvalues: Set[str] = frozenset(),
+    in_subarray: Set[str] = frozenset(),
+):
+    in_child = in_subvalues | in_subarray
+
+    def maybe_in_subresource(
+        segments: Sequence[int | str],
+        resolver: _Resolver[Any],
+        subresource: Resource[Any],
+    ) -> _Resolver[Any]:
+        _segments = iter(segments)
+        for segment in _segments:
+            if (
+                segment == "items" or segment == "dependencies"
+            ) and isinstance(subresource.contents, Mapping):
+                return resolver.in_subresource(subresource)
             if segment not in in_value and (
                 segment not in in_child or next(_segments, None) is None
             ):
@@ -325,7 +376,7 @@ DRAFT201909 = Specification(
         },
     ),
     anchors_in=_anchor_2019,
-    maybe_in_subresource=_maybe_in_subresource(
+    maybe_in_subresource=_maybe_in_subresource_crazy_items(
         in_value={
             "additionalItems",
             "additionalProperties",
@@ -366,7 +417,7 @@ DRAFT7 = Specification(
         in_subvalues={"definitions", "patternProperties", "properties"},
     ),
     anchors_in=_legacy_anchor_in_dollar_id,
-    maybe_in_subresource=_maybe_in_subresource(
+    maybe_in_subresource=_maybe_in_subresource_crazy_items_dependencies(
         in_value={
             "additionalItems",
             "additionalProperties",
@@ -396,7 +447,7 @@ DRAFT6 = Specification(
         in_subvalues={"definitions", "patternProperties", "properties"},
     ),
     anchors_in=_legacy_anchor_in_dollar_id,
-    maybe_in_subresource=_maybe_in_subresource(
+    maybe_in_subresource=_maybe_in_subresource_crazy_items_dependencies(
         in_value={
             "additionalItems",
             "additionalProperties",
@@ -417,7 +468,7 @@ DRAFT4 = Specification(
         in_subvalues={"definitions", "patternProperties", "properties"},
     ),
     anchors_in=_legacy_anchor_in_id,
-    maybe_in_subresource=_maybe_in_subresource(
+    maybe_in_subresource=_maybe_in_subresource_crazy_items_dependencies(
         in_value={"additionalItems", "additionalProperties", "not"},
         in_subarray={"allOf", "anyOf", "oneOf"},
         in_subvalues={"definitions", "patternProperties", "properties"},
@@ -432,7 +483,7 @@ DRAFT3 = Specification(
         in_subvalues={"definitions", "patternProperties", "properties"},
     ),
     anchors_in=_legacy_anchor_in_id,
-    maybe_in_subresource=_maybe_in_subresource(
+    maybe_in_subresource=_maybe_in_subresource_crazy_items_dependencies(
         in_value={"additionalItems", "additionalProperties"},
         in_subarray={"extends"},
         in_subvalues={"definitions", "patternProperties", "properties"},
