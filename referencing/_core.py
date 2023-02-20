@@ -5,7 +5,7 @@ from typing import Any, Callable, ClassVar, Generic, Protocol
 from urllib.parse import unquote, urldefrag, urljoin
 
 from attrs import evolve, field
-from pyrsistent import plist, pmap, s
+from pyrsistent import PMap as PMapType, plist, pmap, s
 from pyrsistent.typing import PList, PMap, PSet
 
 from referencing import exceptions
@@ -198,8 +198,12 @@ def _fail_to_retrieve(uri: URI):
     raise exceptions.NoSuchResource(ref=uri)
 
 
-def _to_pmap(mapping: dict[URI, Resource[D]] | PMap[URI, Resource[D]]):
-    return pmap(mapping) if isinstance(mapping, dict) else mapping
+def _to_pmap(
+    value: dict[URI, Resource[D]]
+    | PMap[URI, Resource[D]]
+    | list[tuple[URI, Resource[D]]],
+):
+    return value if isinstance(value, PMapType) else pmap(value)
 
 
 @frozen
