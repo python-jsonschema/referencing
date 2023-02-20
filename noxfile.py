@@ -22,14 +22,12 @@ def session(default=True, **kwargs):
 
 @session(python=["3.8", "3.9", "3.10", "3.11", "pypy3"])
 def tests(session):
-    dependencies = ["pytest", ROOT]
+    session.install("-r", ROOT / "test-requirements.txt")
     if session.posargs == ["coverage"]:
-        dependencies.append("coverage[toml]")
-        session.install(*dependencies)
+        session.install("coverage[toml]")
         session.run("coverage", "run", "-m", "pytest")
         session.run("coverage", "report")
     else:
-        session.install(*dependencies)
         session.run("pytest", *session.posargs, REFERENCING)
 
 
