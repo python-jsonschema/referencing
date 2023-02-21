@@ -5,12 +5,14 @@ from typing import Any, Callable, ClassVar, Generic, Protocol
 from urllib.parse import unquote, urldefrag, urljoin
 
 from attrs import evolve, field
-from pyrsistent import PMap as PMapType, plist, pmap, s
+from pyrsistent import PMap as PMapType, plist, pmap, pset
 from pyrsistent.typing import PList, PMap, PSet
 
 from referencing import exceptions
 from referencing._attrs import frozen
 from referencing.typing import URI, Anchor as AnchorType, D, Mapping
+
+EMPTY64 = pmap(pre_size=64)
 
 
 class _MaybeInSubresource(Protocol[D]):
@@ -231,11 +233,11 @@ class Registry(Mapping[URI, Resource[D]]):
     """
 
     _resources: PMap[URI, Resource[D]] = field(
-        default=pmap(),  # type: ignore[reportUnknownArgumentType]
+        default=EMPTY64,  # type: ignore[reportUnknownArgumentType]
         converter=_to_pmap,
     )
-    _anchors: PMap[tuple[URI, str], AnchorType[D]] = field(default=pmap())  # type: ignore[reportUnknownArgumentType]  # noqa: E501
-    _uncrawled: PSet[URI] = field(default=s())  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+    _anchors: PMap[tuple[URI, str], AnchorType[D]] = field(default=EMPTY64)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+    _uncrawled: PSet[URI] = field(default=pset())  # type: ignore[reportUnknownArgumentType]  # noqa: E501
     _retrieve: Callable[[URI], Resource[D]] = field(default=_fail_to_retrieve)
 
     def __getitem__(self, uri: URI) -> Resource[D]:
@@ -326,7 +328,7 @@ class Registry(Mapping[URI, Resource[D]]):
             self,
             resources=resources.persistent(),
             anchors=anchors.persistent(),
-            uncrawled=s(),
+            uncrawled=pset(),
         )
 
     def with_resource(self, uri: URI, resource: Resource[D]):
