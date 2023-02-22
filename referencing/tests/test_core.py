@@ -441,7 +441,7 @@ class TestRegistry:
         registry = Registry({"urn:example": foo})
         assert registry["urn:example"] == foo
 
-    def test_retrieve_crawlable_resource(self):
+    def test_retrieve_first_checks_crawlable_resource(self):
         def retrieve(uri):
             raise Exception("Oh no!")
 
@@ -691,6 +691,12 @@ class TestResolver:
             resource=root,
             anchor="noSuchAnchor",
         )
+
+    def test_lookup_retrieved_resource(self):
+        resource = Resource.opaque(contents={"foo": "baz"})
+        resolver = Registry(retrieve=lambda uri: resource).resolver()
+        resolved = resolver.lookup("http://example.com/")
+        assert resolved.contents == resource.contents
 
     # FIXME: The tests below aren't really representable in the current
     #        suite, though we should probably think of ways to do so.
