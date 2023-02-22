@@ -228,8 +228,9 @@ class Registry(Mapping[URI, Resource[D]]):
     The ``retrieve`` argument can be used to configure retrieval of resources
     dynamically, either over the network, from a database, or the like.
     Pass it a callable which will be called if any URI not present in the
-    registry is accessed. It must either return a `Resource` or else raise an
-    exception indicating that the resource is not retrievable.
+    registry is accessed. It must either return a `Resource` or else raise a
+    `NoSuchResource` exception indicating that the resource does not exist
+    even according to the retrieval logic.
     """
 
     _resources: PMap[URI, Resource[D]] = field(
