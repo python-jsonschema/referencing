@@ -15,6 +15,7 @@ from referencing.typing import URI, Anchor as AnchorType, D, Mapping
 EMPTY_RESOURCES: PMap[URI, Resource[Any]] = pmap({}, pre_size=64)
 EMPTY_ANCHORS = cast(PMap[tuple[URI, str], AnchorType[Any]], EMPTY_RESOURCES)
 EMPTY_UNCRAWLED: PSet[URI] = pset(pre_size=128)
+EMPTY_PREVIOUS_RESOLVERS: PList[URI] = plist()
 
 
 class _MaybeInSubresource(Protocol[D]):
@@ -382,14 +383,14 @@ class Registry(Mapping[URI, Resource[D]]):
         """
         if registries == (self,):
             return self
-        anchors = self._anchors
         resources = self._resources
+        anchors = self._anchors
         uncrawled = self._uncrawled
         retrieve = self._retrieve
         for registry in registries:
-            anchors = anchors.update(registry._anchors)  # type: ignore[reportUnknownMemberType]  # noqa: E501
             resources = resources.update(registry._resources)  # type: ignore[reportUnknownMemberType]  # noqa: E501
-            uncrawled = uncrawled.update(registry._uncrawled)  # type: ignore[reportUnknownMemberType]  # noqa: E501
+            anchors = anchors.update(registry._anchors)  # type: ignore[reportUnknownMemberType]  # noqa: E501
+            uncrawled = uncrawled.update(registry._uncrawled)
 
             if registry._retrieve != _fail_to_retrieve:
                 if registry._retrieve != retrieve != _fail_to_retrieve:
@@ -453,7 +454,7 @@ class Resolver(Generic[D]):
     _base_uri: str = field(alias="base_uri")
     _registry: Registry[D] = field(alias="registry")
     _previous: PList[URI] = field(
-        default=plist(),  # type: ignore[reportUnknownArgumentType]
+        default=EMPTY_PREVIOUS_RESOLVERS,
         repr=False,
         alias="previous",
     )
