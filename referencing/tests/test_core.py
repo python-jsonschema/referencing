@@ -403,7 +403,7 @@ class TestRegistry:
         registry = Registry(retrieve=lambda uri: foo)
         assert registry["urn:example"] == foo
 
-    def test_retrieve_error(self):
+    def test_retrieve_arbitrary_exception(self):
         def retrieve(uri):
             if uri == "urn:succeed":
                 return {}
@@ -412,6 +412,25 @@ class TestRegistry:
         registry = Registry(retrieve=retrieve)
         assert registry["urn:succeed"] == {}
         with pytest.raises(exceptions.Unretrievable):
+            registry["urn:uhoh"]
+
+    def test_retrieve_no_such_resource(self):
+        def retrieve(uri):
+            if uri == "urn:succeed":
+                return {}
+            raise exceptions.NoSuchResource(ref=uri)
+
+        registry = Registry(retrieve=retrieve)
+        assert registry["urn:succeed"] == {}
+        with pytest.raises(exceptions.NoSuchResource):
+            registry["urn:uhoh"]
+
+    def test_retrieve_cannot_determine_specification(self):
+        def retrieve(uri):
+            return Resource.from_contents({})
+
+        registry = Registry(retrieve=retrieve)
+        with pytest.raises(exceptions.CannotDetermineSpecification):
             registry["urn:uhoh"]
 
     def test_retrieve_already_available_resource(self):

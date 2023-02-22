@@ -249,7 +249,10 @@ class Registry(Mapping[URI, Resource[D]]):
         except LookupError:
             try:
                 return self._retrieve(uri)
-            except exceptions.NoSuchResource:
+            except (
+                exceptions.CannotDetermineSpecification,
+                exceptions.NoSuchResource,
+            ):
                 raise
             except Exception:
                 raise exceptions.Unretrievable(ref=uri)
