@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator, Sequence
-from typing import Any, Callable, ClassVar, Generic, Protocol, cast
+from typing import Any, Callable, ClassVar, Generic, Protocol, Tuple, cast
 from urllib.parse import unquote, urldefrag, urljoin
 
 from attrs import evolve, field
@@ -13,7 +13,7 @@ from referencing._attrs import frozen
 from referencing.typing import URI, Anchor as AnchorType, D, Mapping
 
 EMPTY_RESOURCES: PMap[URI, Resource[Any]] = pmap({}, pre_size=64)
-EMPTY_ANCHORS = cast(PMap[tuple[URI, str], AnchorType[Any]], EMPTY_RESOURCES)
+EMPTY_ANCHORS = cast(PMap[Tuple[URI, str], AnchorType[Any]], EMPTY_RESOURCES)
 EMPTY_UNCRAWLED: PSet[URI] = pset(pre_size=128)
 EMPTY_PREVIOUS_RESOLVERS: PList[URI] = plist()
 
