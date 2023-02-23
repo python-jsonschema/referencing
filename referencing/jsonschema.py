@@ -7,7 +7,7 @@ from __future__ import annotations
 from collections.abc import Sequence, Set
 from typing import Any, Iterable, Union
 
-from referencing import Anchor, Registry, Resource, Specification
+from referencing import Anchor, Registry, Resource, Specification, exceptions
 from referencing._attrs import frozen
 from referencing._core import Resolved as _Resolved, Resolver as _Resolver
 from referencing.typing import URI, Anchor as AnchorType, Mapping
@@ -544,8 +544,8 @@ class DynamicAnchor:
         last = self.resource
         for uri, registry in resolver.dynamic_scope():
             try:
-                anchor = registry.anchor(uri, self.name)
-            except LookupError:
+                anchor = registry.anchor(uri, self.name).value
+            except exceptions.NoSuchAnchor:
                 continue
             if isinstance(anchor, DynamicAnchor):
                 last = anchor.resource

@@ -1,7 +1,16 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator, Sequence
-from typing import Any, Callable, ClassVar, Generic, Protocol, Tuple, cast
+from typing import (
+    Any,
+    Callable,
+    ClassVar,
+    Generic,
+    Protocol,
+    Tuple,
+    TypeVar,
+    cast,
+)
 from urllib.parse import unquote, urldefrag, urljoin
 
 from attrs import evolve, field
@@ -252,16 +261,8 @@ class Registry(Mapping[URI, Resource[D]]):
         """
         try:
             return self._resources[uri]
-        except LookupError:
-            try:
-                return self._retrieve(uri)
-            except (
-                exceptions.CannotDetermineSpecification,
-                exceptions.NoSuchResource,
-            ):
-                raise
-            except Exception:
-                raise exceptions.Unretrievable(ref=uri)
+        except KeyError:
+            raise exceptions.NoSuchResource(ref=uri)
 
     def __iter__(self) -> Iterator[URI]:
         """
@@ -288,6 +289,32 @@ class Registry(Mapping[URI, Resource[D]]):
             summary = f"{pluralized}"
         return f"<Registry ({size} {summary})>"
 
+    def get_or_retrieve(self, uri: URI):
+        """
+        Get a resource from the registry, crawling or retrieving if necessary.
+        """
+        resource = self._resources.get(uri)
+        if resource is not None:
+            return Retrieved(registry=self, value=resource)
+
+        registry = self.crawl()
+        resource = registry._resources.get(uri)
+        if resource is not None:
+            return Retrieved(registry=registry, value=resource)
+
+        try:
+            resource = registry._retrieve(uri)
+        except (
+            exceptions.CannotDetermineSpecification,
+            exceptions.NoSuchResource,
+        ):
+            raise
+        except Exception:
+            raise exceptions.Unretrievable(ref=uri)
+        else:
+            registry = registry.with_resource(uri, resource)
+            return Retrieved(registry=registry, value=resource)
+
     def remove(self, uri: URI):
         """
         Return a registry with the resource identified by a given URI removed.
@@ -308,7 +335,15 @@ class Registry(Mapping[URI, Resource[D]]):
         """
         Retrieve the given anchor, which must already have been found.
         """
-        return self._anchors[uri, name]
+        value = self._anchors.get((uri, name))
+        if value is not None:
+            return Retrieved(value=value, registry=self)
+
+        registry = self.crawl()
+        value = registry._anchors.get((uri, name))
+        if value is not None:
+            return Retrieved(value=value, registry=registry)
+        raise exceptions.NoSuchAnchor(ref=uri, resource=self[uri], anchor=name)
 
     def contents(self, uri: URI) -> D:
         """
@@ -424,10 +459,23 @@ class Registry(Mapping[URI, Resource[D]]):
         )
 
 
+T = TypeVar("T", AnchorType[Any], Resource[Any])
+
+
+@frozen
+class Retrieved(Generic[D, T]):
+    """
+    A value retrieved from a `Registry`.
+    """
+
+    value: T
+    registry: Registry[D]
+
+
 @frozen
 class Resolved(Generic[D]):
     """
-    A resolved reference.
+    A reference resolved to its contents by a `Resolver`.
     """
 
     contents: D
@@ -486,44 +534,24 @@ class Resolver(Generic[D]):
             uri, fragment = self._base_uri, ref[1:]
         else:
             uri, fragment = urldefrag(urljoin(self._base_uri, ref))
-        registry = self._registry
-        resource = registry.get(uri)
-        if resource is None:
-            registry = registry.crawl()
-            try:
-                resource = registry[uri]
-            except exceptions.NoSuchResource:
-                raise exceptions.Unresolvable(ref=ref) from None
-            except exceptions.Unretrievable:
-                raise exceptions.Unresolvable(ref=ref)
+        try:
+            retrieved = self._registry.get_or_retrieve(uri)
+        except exceptions.NoSuchResource:
+            raise exceptions.Unresolvable(ref=ref) from None
+        except exceptions.Unretrievable:
+            raise exceptions.Unresolvable(ref=ref)
 
         if fragment.startswith("/"):
-            return resource.pointer(
-                pointer=fragment,
-                resolver=self._evolve(registry=registry, base_uri=uri),
-            )
+            resolver = self._evolve(registry=retrieved.registry, base_uri=uri)
+            return retrieved.value.pointer(pointer=fragment, resolver=resolver)
 
         if fragment:
-            try:
-                anchor = registry.anchor(uri, fragment)
-            except LookupError:
-                registry = registry.crawl()
-                try:
-                    anchor = registry.anchor(uri, fragment)
-                except LookupError:
-                    raise exceptions.NoSuchAnchor(
-                        ref=ref,
-                        resource=resource,
-                        anchor=fragment,
-                    )
-            return anchor.resolve(
-                resolver=self._evolve(registry=registry, base_uri=uri),
-            )
+            retrieved = retrieved.registry.anchor(uri, fragment)
+            resolver = self._evolve(registry=retrieved.registry, base_uri=uri)
+            return retrieved.value.resolve(resolver=resolver)
 
-        return Resolved(
-            contents=resource.contents,
-            resolver=self._evolve(registry=registry, base_uri=uri),
-        )
+        resolver = self._evolve(registry=retrieved.registry, base_uri=uri)
+        return Resolved(contents=retrieved.value.contents, resolver=resolver)
 
     def in_subresource(self, subresource: Resource[D]) -> Resolver[D]:
         """

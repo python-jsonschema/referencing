@@ -110,10 +110,8 @@ class TestRegistry:
             {"ID": "urn:bar", "anchors": {"foo": 12}},
         )
         registry = Registry().with_resource(resource.id(), resource)
-        with pytest.raises(LookupError):
-            registry.anchor(resource.id(), "foo")
 
-        assert registry.crawl().anchor(resource.id(), "foo") == Anchor(
+        assert registry.crawl().anchor(resource.id(), "foo").value == Anchor(
             name="foo",
             resource=ID_AND_CHILDREN.create_resource(12),
         )
@@ -121,10 +119,8 @@ class TestRegistry:
     def test_crawl_finds_anchors_no_id(self):
         resource = ID_AND_CHILDREN.create_resource({"anchors": {"foo": 12}})
         registry = Registry().with_resource("urn:root", resource)
-        with pytest.raises(LookupError):
-            registry.anchor("urn:root", "foo")
 
-        assert registry.crawl().anchor("urn:root", "foo") == Anchor(
+        assert registry.crawl().anchor("urn:root", "foo").value == Anchor(
             name="foo",
             resource=ID_AND_CHILDREN.create_resource(12),
         )
@@ -134,6 +130,16 @@ class TestRegistry:
         uri = "urn:example"
         registry = Registry().with_resource(uri, resource)
         assert registry.contents(uri) == {"foo": "bar"}
+
+    def test_crawled_anchor(self):
+        resource = ID_AND_CHILDREN.create_resource({"anchors": {"foo": "bar"}})
+        registry = Registry().with_resource("urn:example", resource)
+        retrieved = registry.anchor("urn:example", "foo")
+        assert retrieved.value == Anchor(
+            name="foo",
+            resource=ID_AND_CHILDREN.create_resource("bar"),
+        )
+        assert retrieved.registry == registry.crawl()
 
     def test_init(self):
         one = Resource.opaque(contents={})
@@ -401,29 +407,33 @@ class TestRegistry:
     def test_retrieve(self):
         foo = Resource.opaque({"foo": "bar"})
         registry = Registry(retrieve=lambda uri: foo)
-        assert registry["urn:example"] == foo
+        assert registry.get_or_retrieve("urn:example").value == foo
 
     def test_retrieve_arbitrary_exception(self):
+        foo = Resource.opaque({"foo": "bar"})
+
         def retrieve(uri):
             if uri == "urn:succeed":
-                return {}
+                return foo
             raise Exception("Oh no!")
 
         registry = Registry(retrieve=retrieve)
-        assert registry["urn:succeed"] == {}
+        assert registry.get_or_retrieve("urn:succeed").value == foo
         with pytest.raises(exceptions.Unretrievable):
-            registry["urn:uhoh"]
+            registry.get_or_retrieve("urn:uhoh")
 
     def test_retrieve_no_such_resource(self):
+        foo = Resource.opaque({"foo": "bar"})
+
         def retrieve(uri):
             if uri == "urn:succeed":
-                return {}
+                return foo
             raise exceptions.NoSuchResource(ref=uri)
 
         registry = Registry(retrieve=retrieve)
-        assert registry["urn:succeed"] == {}
+        assert registry.get_or_retrieve("urn:succeed").value == foo
         with pytest.raises(exceptions.NoSuchResource):
-            registry["urn:uhoh"]
+            registry.get_or_retrieve("urn:uhoh")
 
     def test_retrieve_cannot_determine_specification(self):
         def retrieve(uri):
@@ -431,7 +441,7 @@ class TestRegistry:
 
         registry = Registry(retrieve=retrieve)
         with pytest.raises(exceptions.CannotDetermineSpecification):
-            registry["urn:uhoh"]
+            registry.get_or_retrieve("urn:uhoh")
 
     def test_retrieve_already_available_resource(self):
         def retrieve(uri):
@@ -440,6 +450,7 @@ class TestRegistry:
         foo = Resource.opaque({"foo": "bar"})
         registry = Registry({"urn:example": foo})
         assert registry["urn:example"] == foo
+        assert registry.get_or_retrieve("urn:example").value == foo
 
     def test_retrieve_first_checks_crawlable_resource(self):
         def retrieve(uri):
@@ -687,7 +698,7 @@ class TestResolver:
         with pytest.raises(exceptions.Unresolvable) as e:
             resolver.lookup(ref)
         assert e.value == exceptions.NoSuchAnchor(
-            ref=ref,
+            ref="urn:example",
             resource=root,
             anchor="noSuchAnchor",
         )
@@ -696,6 +707,38 @@ class TestResolver:
         resource = Resource.opaque(contents={"foo": "baz"})
         resolver = Registry(retrieve=lambda uri: resource).resolver()
         resolved = resolver.lookup("http://example.com/")
+        assert resolved.contents == resource.contents
+
+    def test_repeated_lookup_from_retrieved_resource(self):
+        """
+        A (custom-)retrieved resource is added to the registry returned by
+        looking it up.
+        """
+        resource = Resource.opaque(contents={"foo": "baz"})
+        once = [resource]
+
+        def retrieve(uri: str):
+            return once.pop()
+
+        resolver = Registry(retrieve=retrieve).resolver()
+        resolved = resolver.lookup("http://example.com/")
+        assert resolved.contents == resource.contents
+
+        resolved = resolved.resolver.lookup("http://example.com/")
+        assert resolved.contents == resource.contents
+
+    def test_repeated_anchor_lookup_from_retrieved_resource(self):
+        resource = Resource.opaque(contents={"foo": "baz"})
+        once = [resource]
+
+        def retrieve(uri: str):
+            return once.pop()
+
+        resolver = Registry(retrieve=retrieve).resolver()
+        resolved = resolver.lookup("http://example.com/")
+        assert resolved.contents == resource.contents
+
+        resolved = resolved.resolver.lookup("#")
         assert resolved.contents == resource.contents
 
     # FIXME: The tests below aren't really representable in the current
