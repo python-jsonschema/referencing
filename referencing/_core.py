@@ -265,13 +265,13 @@ class Registry(Mapping[URI, Resource[D]]):
 
     def __iter__(self) -> Iterator[URI]:
         """
-        Iterate over all known URIs in the registry.
+        Iterate over all fully crawled URIs in the registry.
         """
         return iter(self._resources)
 
     def __len__(self) -> int:
         """
-        Count the total number of (fully crawled) resources in this registry.
+        Count the total number of fully crawled resources in this registry.
         """
         return len(self._resources)
 
