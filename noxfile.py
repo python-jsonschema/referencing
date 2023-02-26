@@ -57,7 +57,7 @@ def style(session):
         "flake8-quotes",
         "flake8-tidy-imports",
     )
-    session.run("python", "-m", "flake8", REFERENCING, __file__)
+    session.run("python", "-m", "flake8", REFERENCING, DOCS, __file__)
 
 
 @session()

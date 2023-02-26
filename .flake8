@@ -3,6 +3,7 @@ ban-relative-imports = true
 inline-quotes = "
 per-file-ignores =
     noxfile.py:D
+    docs/conf.py:D
     referencing/tests/*:D
     referencing/_attrs.py:D
 ignore =
