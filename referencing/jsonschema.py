@@ -302,6 +302,7 @@ def _maybe_in_subresource_crazy_items_dependencies(
     return maybe_in_subresource
 
 
+#: JSON Schema draft 2020-12
 DRAFT202012 = Specification(
     name="draft2020-12",
     id_of=_dollar_id,
@@ -351,6 +352,7 @@ DRAFT202012 = Specification(
         },
     ),
 )
+#: JSON Schema draft 2019-09
 DRAFT201909 = Specification(
     name="draft2019-09",
     id_of=_dollar_id,
@@ -400,6 +402,7 @@ DRAFT201909 = Specification(
         },
     ),
 )
+#: JSON Schema draft 7
 DRAFT7 = Specification(
     name="draft-07",
     id_of=_legacy_dollar_id,
@@ -433,6 +436,7 @@ DRAFT7 = Specification(
         in_subvalues={"definitions", "patternProperties", "properties"},
     ),
 )
+#: JSON Schema draft 6
 DRAFT6 = Specification(
     name="draft-06",
     id_of=_legacy_dollar_id,
@@ -460,6 +464,7 @@ DRAFT6 = Specification(
         in_subvalues={"definitions", "patternProperties", "properties"},
     ),
 )
+#: JSON Schema draft 4
 DRAFT4 = Specification(
     name="draft-04",
     id_of=_legacy_id,
@@ -475,6 +480,7 @@ DRAFT4 = Specification(
         in_subvalues={"definitions", "patternProperties", "properties"},
     ),
 )
+#: JSON Schema draft 3
 DRAFT3 = Specification(
     name="draft-03",
     id_of=_legacy_id,
