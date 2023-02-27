@@ -276,6 +276,45 @@ class Registry(Mapping[URI, Resource[D]]):
         """
         return len(self._resources)
 
+    def __rmatmul__(self, new: Resource[D] | Iterable[Resource[D]]):
+        """
+        Add resource(s) to a new registry, using their internal IDs.
+
+        Resources must have a internal IDs (e.g. the ``$id`` keyword in modern
+        JSON Schema versions), otherwise an error will be raised.
+
+        Use this via:
+
+            * ``resource @ registry`` or
+
+            * ``[iterable, of, multiple, resources] @ registry``
+
+        which -- again, assuming the resources have internal IDs -- is
+        equivalent to calling `Registry.with_resources` as such:
+
+        .. code:: python
+
+            registry.with_resources(
+                (resource.id(), resource) for resource in new_resources
+            )
+        """
+        if isinstance(new, Resource):
+            new = (new,)
+
+        resources = self._resources.evolver()
+        uncrawled = self._uncrawled.evolver()
+        for resource in new:
+            id = resource.id()
+            if id is None:
+                raise exceptions.NoInternalID(resource=resource)
+            uncrawled.add(id)
+            resources.set(id, resource)
+        return evolve(
+            self,
+            resources=resources.persistent(),
+            uncrawled=uncrawled.persistent(),
+        )
+
     def __repr__(self) -> str:
         size = len(self)
         pluralized = "resource" if size == 1 else "resources"

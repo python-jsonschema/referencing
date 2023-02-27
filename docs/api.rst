@@ -5,7 +5,7 @@ API Reference
    :members:
    :undoc-members:
    :imported-members:
-   :special-members: __iter__, __getitem__, __len__
+   :special-members: __iter__, __getitem__, __len__, __rmatmul__
 
 
 .. autoclass:: referencing._core.Resolved

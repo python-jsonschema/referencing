@@ -56,6 +56,30 @@ class TestRegistry:
             resource=two,
         )
 
+    def test_matmul_resource(self):
+        uri = "urn:example:resource"
+        resource = ID_AND_CHILDREN.create_resource({"ID": uri, "foo": 12})
+        registry = resource @ Registry()
+        assert registry == Registry().with_resource(uri, resource)
+
+    def test_matmul_many_resources(self):
+        one_uri = "urn:example:one"
+        one = ID_AND_CHILDREN.create_resource({"ID": one_uri, "foo": 12})
+
+        two_uri = "urn:example:two"
+        two = ID_AND_CHILDREN.create_resource({"ID": two_uri, "foo": 12})
+
+        registry = [one, two] @ Registry()
+        assert registry == Registry().with_resources(
+            [(one_uri, one), (two_uri, two)],
+        )
+
+    def test_matmul_resource_without_id(self):
+        resource = Resource.opaque(contents={"foo": "bar"})
+        with pytest.raises(exceptions.NoInternalID) as e:
+            resource @ Registry()
+        assert e.value == exceptions.NoInternalID(resource=resource)
+
     def test_with_contents_from_json_schema(self):
         uri = "urn:example"
         schema = {"$schema": "https://json-schema.org/draft/2020-12/schema"}
@@ -98,7 +122,7 @@ class TestRegistry:
         root = ID_AND_CHILDREN.create_resource(
             {"ID": "urn:root", "children": [{"ID": child_id, "foo": 12}]},
         )
-        registry = Registry().with_resource(root.id(), root)
+        registry = root @ Registry()
         with pytest.raises(LookupError):
             registry[child_id]
 
@@ -109,7 +133,7 @@ class TestRegistry:
         resource = ID_AND_CHILDREN.create_resource(
             {"ID": "urn:bar", "anchors": {"foo": 12}},
         )
-        registry = Registry().with_resource(resource.id(), resource)
+        registry = resource @ Registry()
 
         assert registry.crawl().anchor(resource.id(), "foo").value == Anchor(
             name="foo",
@@ -173,7 +197,7 @@ class TestRegistry:
         two = ID_AND_CHILDREN.create_resource({"foo": "bar"})
         registry = Registry(
             {"http://example.com/1": one},
-        ).with_resources([("http://example.com/foo/bar", two)])
+        ).with_resource("http://example.com/foo/bar", two)
         assert (
             registry.crawl()
             == Registry()
@@ -637,8 +661,8 @@ class TestResolver:
                 ],
             },
         )
-        resolver = Registry().with_resource(root.id(), root).resolver()
-        resolved = resolver.lookup("http://example.com/a")
+        registry = root @ Registry()
+        resolved = registry.resolver().lookup("http://example.com/a")
         assert resolved.contents == {"ID": "http://example.com/a", "foo": 12}
 
     def test_lookup_anchor_with_id(self):
@@ -648,8 +672,8 @@ class TestResolver:
                 "anchors": {"foo": 12},
             },
         )
-        resolver = Registry().with_resource(root.id(), root).resolver()
-        resolved = resolver.lookup("http://example.com/#foo")
+        registry = root @ Registry()
+        resolved = registry.resolver().lookup("http://example.com/#foo")
         assert resolved.contents == 12
 
     def test_lookup_anchor_without_id(self):
@@ -756,7 +780,7 @@ class TestResolver:
                 ],
             },
         )
-        registry = Registry().with_resource(root.id(), root)
+        registry = root @ Registry()
 
         resolver = registry.resolver()
         first = resolver.lookup("http://example.com/")
@@ -783,7 +807,7 @@ class TestResolver:
                 ],
             },
         )
-        registry = Registry().with_resource(root.id(), root)
+        registry = root @ Registry()
 
         resolver = registry.resolver()
         first = resolver.lookup("http://example.com/")
@@ -814,9 +838,7 @@ class TestResolver:
                 "children": [{"ID": "two-child/"}],
             },
         )
-        registry = Registry().with_resources(
-            [(one.id(), one), (two.id(), two)],
-        )
+        registry = [one, two] @ Registry()
 
         resolver = registry.resolver()
         first = resolver.lookup("http://example.com/")
