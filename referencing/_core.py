@@ -19,7 +19,7 @@ from pyrsistent.typing import PList, PMap, PSet
 
 from referencing import exceptions
 from referencing._attrs import frozen
-from referencing.typing import URI, Anchor as AnchorType, D, Mapping
+from referencing.typing import URI, Anchor as AnchorType, D, Mapping, Retrieve
 
 EMPTY_RESOURCES: PMap[URI, Resource[Any]] = pmap({}, pre_size=64)
 EMPTY_ANCHORS = cast(PMap[Tuple[URI, str], AnchorType[Any]], EMPTY_RESOURCES)
@@ -253,7 +253,7 @@ class Registry(Mapping[URI, Resource[D]]):
         default=EMPTY_ANCHORS,
     )
     _uncrawled: PSet[URI] = field(default=EMPTY_UNCRAWLED)
-    _retrieve: Callable[[URI], Resource[D]] = field(default=_fail_to_retrieve)
+    _retrieve: Retrieve[D] = field(default=_fail_to_retrieve)
 
     def __getitem__(self, uri: URI) -> Resource[D]:
         """
@@ -427,8 +427,8 @@ class Registry(Mapping[URI, Resource[D]]):
             anchors = anchors.update(registry._anchors)  # type: ignore[reportUnknownMemberType]  # noqa: E501
             uncrawled = uncrawled.update(registry._uncrawled)
 
-            if registry._retrieve != _fail_to_retrieve:
-                if registry._retrieve != retrieve != _fail_to_retrieve:
+            if registry._retrieve is not _fail_to_retrieve:
+                if registry._retrieve is not retrieve is not _fail_to_retrieve:
                     raise ValueError(
                         "Cannot combine registries with conflicting retrieval "
                         "functions.",

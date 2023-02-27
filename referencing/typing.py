@@ -14,13 +14,30 @@ except TypeError:  # pragma: no cover
 
 
 if TYPE_CHECKING:
-    from referencing._core import Resolved, Resolver
+    from referencing._core import Resolved, Resolver, Resource
 
 #: A URI which identifies a `Resource`.
 URI = str
 
 #: The type of documents within a registry.
 D = TypeVar("D")
+
+
+class Retrieve(Protocol[D]):
+    """
+    A retrieval callable, usable within a `Registry` for resource retrieval.
+
+    Does not make assumptions about where the resource might be coming from.
+    """
+
+    def __call__(self, uri: URI) -> Resource[D]:
+        """
+        Retrieve the resource with the given URI.
+
+        Raise `referencing.exceptions.NoSuchResource` if you wish to indicate
+        the retriever cannot lookup the given URI.
+        """
+        ...
 
 
 class Anchor(Protocol[D]):
