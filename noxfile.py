@@ -6,6 +6,7 @@ ROOT = Path(__file__).parent
 PYPROJECT = ROOT / "pyproject.toml"
 DOCS = ROOT / "docs"
 REFERENCING = ROOT / "referencing"
+ENV = {"REFERENCING_SUITE": ROOT / "suite"}
 
 
 nox.options.sessions = []
@@ -25,10 +26,24 @@ def tests(session):
     session.install("-r", ROOT / "test-requirements.txt")
     if session.posargs == ["coverage"]:
         session.install("coverage[toml]")
-        session.run("coverage", "run", "-m", "pytest")
+        session.run(
+            "coverage",
+            "run",
+            "-m",
+            "pytest",
+            "--pyargs",
+            "referencing",
+            env=ENV,
+        )
         session.run("coverage", "report")
     else:
-        session.run("pytest", *session.posargs, REFERENCING)
+        session.run(
+            "pytest",
+            *session.posargs,
+            "--pyargs",
+            "referencing",
+            env=ENV,
+        )
 
 
 @session(tags=["build"])
