@@ -66,3 +66,41 @@ exclude = [
     "**/tests/__init__.py",
     "**/tests/test_*.py",
 ]
+
+[tool.ruff]
+line-length = 79
+target-version = "py38"
+select = ["B", "D", "E", "F", "Q", "UP", "W"]
+ignore = [
+  # raise SomeException(...) is fine.
+  "B904",
+  # It's fine to not have docstrings for magic methods.
+  "D105",
+  # This rule makes diffs uglier when expanding docstrings (and it's uglier)
+  "D200",
+  # No blank lines before docstrings.
+  "D203",
+  # Start docstrings on the second line.
+  "D212",
+  # This rule misses sassy docstrings ending with ! or ?.
+  "D400",
+  # Section headers should end with a colon not a newline
+  "D406",
+  # Underlines aren't needed
+  "D407",
+  # Plz spaces after section headers
+  "D412",
+]
+extend-exclude = ["suite"]
+
+[tool.ruff.flake8-quotes]
+docstring-quotes = "double"
+
+[tool.ruff.per-file-ignores]
+"docs/*" = ["D"]
+"referencing/tests/*" = ["D"]
+"noxfile.py" = ["D"]
+
+[tool.ruff.pyupgrade]
+# We support 3.8 + 3.9
+keep-runtime-typing = true

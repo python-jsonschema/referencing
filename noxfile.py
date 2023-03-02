@@ -48,16 +48,8 @@ def readme(session):
 
 @session(tags=["style"])
 def style(session):
-    session.install(
-        "flake8",
-        "flake8-broken-line",
-        "flake8-bugbear",
-        "flake8-commas",
-        "flake8-docstrings",
-        "flake8-quotes",
-        "flake8-tidy-imports",
-    )
-    session.run("python", "-m", "flake8", REFERENCING, DOCS, __file__)
+    session.install("ruff")
+    session.run("ruff", "check", ROOT)
 
 
 @session()
