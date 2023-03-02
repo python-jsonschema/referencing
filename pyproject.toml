@@ -33,7 +33,7 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
   "attrs>=22.2.0",
-  "pyrsistent",
+  "pyrsistent>=0.19.3",
 ]
 
 [project.urls]
