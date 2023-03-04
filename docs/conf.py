@@ -94,7 +94,6 @@ intersphinx_mapping = {
         "https://jsonschema-specifications.readthedocs.io/en/latest/",
         None,
     ),
-    "pyrsistent": ("https://pyrsistent.readthedocs.io/en/latest/", None),
     "python": ("https://docs.python.org/", None),
     "setuptools": ("https://setuptools.pypa.io/en/latest/", None),
 }

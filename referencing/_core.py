@@ -1,30 +1,18 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator, Sequence
-from typing import (
-    Any,
-    Callable,
-    ClassVar,
-    Generic,
-    Protocol,
-    Tuple,
-    TypeVar,
-    cast,
-)
+from typing import Any, Callable, ClassVar, Generic, Protocol, TypeVar
 from urllib.parse import unquote, urldefrag, urljoin
 
 from attrs import evolve, field
-from pyrsistent import PMap as PMapType, plist, pmap, pset
-from pyrsistent.typing import PList, PMap, PSet
+from rpds import HashTrieMap, HashTrieSet, List
 
 from referencing import exceptions
 from referencing._attrs import frozen
 from referencing.typing import URI, Anchor as AnchorType, D, Mapping, Retrieve
 
-EMPTY_RESOURCES: PMap[URI, Resource[Any]] = pmap({}, pre_size=64)
-EMPTY_ANCHORS = cast(PMap[Tuple[URI, str], AnchorType[Any]], EMPTY_RESOURCES)
-EMPTY_UNCRAWLED: PSet[URI] = pset(pre_size=128)
-EMPTY_PREVIOUS_RESOLVERS: PList[URI] = plist()
+EMPTY_UNCRAWLED: HashTrieSet[URI] = HashTrieSet()
+EMPTY_PREVIOUS_RESOLVERS: List[URI] = List()
 
 
 class _MaybeInSubresource(Protocol[D]):
@@ -212,14 +200,6 @@ def _fail_to_retrieve(uri: URI):
     raise exceptions.NoSuchResource(ref=uri)
 
 
-def _to_pmap(
-    value: dict[URI, Resource[D]]
-    | PMap[URI, Resource[D]]
-    | list[tuple[URI, Resource[D]]],
-):
-    return value if isinstance(value, PMapType) else pmap(value)
-
-
 @frozen
 class Registry(Mapping[URI, Resource[D]]):
     r"""
@@ -245,14 +225,12 @@ class Registry(Mapping[URI, Resource[D]]):
     even according to the retrieval logic.
     """
 
-    _resources: PMap[URI, Resource[D]] = field(
-        default=EMPTY_RESOURCES,
-        converter=_to_pmap,
+    _resources: HashTrieMap[URI, Resource[D]] = field(  # type: ignore[reportGeneralTypeIssues]  # noqa: E501
+        default=HashTrieMap(),
+        converter=HashTrieMap.convert,
     )
-    _anchors: PMap[tuple[URI, str], AnchorType[D]] = field(
-        default=EMPTY_ANCHORS,
-    )
-    _uncrawled: PSet[URI] = field(default=EMPTY_UNCRAWLED)
+    _anchors: HashTrieMap[tuple[URI, str], AnchorType[D]] = HashTrieMap()  # type: ignore[reportGeneralTypeIssues]  # noqa: E501
+    _uncrawled: HashTrieSet[URI] = EMPTY_UNCRAWLED
     _retrieve: Retrieve[D] = field(default=_fail_to_retrieve)
 
     def __getitem__(self, uri: URI) -> Resource[D]:
@@ -301,19 +279,15 @@ class Registry(Mapping[URI, Resource[D]]):
         if isinstance(new, Resource):
             new = (new,)
 
-        resources = self._resources.evolver()
-        uncrawled = self._uncrawled.evolver()
+        resources = self._resources
+        uncrawled = self._uncrawled
         for resource in new:
             id = resource.id()
             if id is None:
                 raise exceptions.NoInternalID(resource=resource)
-            uncrawled.add(id)
-            resources.set(id, resource)
-        return evolve(
-            self,
-            resources=resources.persistent(),
-            uncrawled=uncrawled.persistent(),
-        )
+            uncrawled = uncrawled.insert(id)
+            resources = resources.insert(id, resource)
+        return evolve(self, resources=resources, uncrawled=uncrawled)
 
     def __repr__(self) -> str:
         size = len(self)
@@ -365,7 +339,7 @@ class Registry(Mapping[URI, Resource[D]]):
             self,
             resources=self._resources.remove(uri),
             uncrawled=self._uncrawled.discard(uri),
-            anchors=pmap(
+            anchors=HashTrieMap(
                 (k, v) for k, v in self._anchors.items() if k[0] != uri
             ),
         )
@@ -394,8 +368,8 @@ class Registry(Mapping[URI, Resource[D]]):
         """
         Immediately crawl all added resources, discovering subresources.
         """
-        resources = self._resources.evolver()
-        anchors = self._anchors.evolver()
+        resources = self._resources
+        anchors = self._anchors
         uncrawled = [(uri, resources[uri]) for uri in self._uncrawled]
         while uncrawled:
             uri, resource = uncrawled.pop()
@@ -403,14 +377,14 @@ class Registry(Mapping[URI, Resource[D]]):
             id = resource.id()
             if id is not None:
                 uri = urljoin(uri, id)
-                resources[uri] = resource
+                resources = resources.insert(uri, resource)
             for each in resource.anchors():
-                anchors.set((uri, each.name), each)
+                anchors = anchors.insert((uri, each.name), each)
             uncrawled.extend((uri, each) for each in resource.subresources())
         return evolve(
             self,
-            resources=resources.persistent(),
-            anchors=anchors.persistent(),
+            resources=resources,
+            anchors=anchors,
             uncrawled=EMPTY_UNCRAWLED,
         )
 
@@ -427,16 +401,12 @@ class Registry(Mapping[URI, Resource[D]]):
         r"""
         Add the given `Resource`\ s to the registry, without crawling them.
         """
-        resources = self._resources.evolver()
-        uncrawled = self._uncrawled.evolver()
+        resources = self._resources
+        uncrawled = self._uncrawled
         for uri, resource in pairs:
-            uncrawled.add(uri)
-            resources[uri] = resource
-        return evolve(
-            self,
-            resources=resources.persistent(),
-            uncrawled=uncrawled.persistent(),
-        )
+            uncrawled = uncrawled.insert(uri)
+            resources = resources.insert(uri, resource)
+        return evolve(self, resources=resources, uncrawled=uncrawled)
 
     def with_contents(
         self,
@@ -540,11 +510,7 @@ class Resolver(Generic[D]):
 
     _base_uri: str = field(alias="base_uri")
     _registry: Registry[D] = field(alias="registry")
-    _previous: PList[URI] = field(
-        default=EMPTY_PREVIOUS_RESOLVERS,
-        repr=False,
-        alias="previous",
-    )
+    _previous: List[URI] = field(default=List(), repr=False, alias="previous")
 
     def lookup(self, ref: URI) -> Resolved[D]:
         """
@@ -614,7 +580,7 @@ class Resolver(Generic[D]):
         """
         previous = self._previous
         if self._base_uri and (not previous or base_uri != self._base_uri):
-            previous = previous.cons(self._base_uri)
+            previous = previous.push_front(self._base_uri)
         return evolve(self, base_uri=base_uri, previous=previous, **kwargs)
 
 

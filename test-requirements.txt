@@ -15,9 +15,7 @@ packaging==23.0
     # via pytest
 pluggy==1.0.0
     # via pytest
-pyrsistent==0.19.3
-    # via referencing
-pytest==7.2.1
+pytest==7.2.2
     # via
     #   -r test-requirements.in
     #   pytest-subtests
@@ -25,3 +23,5 @@ pytest-subtests==0.10.0
     # via -r test-requirements.in
 file:.#egg=referencing
     # via -r test-requirements.in
+rpds-py==0.4.1
+    # via referencing

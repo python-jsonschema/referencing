@@ -1,4 +1,4 @@
-from pyrsistent import pmap
+from rpds import HashTrieMap
 import pytest
 
 from referencing import Anchor, Registry, Resource, Specification, exceptions
@@ -188,7 +188,7 @@ class TestRegistry:
 
     def test_dict_conversion(self):
         """
-        Passing a `dict` to `Registry` gets converted to a `pmap`.
+        Passing a `dict` to `Registry` gets converted to a `HashTrieMap`.
 
         So continuing to use the registry works.
         """
@@ -244,7 +244,7 @@ class TestRegistry:
                 ("http://example.com/baz", three),
                 ("http://example.com/foo/quux", four),
             ],
-            anchors=pmap(
+            anchors=HashTrieMap(
                 {
                     ("http://example.com/foo/quux", "foo"): Anchor(
                         name="foo",
