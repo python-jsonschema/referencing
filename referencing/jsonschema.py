@@ -224,6 +224,50 @@ def _subresources_of_with_crazy_items_dependencies(
     return subresources_of
 
 
+def _subresources_of_with_crazy_aP_items_dependencies(
+    in_value: Set[str] = frozenset(),
+    in_subvalues: Set[str] = frozenset(),
+    in_subarray: Set[str] = frozenset(),
+):
+    """
+    Specifically handle even older drafts where there are some funky keywords.
+    """
+
+    def subresources_of(contents: Schema) -> Iterable[ObjectSchema]:
+        if isinstance(contents, bool):
+            return
+        for each in in_value:
+            if each in contents:
+                yield contents[each]
+        for each in in_subarray:
+            if each in contents:
+                yield from contents[each]
+        for each in in_subvalues:
+            if each in contents:
+                yield from contents[each].values()
+
+        items = contents.get("items")
+        if items is not None:
+            if isinstance(items, Sequence):
+                yield from items
+            else:
+                yield items
+        dependencies = contents.get("dependencies")
+        if dependencies is not None:
+            values = iter(dependencies.values())
+            value = next(values, None)
+            if isinstance(value, Mapping):
+                yield value
+                yield from values
+
+        for each in "additionalItems", "additionalProperties":
+            value = contents.get(each)
+            if isinstance(value, Mapping):
+                yield value
+
+    return subresources_of
+
+
 def _maybe_in_subresource(
     in_value: Set[str] = frozenset(),
     in_subvalues: Set[str] = frozenset(),
@@ -468,8 +512,8 @@ DRAFT6 = Specification(
 DRAFT4 = Specification(
     name="draft-04",
     id_of=_legacy_id,
-    subresources_of=_subresources_of_with_crazy_items_dependencies(
-        in_value={"additionalItems", "additionalProperties", "not"},
+    subresources_of=_subresources_of_with_crazy_aP_items_dependencies(
+        in_value={"not"},
         in_subarray={"allOf", "anyOf", "oneOf"},
         in_subvalues={"definitions", "patternProperties", "properties"},
     ),
@@ -484,8 +528,7 @@ DRAFT4 = Specification(
 DRAFT3 = Specification(
     name="draft-03",
     id_of=_legacy_id,
-    subresources_of=_subresources_of_with_crazy_items_dependencies(
-        in_value={"additionalItems", "additionalProperties"},
+    subresources_of=_subresources_of_with_crazy_aP_items_dependencies(
         in_subarray={"extends"},
         in_subvalues={"definitions", "patternProperties", "properties"},
     ),
