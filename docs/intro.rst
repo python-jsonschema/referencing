@@ -52,3 +52,153 @@ You could also confirm your resource is in the registry if you'd like, via `refe
 .. testoutput::
 
    {'type': 'integer'}
+
+Populating Registries
+---------------------
+
+There are a few different methods you can use to populate registries with resources.
+Which one you want to use depends on things like:
+
+    * do you already have an instance of `referencing.Resource`, or are you creating one out of some loaded JSON?
+      If not, does the JSON have some sort of identifier that can be used to determine which specification it belongs to (e.g. the JSON Schema ``$schema`` keyword)?
+    * does your resource have an internal ID (e.g. the JSON Schema ``$id`` keyword)?
+    * do you have additional (external) URIs you want to refer to the same resource as well?
+    * do you have one resource to add or many?
+
+We'll assume for example's sake that we're dealing with JSON Schema resources for the following examples, and we'll furthermore assume you have some initial `referencing.Registry` to add them to, perhaps an empty one:
+
+.. testcode::
+
+    from referencing import Registry
+    initial_registry = Registry()
+
+Recall that registries are immutable, so we'll be "adding" our resources by creating new registries containing the additional resource(s) we add.
+
+In the ideal case, you have a JSON Schema with an internal ID, and which also identifies itself for a specific version of JSON Schema e.g.:
+
+.. code:: json
+
+    {
+      "$id": "urn:example:my-schema",
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "integer"
+    }
+
+If you have such a schema in some JSON text, and wish to add a resource to our registry and be able to identify it using its internal ID (``urn:example:my-schema``) you can simply use:
+
+.. testcode::
+
+    import json
+
+    loaded = json.loads(
+        """
+        {
+          "$id": "urn:example:my-schema",
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "integer"
+        }
+        """,
+    )
+    resource = Resource.from_contents(loaded)
+    registry = resource @ initial_registry
+
+which will give you a registry with our resource added to it.
+Let's check by using `Registry.contents`, which takes a URI and should show us the contents of our resource:
+
+.. testcode::
+
+    print(registry.contents("urn:example:my-schema"))
+
+.. testoutput::
+
+    {'$id': 'urn:example:my-schema', '$schema': 'https://json-schema.org/draft/2020-12/schema', 'type': 'integer'}
+
+If your schema did *not* have a ``$schema`` keyword, you'd get an error:
+
+.. testcode::
+
+    another = json.loads(
+        """
+        {
+          "$id": "urn:example:my-second-schema",
+          "type": "integer"
+        }
+        """,
+    )
+    print(Resource.from_contents(another))
+
+.. testoutput::
+
+    Traceback (most recent call last):
+        ...
+    referencing.exceptions.CannotDetermineSpecification: {'$id': 'urn:example:my-second-schema', 'type': 'integer'}
+
+which is telling you that the resource you've tried to create is ambiguous -- there's no way to know which version of JSON Schema you intend it to be written for.
+
+You can of course instead directly create a `Resource`, instead of using `Resource.from_contents`, which will allow you to specify which version of JSON Schema you're intending your schema to be written for:
+
+.. testcode::
+
+    import referencing.jsonschema
+    second = Resource(contents=another, specification=referencing.jsonschema.DRAFT202012)
+
+and now of course can add it as above:
+
+.. testcode::
+
+    registry = second @ registry
+    print(registry.contents("urn:example:my-second-schema"))
+
+.. testoutput::
+
+    {'$id': 'urn:example:my-second-schema', 'type': 'integer'}
+
+As a shorthand, you can also use `Specification.create_resource` to create a `Resource` slightly more tersely.
+E.g., an equivalent way to create the above resource is:
+
+.. testcode::
+
+    second_again = referencing.jsonschema.DRAFT202012.create_resource(another)
+    print(second_again == second)
+
+.. testoutput::
+
+    True
+
+If your resource doesn't contain an ``$id`` keyword, you'll get a different error if you attempt to add it to a registry:
+
+.. testcode::
+
+    third = Resource(
+        contents=json.loads("""{"type": "integer"}"""),
+        specification=referencing.jsonschema.DRAFT202012,
+    )
+    registry = third @ registry
+
+.. testoutput::
+
+    Traceback (most recent call last):
+        ...
+    referencing.exceptions.NoInternalID: Resource(contents={'type': 'integer'}, _specification=<Specification name='draft2020-12'>)
+
+which is now saying that there's no way to add this resource to a registry directly, as it has no ``$id`` -- you must provide whatever URI you intend to use to refer to this resource to be able to add it.
+
+You can do so using `referencing.Registry.with_resource` instead of the `@ operator <referencing.Registry.__rmatmul__>` which we have used thus far, and which takes the explicit URI you wish to use as an argument:
+
+.. testcode::
+
+    registry = registry.with_resource(uri="urn:example:my-third-schema", resource=third)
+
+which now allows us to use the URI we associated with our third resource to retrieve it:
+
+.. testcode::
+
+    print(registry.contents("urn:example:my-third-schema"))
+
+.. testoutput::
+
+    {'type': 'integer'}
+
+If you have more than one resource to add, you can use `Registry.with_resources` (with an ``s``) to add many at once, or, if they meet the criteria to use ``@``, you can use ``[one, two, three] @ registry`` to add all three resources at once.
+
+You may also want to have a look at `Registry.with_contents` for a further method to add resources to a registry without constructing a `Resource` object yourself.
