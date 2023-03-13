@@ -12,3 +12,4 @@ Contents
     external-retrieval
     schema-packages
     api
+    changes

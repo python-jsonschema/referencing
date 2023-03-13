@@ -1,5 +1,7 @@
 amongst
 autodetecting
+boolean
+changelog
 deduplication
 deserialized
 discoverability
