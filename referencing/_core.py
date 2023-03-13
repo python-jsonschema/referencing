@@ -404,6 +404,9 @@ class Registry(Mapping[URI, Resource[D]]):
         resources = self._resources
         uncrawled = self._uncrawled
         for uri, resource in pairs:
+            # Empty fragment URIs are equivalent to URIs without the fragment.
+            # TODO: Is this true for non JSON Schema resources? Probably not.
+            uri = uri.rstrip("#")
             uncrawled = uncrawled.insert(uri)
             resources = resources.insert(uri, resource)
         return evolve(self, resources=resources, uncrawled=uncrawled)
