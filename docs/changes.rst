@@ -2,6 +2,16 @@
 Changelog
 =========
 
+v0.25.2
+-------
+
+* Minor tweaks to the package keywords and description.
+
+v0.25.1
+-------
+
+* Minor internal tweaks to the docs configuration.
+
 v0.25.0
 -------
 
