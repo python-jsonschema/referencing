@@ -2,6 +2,11 @@
 Changelog
 =========
 
+v0.25.0
+-------
+
+* Bump the minimum version of ``rpds.py`` used, enabling registries to be used from multiple threads.
+
 v0.24.4
 -------
 

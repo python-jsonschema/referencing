@@ -33,7 +33,7 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
   "attrs>=22.2.0",
-  "rpds-py>=0.5.0",
+  "rpds-py>=0.7.0",
 ]
 
 [project.urls]
