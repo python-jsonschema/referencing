@@ -23,5 +23,5 @@ pytest-subtests==0.10.0
     # via -r test-requirements.in
 file:.#egg=referencing
     # via -r test-requirements.in
-rpds-py==0.7.0
+rpds-py==0.7.1
     # via referencing

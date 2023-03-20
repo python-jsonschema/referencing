@@ -1,17 +1,14 @@
-from pathlib import Path
 import importlib.metadata
 import re
 
 from yarl import URL
-
-DOCS = Path(__file__).parent
 
 GITHUB = URL("https://github.com/")
 HOMEPAGE = GITHUB / "python-jsonschema/referencing"
 
 project = "referencing"
 author = "Julian Berman"
-copyright = "2022, " + author
+copyright = f"2022, {author}"
 
 release = importlib.metadata.version("referencing")
 version = release.partition("-")[0]
@@ -28,10 +25,12 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.napoleon",
     "sphinx.ext.todo",
+    "sphinx.ext.viewcode",
     "sphinx_click",
     "sphinx_copybutton",
     "sphinx_json_schema_spec",
     "sphinxcontrib.spelling",
+    "sphinxext.opengraph",
 ]
 
 pygments_style = "lovelace"
@@ -73,20 +72,31 @@ def setup(app):
     app.connect("missing-reference", _resolve_broken_refs)
 
 
-# -- Extension configuration -------------------------------------------------
+def entire_domain(host):
+    return r"http.?://" + re.escape(host) + r"($|/.*)"
 
-# -- Options for autodoc extension -------------------------------------------
+
+linkcheck_ignore = [
+    entire_domain("img.shields.io"),
+    f"{GITHUB}.*#.*",
+    str(HOMEPAGE / "actions"),
+    str(HOMEPAGE / "workflows/CI/badge.svg"),
+]
+
+# = Extensions =
+
+# -- autodoc --
 
 autodoc_default_options = {
     "members": True,
     "member-order": "bysource",
 }
 
-# -- Options for autosectionlabel extension ----------------------------------
+# -- autosectionlabel --
 
 autosectionlabel_prefix_document = True
 
-# -- Options for intersphinx extension ---------------------------------------
+# -- intersphinx --
 
 intersphinx_mapping = {
     "hatch": ("https://hatch.pypa.io/latest/", None),
@@ -98,7 +108,7 @@ intersphinx_mapping = {
     "setuptools": ("https://setuptools.pypa.io/en/latest/", None),
 }
 
-# -- Options for extlinks extension ------------------------------------------
+# -- extlinks --
 
 extlinks = {
     "gh": (str(HOMEPAGE) + "/%s", None),
@@ -107,21 +117,7 @@ extlinks = {
     "httpx": ("https://www.python-httpx.org/%s", None),
 }
 
-# -- Options for the linkcheck builder ---------------------------------------
+# -- sphinxcontrib-spelling --
 
-
-def entire_domain(host):
-    return r"http.?://" + re.escape(host) + r"($|/.*)"
-
-
-linkcheck_ignore = [
-    entire_domain("codecov.io"),
-    entire_domain("img.shields.io"),
-    f"{GITHUB}.*#.*",
-    str(HOMEPAGE / "actions"),
-    str(HOMEPAGE / "python-jsonschema/workflows/CI/badge.svg"),
-]
-
-# -- Options for spelling extension ------------------------------------------
-
+spelling_word_list_filename = "spelling-wordlist.txt"
 spelling_show_suggestions = True
