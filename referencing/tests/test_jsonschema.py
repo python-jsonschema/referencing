@@ -66,6 +66,22 @@ def test_id_of_mapping(id, specification):
 
 
 @pytest.mark.parametrize(
+    "id, specification",
+    [
+        ("$id", referencing.jsonschema.DRAFT202012),
+        ("$id", referencing.jsonschema.DRAFT201909),
+        ("$id", referencing.jsonschema.DRAFT7),
+        ("$id", referencing.jsonschema.DRAFT6),
+        ("id", referencing.jsonschema.DRAFT4),
+        ("id", referencing.jsonschema.DRAFT3),
+    ],
+)
+def test_id_of_empty_fragment(id, specification):
+    uri = "http://example.com/some-schema"
+    assert specification.id_of({id: uri + "#"}) == uri
+
+
+@pytest.mark.parametrize(
     "specification",
     [
         referencing.jsonschema.DRAFT202012,
@@ -137,6 +153,31 @@ def test_subresources_of_bool(specification, value):
     ],
 )
 def test_specification_with(uri, expected):
+    assert referencing.jsonschema.specification_with(uri) == expected
+
+
+@pytest.mark.parametrize(
+    "uri, expected",
+    [
+        (
+            "http://json-schema.org/draft-07/schema",
+            referencing.jsonschema.DRAFT7,
+        ),
+        (
+            "http://json-schema.org/draft-06/schema",
+            referencing.jsonschema.DRAFT6,
+        ),
+        (
+            "http://json-schema.org/draft-04/schema",
+            referencing.jsonschema.DRAFT4,
+        ),
+        (
+            "http://json-schema.org/draft-03/schema",
+            referencing.jsonschema.DRAFT3,
+        ),
+    ],
+)
+def test_specification_with_no_empty_fragment(uri, expected):
     assert referencing.jsonschema.specification_with(uri) == expected
 
 

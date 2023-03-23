@@ -36,7 +36,9 @@ class UnknownDialect(Exception):
 def _dollar_id(contents: Schema) -> URI | None:
     if isinstance(contents, bool):
         return
-    return contents.get("$id")
+    id = contents.get("$id")
+    if id is not None:
+        return id.rstrip("#")
 
 
 def _legacy_dollar_id(contents: Schema) -> URI | None:
@@ -44,7 +46,7 @@ def _legacy_dollar_id(contents: Schema) -> URI | None:
         return
     id = contents.get("$id")
     if id is not None and not id.startswith("#"):
-        return id
+        return id.rstrip("#")
 
 
 def _legacy_id(contents: ObjectSchema) -> URI | None:
@@ -52,7 +54,7 @@ def _legacy_id(contents: ObjectSchema) -> URI | None:
         return
     id = contents.get("id")
     if id is not None and not id.startswith("#"):
-        return id
+        return id.rstrip("#")
 
 
 def _anchor(
@@ -547,10 +549,10 @@ _SPECIFICATIONS: Registry[Specification[Schema]] = Registry(
         for dialect_id, specification in [
             ("https://json-schema.org/draft/2020-12/schema", DRAFT202012),
             ("https://json-schema.org/draft/2019-09/schema", DRAFT201909),
-            ("http://json-schema.org/draft-07/schema#", DRAFT7),
-            ("http://json-schema.org/draft-06/schema#", DRAFT6),
-            ("http://json-schema.org/draft-04/schema#", DRAFT4),
-            ("http://json-schema.org/draft-03/schema#", DRAFT3),
+            ("http://json-schema.org/draft-07/schema", DRAFT7),
+            ("http://json-schema.org/draft-06/schema", DRAFT6),
+            ("http://json-schema.org/draft-04/schema", DRAFT4),
+            ("http://json-schema.org/draft-03/schema", DRAFT3),
         ]
     },
 )
@@ -569,7 +571,7 @@ def specification_with(
 
             if the given ``dialect_id`` isn't known
     """
-    resource = _SPECIFICATIONS.get(dialect_id)
+    resource = _SPECIFICATIONS.get(dialect_id.rstrip("#"))
     if resource is not None:
         return resource.contents
     if default is None:  # type: ignore[reportUnnecessaryComparison]
