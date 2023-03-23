@@ -2,6 +2,13 @@
 Changelog
 =========
 
+v0.25.3
+-------
+
+* Normalize the ID of JSON Schema resources with empty fragments (by removing the fragment).
+  Having a schema with an ID with empty fragment is discouraged, and newer versions of the spec may flat-out make it an error, but older meta-schemas indeed used IDs with empty fragments, so some extra normalization was needed and useful here even beyond what was previously done.
+  TBD on whether this is exactly right if/when another referencing spec defines differing behavior.
+
 v0.25.2
 -------
 
