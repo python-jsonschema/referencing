@@ -142,7 +142,10 @@ class Resource(Generic[D]):
         """
         Retrieve this resource's (specification-specific) identifier.
         """
-        return self._specification.id_of(self.contents)
+        id = self._specification.id_of(self.contents)
+        if id is None:
+            return
+        return id.rstrip("#")
 
     def subresources(self) -> Iterable[Resource[D]]:
         """

@@ -610,6 +610,11 @@ class TestResource:
         )
         assert resource.id() == "urn:fixedID"
 
+    def test_id_strips_empty_fragment(self):
+        uri = "http://example.com/"
+        root = ID_AND_CHILDREN.create_resource({"ID": uri + "#"})
+        assert root.id() == uri
+
     def test_subresources_delegates_to_specification(self):
         resource = ID_AND_CHILDREN.create_resource({"children": [{}, 12]})
         assert list(resource.subresources()) == [

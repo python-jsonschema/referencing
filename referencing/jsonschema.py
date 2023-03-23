@@ -36,9 +36,7 @@ class UnknownDialect(Exception):
 def _dollar_id(contents: Schema) -> URI | None:
     if isinstance(contents, bool):
         return
-    id = contents.get("$id")
-    if id is not None:
-        return id.rstrip("#")
+    return contents.get("$id")
 
 
 def _legacy_dollar_id(contents: Schema) -> URI | None:
@@ -46,7 +44,7 @@ def _legacy_dollar_id(contents: Schema) -> URI | None:
         return
     id = contents.get("$id")
     if id is not None and not id.startswith("#"):
-        return id.rstrip("#")
+        return id
 
 
 def _legacy_id(contents: ObjectSchema) -> URI | None:
@@ -54,7 +52,7 @@ def _legacy_id(contents: ObjectSchema) -> URI | None:
         return
     id = contents.get("id")
     if id is not None and not id.startswith("#"):
-        return id.rstrip("#")
+        return id
 
 
 def _anchor(
