@@ -155,6 +155,12 @@ class TestRegistry:
         registry = Registry().with_resource(uri, resource)
         assert registry.contents(uri) == {"foo": "bar"}
 
+    def test_contents_strips_empty_fragments(self):
+        uri = "http://example.com/"
+        resource = ID_AND_CHILDREN.create_resource({"ID": uri + "#"})
+        registry = resource @ Registry()
+        assert registry.contents(uri) == {"ID": uri + "#"}
+
     def test_crawled_anchor(self):
         resource = ID_AND_CHILDREN.create_resource({"anchors": {"foo": "bar"}})
         registry = Registry().with_resource("urn:example", resource)
