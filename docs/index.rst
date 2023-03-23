@@ -1,12 +1,10 @@
-.. include:: ../README.rst
+An implementation-agnostic implementation of JSON reference resolution.
 
-
-Contents
---------
+In other words, a way for e.g. JSON Schema tooling to resolve the ``$ref`` keyword across all drafts without needing to implement support themselves.
 
 .. toctree::
     :glob:
-    :maxdepth: 2
+    :hidden:
 
     intro
     external-retrieval

@@ -1,6 +1,6 @@
-=======================================
-Introduction to the ``referencing`` API
-=======================================
+============
+Introduction
+============
 
 When authoring JSON documents, it is often useful to be able to reference other JSON documents, or to reference subsections of other JSON documents.
 
