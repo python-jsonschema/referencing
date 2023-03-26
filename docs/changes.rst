@@ -2,6 +2,16 @@
 Changelog
 =========
 
+v0.26.1
+-------
+
+* No changes.
+
+v0.26.0
+-------
+
+* Attempt to suggest a correction if someone uses '#foo/bar', which is neither a valid plain name anchor (as it contains a slash) nor a valid JSON pointer (as it doesn't start with a slash)
+
 v0.25.3
 -------
 
