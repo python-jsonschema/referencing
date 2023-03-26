@@ -107,3 +107,27 @@ class NoSuchAnchor(Unresolvable):
         return (
             f"{self.anchor!r} does not exist within {self.resource.contents!r}"
         )
+
+
+@frozen
+class InvalidAnchor(Unresolvable):
+    """
+    An anchor which could never exist in a resource was dereferenced.
+
+    It is somehow syntactically invalid.
+    """
+
+    resource: Resource[Any]
+    anchor: str
+    _suggestion: str | None = attrs.field(default=None, alias="suggestion")
+
+    def __str__(self):
+        suggestion = (
+            ""
+            if self._suggestion is None
+            else (f" You may have intended to use {self._suggestion}.")
+        )
+        return (
+            f"'#{self.anchor}' is not a valid anchor, neither as a "
+            f"plain name anchor nor as a JSON Pointer.{suggestion}"
+        )

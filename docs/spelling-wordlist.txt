@@ -3,6 +3,7 @@ autodetecting
 boolean
 changelog
 deduplication
+dereferenced
 deserialized
 discoverability
 filesystem

@@ -359,6 +359,16 @@ class Registry(Mapping[URI, Resource[D]]):
         value = registry._anchors.get((uri, name))
         if value is not None:
             return Retrieved(value=value, registry=registry)
+        if "/" in name:
+            raise exceptions.InvalidAnchor(
+                ref=uri,
+                resource=self[uri],
+                anchor=name,
+                suggestion=(
+                    f"You may have intended to use '#/{name}'. The slash is "
+                    "required *before each* segment of a JSON Pointer."
+                ),
+            )
         raise exceptions.NoSuchAnchor(ref=uri, resource=self[uri], anchor=name)
 
     def contents(self, uri: URI) -> D:

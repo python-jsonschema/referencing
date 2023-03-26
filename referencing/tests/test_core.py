@@ -738,6 +738,23 @@ class TestResolver:
             anchor="noSuchAnchor",
         )
 
+    def test_lookup_invalid_JSON_pointerish_anchor(self):
+        resolver = Registry().resolver_with_root(
+            ID_AND_CHILDREN.create_resource(
+                {
+                    "ID": "http://example.com/",
+                    "foo": {"bar": 12},
+                },
+            ),
+        )
+
+        valid = resolver.lookup("#/foo/bar")
+        assert valid.contents == 12
+
+        with pytest.raises(exceptions.InvalidAnchor) as e:
+            resolver.lookup("#foo/bar")
+        assert " '#/foo/bar'" in str(e.value)
+
     def test_lookup_retrieved_resource(self):
         resource = Resource.opaque(contents={"foo": "baz"})
         resolver = Registry(retrieve=lambda uri: resource).resolver()
