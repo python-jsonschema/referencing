@@ -91,7 +91,14 @@ class PointerToNowhere(Unresolvable):
     resource: Resource[Any]
 
     def __str__(self):
-        return f"{self.ref!r} does not exist within {self.resource.contents!r}"
+        msg = f"{self.ref!r} does not exist within {self.resource.contents!r}"
+        if self.ref == "/":
+            msg += (
+                ". The pointer '/' is a valid JSON Pointer but it points to "
+                "an empty string property ''. If you intended to point "
+                "to the entire resource, you should use '#'."
+            )
+        return msg
 
 
 @frozen

@@ -2,6 +2,11 @@
 Changelog
 =========
 
+v0.26.2
+-------
+
+* Also suggest a proper JSON Pointer for users who accidentally use ``#/`` and intend to refer to the entire resource.
+
 v0.26.1
 -------
 

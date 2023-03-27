@@ -723,6 +723,23 @@ class TestResolver:
             resource=resource,
         )
 
+    def test_lookup_pointer_to_empty_string(self):
+        resolver = Registry().resolver_with_root(Resource.opaque({"": {}}))
+        assert resolver.lookup("#/").contents == {}
+
+    def test_lookup_non_existent_pointer_to_empty_string(self):
+        resource = Resource.opaque({"foo": {}})
+        resolver = Registry().resolver_with_root(resource)
+        with pytest.raises(
+            exceptions.Unresolvable,
+            match="^'/' does not exist within {'foo': {}}.*'#'",
+        ) as e:
+            resolver.lookup("#/")
+        assert e.value == exceptions.PointerToNowhere(
+            ref="/",
+            resource=resource,
+        )
+
     def test_lookup_non_existent_anchor(self):
         root = ID_AND_CHILDREN.create_resource({"anchors": {}})
         resolver = Registry().with_resource("urn:example", root).resolver()
