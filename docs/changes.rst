@@ -2,6 +2,12 @@
 Changelog
 =========
 
+v0.26.4
+-------
+
+* Further API documentation.
+
+
 v0.26.3
 -------
 

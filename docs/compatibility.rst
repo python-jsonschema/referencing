@@ -21,6 +21,9 @@ In the spirit of `having some explicit detail on Bowtie's public interfaces <reg
 * The instantiation of any type with no public identifier, even if instances of it are returned by other public API.
   E.g., `referencing._core.Resolver` is not publicly exposed, and it is not public API to instantiate it in ways other than by calling `referencing.Registry.resolver` or an equivalent.
   All of its public attributes are of course public, however.
+* The concrete types within the signature of a callable whenever they differ from their documented types.
+  In other words, if a function documents that it returns an argument of type ``Mapping[int, Sequence[str]]``, this is the promised return type, not whatever concrete type is returned which may be richer or have additional attributes and methods.
+  Changes to the signature will continue to guarantee this return type (or a broader one) but indeed are free to change the concrete type.
 * Any identifiers in any modules which are imported from other modules.
   In other words, if ``referencing.foo`` imports ``bar`` from ``referencing.quux``, it is *not* public API to use ``referencing.foo.bar``; only ``referencing.quux.bar`` is public API.
   This does not apply to any objects exposed directly on the ``referencing`` package (e.g. `referencing.Resource`), which are indeed public.
