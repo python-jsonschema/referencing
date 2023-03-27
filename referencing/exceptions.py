@@ -119,15 +119,11 @@ class InvalidAnchor(Unresolvable):
 
     resource: Resource[Any]
     anchor: str
-    _suggestion: str | None = attrs.field(default=None, alias="suggestion")
 
     def __str__(self):
-        suggestion = (
-            ""
-            if self._suggestion is None
-            else (f" You may have intended to use {self._suggestion}.")
-        )
         return (
             f"'#{self.anchor}' is not a valid anchor, neither as a "
-            f"plain name anchor nor as a JSON Pointer.{suggestion}"
+            "plain name anchor nor as a JSON Pointer. You may have intended "
+            f"to use '#/{self.anchor}', as the slash is required *before each "
+            "segment* of a JSON pointer."
         )

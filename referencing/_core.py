@@ -364,10 +364,6 @@ class Registry(Mapping[URI, Resource[D]]):
                 ref=uri,
                 resource=self[uri],
                 anchor=name,
-                suggestion=(
-                    f"You may have intended to use '#/{name}'. The slash is "
-                    "required *before each* segment of a JSON Pointer."
-                ),
             )
         raise exceptions.NoSuchAnchor(ref=uri, resource=self[uri], anchor=name)
 
