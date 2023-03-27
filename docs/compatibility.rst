@@ -5,6 +5,11 @@ Compatibility
 ``referencing`` is currently in beta so long as version numbers begin with a ``0``, meaning its public interface may change if issues are uncovered, though not typically without reason.
 Once it seems clear that the interfaces look correct (likely after ``referencing`` is in use for some period of time) versioning will move to `CalVer <https://calver.org/>`_ and interfaces will not change in backwards-incompatible ways without deprecation periods.
 
+.. note::
+
+    Backwards compatibility is always defined relative to the specifications we implement.
+    Changing a behavior which is incorrect according to the relevant referencing specifications is not considered a backwards-incompatible change -- on the contrary, it's considered a bug fix.
+
 In the spirit of `having some explicit detail on Bowtie's public interfaces <regret:before-you-deprecate:document your public api>`, here is a non-exhaustive list of things which are *not* part of the ``referencing`` public interface, and therefore which may change without warning, even once no longer in beta:
 
 * All commonly understood indicators of privacy in Python -- in particular, (sub)packages, modules and identifiers beginning with a single underscore.
