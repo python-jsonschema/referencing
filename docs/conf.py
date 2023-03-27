@@ -101,11 +101,12 @@ autosectionlabel_prefix_document = True
 intersphinx_mapping = {
     "hatch": ("https://hatch.pypa.io/latest/", None),
     "jsonschema-specifications": (
-        "https://jsonschema-specifications.readthedocs.io/en/latest/",
+        "https://jsonschema-specifications.readthedocs.io/en/stable/",
         None,
     ),
+    "regret": ("https://regret.readthedocs.io/en/stable/", None),
     "python": ("https://docs.python.org/", None),
-    "setuptools": ("https://setuptools.pypa.io/en/latest/", None),
+    "setuptools": ("https://setuptools.pypa.io/en/stable/", None),
 }
 
 # -- extlinks --

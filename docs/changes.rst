@@ -2,6 +2,12 @@
 Changelog
 =========
 
+v0.26.3
+-------
+
+* Add some documentation on ``referencing`` public and non-public API.
+
+
 v0.26.2
 -------
 

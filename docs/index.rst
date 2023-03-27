@@ -11,3 +11,4 @@ In other words, a way for e.g. JSON Schema tooling to resolve the ``$ref`` keywo
     schema-packages
     api
     changes
+    compatibility

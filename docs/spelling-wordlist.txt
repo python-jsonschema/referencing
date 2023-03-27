@@ -7,11 +7,14 @@ dereferenced
 deserialized
 discoverability
 filesystem
+instantiable
+instantiation
 metaschemas
 referenceable
 resolvers
 runtime
 schemas
+subclassing
 submodules
 subresource
 subresources

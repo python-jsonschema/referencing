@@ -18,6 +18,9 @@ if TYPE_CHECKING:
 class NoSuchResource(KeyError):
     """
     The given URI is not present in a registry.
+
+    Unlike most exceptions, this class *is* intended to be publicly
+    instantiable and *is* part of the public API of the package.
     """
 
     ref: URI
