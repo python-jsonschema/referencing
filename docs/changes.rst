@@ -2,6 +2,12 @@
 Changelog
 =========
 
+v0.27.0
+-------
+
+* Support looking up anchors from non-canonical URIs.
+  In other words, if you add a resource at the URI ``http://example.com``, then looking up the anchor ``http://example.com#foo`` now works even if the resource has some internal ``$id`` saying its canonical URI is ``http://somethingelse.example.com``.
+
 v0.26.4
 -------
 
