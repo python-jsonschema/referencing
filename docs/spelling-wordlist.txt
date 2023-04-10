@@ -9,6 +9,7 @@ discoverability
 filesystem
 instantiable
 instantiation
+iterable
 metaschemas
 referenceable
 resolvers

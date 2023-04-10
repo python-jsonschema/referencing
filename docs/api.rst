@@ -13,6 +13,14 @@ API Reference
    :undoc-members:
 
 
+.. autoclass:: referencing._core.Retrieved
+   :members:
+   :undoc-members:
+
+
+.. autoclass:: referencing._core.T
+
+
 .. autoclass:: referencing._core.Resolver
    :members:
    :undoc-members:

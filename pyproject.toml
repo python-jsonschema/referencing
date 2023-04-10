@@ -70,8 +70,15 @@ exclude = [
 [tool.ruff]
 line-length = 79
 target-version = "py38"
-select = ["B", "D", "E", "F", "Q", "UP", "W"]
+select = ["ANN", "B", "D", "E", "F", "Q", "UP", "W"]
 ignore = [
+  # Wat, type annotations for self and cls, why is this a thing?
+  "ANN101",
+  "ANN102",
+  # Private annotations are fine to leave out.
+  "ANN202",
+  # I don't know how to more properly annotate "pass along all arguments".
+  "ANN401",
   # raise SomeException(...) is fine.
   "B904",
   # It's fine to not have docstrings for magic methods.
@@ -97,9 +104,9 @@ extend-exclude = ["suite"]
 docstring-quotes = "double"
 
 [tool.ruff.per-file-ignores]
-"docs/*" = ["D"]
-"referencing/tests/*" = ["D"]
-"noxfile.py" = ["D"]
+"docs/*" = ["ANN", "D"]
+"referencing/tests/*" = ["ANN", "D"]
+"noxfile.py" = ["ANN", "D"]
 
 [tool.ruff.pyupgrade]
 # We support 3.8 + 3.9

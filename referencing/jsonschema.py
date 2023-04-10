@@ -586,7 +586,7 @@ class DynamicAnchor:
     name: str
     resource: Resource[Schema]
 
-    def resolve(self, resolver: _Resolver[Schema]):
+    def resolve(self, resolver: _Resolver[Schema]) -> _Resolved[Schema]:
         """
         Resolve this anchor dynamically.
         """

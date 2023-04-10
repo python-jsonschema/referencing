@@ -93,7 +93,7 @@ class PointerToNowhere(Unresolvable):
 
     resource: Resource[Any]
 
-    def __str__(self):
+    def __str__(self) -> str:
         msg = f"{self.ref!r} does not exist within {self.resource.contents!r}"
         if self.ref == "/":
             msg += (
@@ -113,7 +113,7 @@ class NoSuchAnchor(Unresolvable):
     resource: Resource[Any]
     anchor: str
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             f"{self.anchor!r} does not exist within {self.resource.contents!r}"
         )
@@ -130,7 +130,7 @@ class InvalidAnchor(Unresolvable):
     resource: Resource[Any]
     anchor: str
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             f"'#{self.anchor}' is not a valid anchor, neither as a "
             "plain name anchor nor as a JSON Pointer. You may have intended "

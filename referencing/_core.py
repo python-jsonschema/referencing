@@ -58,7 +58,7 @@ class Specification(Generic[D]):
     #: nor internal identifiers.
     OPAQUE: ClassVar[Specification[Any]]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Specification name={self.name!r}>"
 
     def anchors_in(self, contents: D):
@@ -257,7 +257,10 @@ class Registry(Mapping[URI, Resource[D]]):
         """
         return len(self._resources)
 
-    def __rmatmul__(self, new: Resource[D] | Iterable[Resource[D]]):
+    def __rmatmul__(
+        self,
+        new: Resource[D] | Iterable[Resource[D]],
+    ) -> Registry[D]:
         """
         Create a new registry with resource(s) added using their internal IDs.
 
@@ -311,7 +314,7 @@ class Registry(Mapping[URI, Resource[D]]):
             summary = f"{pluralized}"
         return f"<Registry ({size} {summary})>"
 
-    def get_or_retrieve(self, uri: URI) -> Retrieved:
+    def get_or_retrieve(self, uri: URI) -> Retrieved[D, Resource[D]]:
         """
         Get a resource from the registry, crawling or retrieving if necessary.
 
@@ -498,6 +501,7 @@ class Registry(Mapping[URI, Resource[D]]):
         )
 
 
+#: An anchor or resource.
 T = TypeVar("T", AnchorType[Any], Resource[Any])
 
 
