@@ -6,6 +6,7 @@ deduplication
 dereferenced
 deserialized
 discoverability
+docstrings
 filesystem
 instantiable
 instantiation

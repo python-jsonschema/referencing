@@ -2,6 +2,12 @@
 Changelog
 =========
 
+v0.27.1
+-------
+
+* Improve a small number of docstrings.
+
+
 v0.27.0
 -------
 
