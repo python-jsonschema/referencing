@@ -238,7 +238,7 @@ class Registry(Mapping[URI, Resource[D]]):
 
     def __getitem__(self, uri: URI) -> Resource[D]:
         """
-        Return the `Resource` identified by the given URI.
+        Return the (already crawled) `Resource` identified by the given URI.
         """
         try:
             return self._resources[uri]
@@ -247,7 +247,7 @@ class Registry(Mapping[URI, Resource[D]]):
 
     def __iter__(self) -> Iterator[URI]:
         """
-        Iterate over all fully crawled URIs in the registry.
+        Iterate over all crawled URIs in the registry.
         """
         return iter(self._resources)
 
@@ -259,12 +259,12 @@ class Registry(Mapping[URI, Resource[D]]):
 
     def __rmatmul__(self, new: Resource[D] | Iterable[Resource[D]]):
         """
-        Add resource(s) to a new registry, using their internal IDs.
+        Create a new registry with resource(s) added using their internal IDs.
 
-        Resources must have a internal IDs (e.g. the ``$id`` keyword in modern
-        JSON Schema versions), otherwise an error will be raised.
+        Resources must have a internal IDs (e.g. the :kw:`$id` keyword in
+        modern JSON Schema versions), otherwise an error will be raised.
 
-        Use this via:
+        Both a single resource as well as an iterable of resources works, i.e.:
 
             * ``resource @ registry`` or
 
@@ -278,6 +278,12 @@ class Registry(Mapping[URI, Resource[D]]):
             registry.with_resources(
                 (resource.id(), resource) for resource in new_resources
             )
+
+        Raises:
+
+            `NoInternalID`
+
+                if the resource(s) in fact do not have IDs
         """
         if isinstance(new, Resource):
             new = (new,)
@@ -305,9 +311,13 @@ class Registry(Mapping[URI, Resource[D]]):
             summary = f"{pluralized}"
         return f"<Registry ({size} {summary})>"
 
-    def get_or_retrieve(self, uri: URI):
+    def get_or_retrieve(self, uri: URI) -> Retrieved:
         """
         Get a resource from the registry, crawling or retrieving if necessary.
+
+        May involve crawling to find the given URI if it is not already known,
+        so the returned object is a `Retrieved` object which contains both the
+        resource value as well as the registry which ultimately contained it.
         """
         resource = self._resources.get(uri)
         if resource is not None:
@@ -375,7 +385,7 @@ class Registry(Mapping[URI, Resource[D]]):
 
     def contents(self, uri: URI) -> D:
         """
-        Retrieve the contents identified by the given URI.
+        Retrieve the (already crawled) contents identified by the given URI.
         """
         # Empty fragment URIs are equivalent to URIs without the fragment.
         # TODO: Is this true for non JSON Schema resources? Probably not.
@@ -383,7 +393,7 @@ class Registry(Mapping[URI, Resource[D]]):
 
     def crawl(self) -> Registry[D]:
         """
-        Immediately crawl all added resources, discovering subresources.
+        Crawl all added resources, discovering subresources.
         """
         resources = self._resources
         anchors = self._anchors
