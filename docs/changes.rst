@@ -2,6 +2,11 @@
 Changelog
 =========
 
+v0.27.2
+-------
+
+* Another fix for looking up anchors from non-canonical URIs, now when they're inside a subresource which has a relative ``$id``.
+
 v0.27.1
 -------
 

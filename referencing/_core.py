@@ -364,20 +364,23 @@ class Registry(Mapping[URI, Resource[D]]):
         """
         Retrieve a given anchor from a resource which must already be crawled.
         """
-        resource = self.get(uri)
-        if resource is None:
-            canonical_uri = uri
-        else:
-            canonical_uri = resource.id() or uri
-
-        value = self._anchors.get((canonical_uri, name))
+        value = self._anchors.get((uri, name))
         if value is not None:
             return Retrieved(value=value, registry=self)
 
         registry = self.crawl()
-        value = registry._anchors.get((canonical_uri, name))
+        value = registry._anchors.get((uri, name))
         if value is not None:
             return Retrieved(value=value, registry=registry)
+
+        resource = self.get(uri)
+        if resource is not None:
+            canonical_uri = resource.id()
+            if canonical_uri is not None:
+                value = registry._anchors.get((canonical_uri, name))
+                if value is not None:
+                    return Retrieved(value=value, registry=registry)
+
         if "/" in name:
             raise exceptions.InvalidAnchor(
                 ref=uri,
