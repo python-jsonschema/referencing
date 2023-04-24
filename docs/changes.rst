@@ -2,6 +2,11 @@
 Changelog
 =========
 
+v0.27.3
+-------
+
+* Also strip fragments when using ``__getitem__`` on URIs with empty fragments.
+
 v0.27.2
 -------
 

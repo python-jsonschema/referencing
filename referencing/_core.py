@@ -241,7 +241,7 @@ class Registry(Mapping[URI, Resource[D]]):
         Return the (already crawled) `Resource` identified by the given URI.
         """
         try:
-            return self._resources[uri]
+            return self._resources[uri.rstrip("#")]
         except KeyError:
             raise exceptions.NoSuchResource(ref=uri)
 
