@@ -53,6 +53,7 @@ You could also confirm your resource is in the registry if you'd like, via `refe
 
    {'type': 'integer'}
 
+
 Populating Registries
 ---------------------
 
@@ -202,3 +203,36 @@ which now allows us to use the URI we associated with our third resource to retr
 If you have more than one resource to add, you can use `Registry.with_resources` (with an ``s``) to add many at once, or, if they meet the criteria to use ``@``, you can use ``[one, two, three] @ registry`` to add all three resources at once.
 
 You may also want to have a look at `Registry.with_contents` for a further method to add resources to a registry without constructing a `Resource` object yourself.
+
+
+Dynamically Retrieving Resources
+--------------------------------
+
+Sometimes one wishes to dynamically retrieve or construct `Resource`\ s which *don't* already live in-memory within a `Registry`.
+This might be resources retrieved dynamically from a database, from files somewhere on disk, from some arbitrary place over the internet, or from the like.
+We'll refer to such resources not present in-memory as *external resources*.
+
+The ``retrieve`` argument to ``Registry`` objects can be used to configure a callable which will be used anytime a requested URI is *not* present in the registry, thereby allowing you to retrieve it from whichever location it lives in.
+Here's an example of automatically retrieving external references by downloading them via :httpx:`httpx </>`, illustrated by then automatically retrieving one of the JSON Schema metaschemas from the network:
+
+.. code:: python
+
+    from referencing import Registry, Resource
+    import httpx
+
+
+    def retrieve_via_httpx(uri):
+        response = httpx.get(uri)
+        return Resource.from_contents(response.json())
+
+
+    registry = Registry(retrieve=retrieve_via_httpx)
+    resolver = registry.resolver()
+    print(resolver.lookup("https://json-schema.org/draft/2020-12/schema"))
+
+.. note::
+
+    In the case of JSON Schema, the specifications generally discourage implementations from automatically retrieving these sorts of external resources over the network due to potential security implications.
+    See :kw:`schema-references` in particular.
+
+    `referencing` will of course therefore not do any such thing automatically, and this section generally assumes that you have personally considered the security implications for your own use case.

@@ -7,8 +7,7 @@ In other words, a way for e.g. JSON Schema tooling to resolve the ``$ref`` keywo
     :hidden:
 
     intro
-    external-retrieval
     schema-packages
+    compatibility
     api
     changes
-    compatibility

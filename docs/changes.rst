@@ -2,6 +2,11 @@
 Changelog
 =========
 
+v0.27.4
+-------
+
+* Minor simplification to the docs structure.
+
 v0.27.3
 -------
 
