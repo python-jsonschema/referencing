@@ -536,6 +536,12 @@ class Resolver(Generic[D]):
     Resolvers help resolve references (including relative ones) by
     pairing a fixed base URI with a `Registry`.
 
+    This object, under normal circumstances, is expected to be used by
+    *implementers of libraries* built on top of `referencing` (e.g. JSON Schema
+    implementations or other libraries resolving JSON references),
+    not directly by end-users populating registries or while writing
+    schemas or other resources.
+
     References are resolved against the base URI, and the combined URI
     is then looked up within the registry.
 
