@@ -2,11 +2,6 @@
 Changelog
 =========
 
-v0.27.5
--------
-
-* Added some additional packaging trove classifiers.
-
 v0.27.4
 -------
 
