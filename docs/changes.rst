@@ -2,6 +2,11 @@
 Changelog
 =========
 
+v0.28.0
+-------
+
+* Minor documentation improvement
+
 v0.27.4
 -------
 
