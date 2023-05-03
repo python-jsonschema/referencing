@@ -228,9 +228,9 @@ class Registry(Mapping[URI, Resource[D]]):
     even according to the retrieval logic.
     """
 
-    _resources: HashTrieMap[URI, Resource[D]] = field(  # type: ignore[reportGeneralTypeIssues]  # noqa: E501
+    _resources: HashTrieMap[URI, Resource[D]] = field(
         default=HashTrieMap(),
-        converter=HashTrieMap.convert,
+        converter=HashTrieMap.convert,  # type: ignore[reportGeneralTypeIssues]  # noqa: E501
     )
     _anchors: HashTrieMap[tuple[URI, str], AnchorType[D]] = HashTrieMap()  # type: ignore[reportGeneralTypeIssues]  # noqa: E501
     _uncrawled: HashTrieSet[URI] = EMPTY_UNCRAWLED
