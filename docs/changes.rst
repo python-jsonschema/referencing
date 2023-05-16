@@ -2,6 +2,11 @@
 Changelog
 =========
 
+v0.28.2
+-------
+
+* Added some additional packaging trove classifiers.
+
 v0.28.1
 -------
 
