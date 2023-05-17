@@ -54,7 +54,7 @@ def style(session):
 
 @session()
 def typing(session):
-    session.install("pyright", ROOT)
+    session.install("pyright==1.1.307", ROOT)
     session.run("pyright", REFERENCING)
 
 
