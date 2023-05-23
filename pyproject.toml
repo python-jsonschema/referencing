@@ -100,6 +100,8 @@ ignore = [
   "D407",
   # Plz spaces after section headers
   "D412",
+  # We support 3.8 + 3.9
+  "UP007",
 ]
 extend-exclude = ["suite"]
 
@@ -110,7 +112,3 @@ docstring-quotes = "double"
 "docs/*" = ["ANN", "D"]
 "referencing/tests/*" = ["ANN", "D"]
 "noxfile.py" = ["ANN", "D"]
-
-[tool.ruff.pyupgrade]
-# We support 3.8 + 3.9
-keep-runtime-typing = true
