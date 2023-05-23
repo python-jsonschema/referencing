@@ -117,6 +117,7 @@ extlinks = {
     "hatch": ("https://hatch.pypa.io/latest/%s", None),
     "httpx": ("https://www.python-httpx.org/%s", None),
 }
+extlinks_detect_hardcoded_links = True
 
 # -- sphinxcontrib-spelling --
 
