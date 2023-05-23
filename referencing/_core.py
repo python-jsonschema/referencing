@@ -231,10 +231,11 @@ class Registry(Mapping[URI, Resource[D]]):
     _resources: HashTrieMap[URI, Resource[D]] = field(
         default=HashTrieMap(),
         converter=HashTrieMap.convert,  # type: ignore[reportGeneralTypeIssues]  # noqa: E501
+        alias="resources",
     )
     _anchors: HashTrieMap[tuple[URI, str], AnchorType[D]] = HashTrieMap()  # type: ignore[reportGeneralTypeIssues]  # noqa: E501
     _uncrawled: HashTrieSet[URI] = EMPTY_UNCRAWLED
-    _retrieve: Retrieve[D] = field(default=_fail_to_retrieve)
+    _retrieve: Retrieve[D] = field(default=_fail_to_retrieve, alias="retrieve")
 
     def __getitem__(self, uri: URI) -> Resource[D]:
         """
