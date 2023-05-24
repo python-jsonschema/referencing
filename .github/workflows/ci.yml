@@ -47,9 +47,9 @@ jobs:
       fail-fast: false
       matrix:
         noxenv: ${{ fromJson(needs.list.outputs.noxenvs) }}
+        posargs: [""]
         include:
-          - os: ubuntu-latest
-            noxenv: "tests-3.11"
+          - noxenv: tests-3.11
             posargs: ghcoverage
 
     steps:
