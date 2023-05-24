@@ -374,21 +374,20 @@ class Registry(Mapping[URI, Resource[D]]):
         if value is not None:
             return Retrieved(value=value, registry=registry)
 
-        resource = self.get(uri)
-        if resource is not None:
-            canonical_uri = resource.id()
-            if canonical_uri is not None:
-                value = registry._anchors.get((canonical_uri, name))
-                if value is not None:
-                    return Retrieved(value=value, registry=registry)
+        resource = self[uri]
+        canonical_uri = resource.id()
+        if canonical_uri is not None:
+            value = registry._anchors.get((canonical_uri, name))
+            if value is not None:
+                return Retrieved(value=value, registry=registry)
 
         if "/" in name:
             raise exceptions.InvalidAnchor(
                 ref=uri,
-                resource=self[uri],
+                resource=resource,
                 anchor=name,
             )
-        raise exceptions.NoSuchAnchor(ref=uri, resource=self[uri], anchor=name)
+        raise exceptions.NoSuchAnchor(ref=uri, resource=resource, anchor=name)
 
     def contents(self, uri: URI) -> D:
         """

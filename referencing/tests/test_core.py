@@ -181,6 +181,12 @@ class TestRegistry:
         )
         assert retrieved.registry == registry.crawl()
 
+    def test_anchor_in_nonexistent_resource(self):
+        registry = Registry()
+        with pytest.raises(exceptions.NoSuchResource) as e:
+            registry.anchor("urn:example", "foo")
+        assert e.value == exceptions.NoSuchResource(ref="urn:example")
+
     def test_init(self):
         one = Resource.opaque(contents={})
         two = ID_AND_CHILDREN.create_resource({"foo": "bar"})
