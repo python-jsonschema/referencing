@@ -24,6 +24,13 @@ ID_AND_CHILDREN = Specification(
 )
 
 
+def blow_up(uri):  # pragma: no cover
+    """
+    A retriever suitable for use in tests which expect it never to be used.
+    """
+    raise RuntimeError("This retrieve function expects to never be called!")
+
+
 class TestRegistry:
     def test_with_resource(self):
         """
@@ -317,7 +324,7 @@ class TestRegistry:
         two = ID_AND_CHILDREN.create_resource({"foo": "bar"})
         three = ID_AND_CHILDREN.create_resource({"baz": "quux"})
 
-        def retrieve(uri):
+        def retrieve(uri):  # pragma: no cover
             pass
 
         first = Registry().with_resource("http://example.com/1", one)
@@ -350,7 +357,7 @@ class TestRegistry:
         two = ID_AND_CHILDREN.create_resource({"foo": "bar"})
         three = ID_AND_CHILDREN.create_resource({"baz": "quux"})
 
-        def retrieve(uri):
+        def retrieve(uri):  #  pragma: no cover
             pass
 
         first = Registry(retrieve=retrieve).with_resource(
@@ -389,10 +396,10 @@ class TestRegistry:
         two = ID_AND_CHILDREN.create_resource({"foo": "bar"})
         three = ID_AND_CHILDREN.create_resource({"baz": "quux"})
 
-        def foo_retrieve(uri):
+        def foo_retrieve(uri):  # pragma: no cover
             pass
 
-        def bar_retrieve(uri):
+        def bar_retrieve(uri):  # pragma: no cover
             pass
 
         first = Registry(retrieve=foo_retrieve).with_resource(
@@ -490,21 +497,15 @@ class TestRegistry:
             registry.get_or_retrieve("urn:uhoh")
 
     def test_retrieve_already_available_resource(self):
-        def retrieve(uri):
-            raise Exception("Oh no!")
-
         foo = Resource.opaque({"foo": "bar"})
-        registry = Registry({"urn:example": foo})
+        registry = Registry({"urn:example": foo}, retrieve=blow_up)
         assert registry["urn:example"] == foo
         assert registry.get_or_retrieve("urn:example").value == foo
 
     def test_retrieve_first_checks_crawlable_resource(self):
-        def retrieve(uri):
-            raise Exception("Oh no!")
-
         child = ID_AND_CHILDREN.create_resource({"ID": "urn:child", "foo": 12})
         root = ID_AND_CHILDREN.create_resource({"children": [child.contents]})
-        registry = Registry(retrieve=retrieve).with_resource("urn:root", root)
+        registry = Registry(retrieve=blow_up).with_resource("urn:root", root)
         assert registry.crawl()["urn:child"] == child
 
     def test_resolver(self):
@@ -765,6 +766,7 @@ class TestResolver:
         ref = "urn:example#noSuchAnchor"
         with pytest.raises(exceptions.Unresolvable) as e:
             resolver.lookup(ref)
+        assert "'noSuchAnchor' does not exist" in str(e.value)
         assert e.value == exceptions.NoSuchAnchor(
             ref="urn:example",
             resource=root,
@@ -793,6 +795,21 @@ class TestResolver:
         resolver = Registry(retrieve=lambda uri: resource).resolver()
         resolved = resolver.lookup("http://example.com/")
         assert resolved.contents == resource.contents
+
+    def test_lookup_failed_retrieved_resource(self):
+        """
+        Unretrievable exceptions are also wrapped in Unresolvable.
+        """
+
+        uri = "http://example.com/"
+
+        registry = Registry(retrieve=blow_up)
+        with pytest.raises(exceptions.Unretrievable):
+            registry.get_or_retrieve(uri)
+
+        resolver = registry.resolver()
+        with pytest.raises(exceptions.Unresolvable):
+            resolver.lookup(uri)
 
     def test_repeated_lookup_from_retrieved_resource(self):
         """

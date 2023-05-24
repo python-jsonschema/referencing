@@ -233,9 +233,7 @@ def _subresources_of_with_crazy_aP_items_dependencies(
     Specifically handle even older drafts where there are some funky keywords.
     """
 
-    def subresources_of(contents: Schema) -> Iterable[ObjectSchema]:
-        if isinstance(contents, bool):
-            return
+    def subresources_of(contents: ObjectSchema) -> Iterable[ObjectSchema]:
         for each in in_value:
             if each in contents:
                 yield contents[each]

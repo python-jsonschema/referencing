@@ -44,13 +44,23 @@ Issues = "https://github.com/python-jsonschema/referencing/issues/"
 Funding = "https://github.com/sponsors/Julian"
 Source = "https://github.com/python-jsonschema/referencing"
 
+[tool.coverage.html]
+show_contexts = true
+skip_covered = false
+
 [tool.coverage.run]
 branch = true
 source = ["referencing"]
 dynamic_context = "test_function"
 
 [tool.coverage.report]
+exclude_also = [
+  "if TYPE_CHECKING:",
+  "\\s*\\.\\.\\.\\s*",
+]
 fail_under = 100
+show_missing = true
+skip_covered = true
 
 [tool.doc8]
 ignore = [

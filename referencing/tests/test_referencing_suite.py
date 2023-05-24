@@ -10,7 +10,7 @@ import referencing.jsonschema
 
 
 class SuiteNotFound(Exception):
-    def __str__(self):
+    def __str__(self):  # pragma: no cover
         return (
             "Cannot find the referencing suite. "
             "Set the REFERENCING_SUITE environment variable to the path to "
@@ -19,11 +19,11 @@ class SuiteNotFound(Exception):
         )
 
 
-if "REFERENCING_SUITE" in os.environ:
+if "REFERENCING_SUITE" in os.environ:  # pragma: no cover
     SUITE = Path(os.environ["REFERENCING_SUITE"]) / "tests"
 else:
     SUITE = Path(__file__).parent.parent.parent / "suite/tests"
-if not SUITE.is_dir():
+if not SUITE.is_dir():  # pragma: no cover
     raise SuiteNotFound()
 DIALECT_IDS = json.loads(SUITE.joinpath("specifications.json").read_text())
 
@@ -56,7 +56,7 @@ def test_referencing_suite(test_path, subtests):
                 assert resolved.contents == test["target"]
 
                 then = test.get("then")
-                while then:
+                while then:  # pragma: no cover
                     with subtests.test(test=test, then=then):
                         resolved = resolved.resolver.lookup(then["ref"])
                         assert resolved.contents == then["target"]
