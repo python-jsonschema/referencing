@@ -23,12 +23,19 @@ def session(default=True, **kwargs):
 @session(python=["3.8", "3.9", "3.10", "3.11", "pypy3"])
 def tests(session):
     session.install("-r", ROOT / "test-requirements.txt")
-    if session.posargs == ["coverage"]:
+
+    if session.posargs and session.posargs[0] in {"coverage", "ghcoverage"}:
         session.install("coverage[toml]")
-        session.run("coverage", "run", "-m", "pytest")
+        session.run("coverage", "run", "-m", "pytest", REFERENCING)
         session.run("coverage", "report")
     else:
         session.run("pytest", *session.posargs, REFERENCING)
+
+
+@session()
+def audit(session):
+    session.install("pip-audit", ROOT)
+    session.run("python", "-m", "pip_audit")
 
 
 @session(tags=["build"])
