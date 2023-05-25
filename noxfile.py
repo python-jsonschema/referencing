@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 
 import nox
 
@@ -24,10 +25,26 @@ def session(default=True, **kwargs):
 def tests(session):
     session.install("-r", ROOT / "test-requirements.txt")
 
-    if session.posargs and session.posargs[0] in {"coverage", "ghcoverage"}:
+    if session.posargs and session.posargs[0] == "coverage":
+        if len(session.posargs) > 1 and session.posargs[1] == "github":
+            github = os.environ["GITHUB_STEP_SUMMARY"]
+        else:
+            github = None
+
         session.install("coverage[toml]")
         session.run("coverage", "run", "-m", "pytest", REFERENCING)
-        session.run("coverage", "report")
+        if github is None:
+            session.run("coverage", "report")
+        else:
+            with open(github, "a") as summary:
+                summary.write("### Coverage\n\n")
+                summary.flush()  # without a flush, output seems out of order.
+                session.run(
+                    "coverage",
+                    "report",
+                    "--format=markdown",
+                    stdout=summary,
+                )
     else:
         session.run("pytest", *session.posargs, REFERENCING)
 

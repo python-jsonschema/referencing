@@ -50,7 +50,7 @@ jobs:
         posargs: [""]
         include:
           - noxenv: tests-3.11
-            posargs: ghcoverage
+            posargs: coverage github
 
     steps:
       - uses: actions/checkout@v3
