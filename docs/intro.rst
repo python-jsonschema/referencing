@@ -236,3 +236,31 @@ Here's an example of automatically retrieving external references by downloading
     See :kw:`schema-references` in particular.
 
     `referencing` will of course therefore not do any such thing automatically, and this section generally assumes that you have personally considered the security implications for your own use case.
+
+A common concern in these situations is also to *cache* the resulting resource such that repeated lookups of the same URI do not repeatedly make network calls, or hit the filesystem, etc.
+
+You are of course free to use whatever caching mechanism is convenient (e.g. one specific to ``httpx`` in the above example).
+
+Because of how common it is to retrieve a JSON string and construct a resource from it however, a decorator which specifically does so is also provided called `referencing.retrieval.to_cached_resource`.
+If you use it, note that your retrieval callable should return `str`, not a `Resource`, as the decorator will handle deserializing your response (this is mostly because otherwise, deserialized JSON is generally not hashable).
+
+The above example would be written:
+
+
+.. code:: python
+
+    from referencing import Registry, Resource
+    import httpx
+    import referencing.retrieval
+
+
+    @referencing.retrieval.to_cached_resource()
+    def cached_retrieve_via_httpx(uri):
+        return httpx.get(uri).text
+
+
+    registry = Registry(retrieve=cached_retrieve_via_httpx)
+    resolver = registry.resolver()
+    print(resolver.lookup("https://json-schema.org/draft/2020-12/schema"))
+
+and besides than that it will cache responses and not repeatedly call the retrieval function, it is otherwise functionally equivalent.

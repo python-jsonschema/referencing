@@ -357,7 +357,7 @@ class TestRegistry:
         two = ID_AND_CHILDREN.create_resource({"foo": "bar"})
         three = ID_AND_CHILDREN.create_resource({"baz": "quux"})
 
-        def retrieve(uri):  #  pragma: no cover
+        def retrieve(uri):  # pragma: no cover
             pass
 
         first = Registry(retrieve=retrieve).with_resource(

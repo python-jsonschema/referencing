@@ -505,16 +505,16 @@ class Registry(Mapping[URI, Resource[D]]):
 
 
 #: An anchor or resource.
-T = TypeVar("T", AnchorType[Any], Resource[Any])
+AnchorOrResource = TypeVar("AnchorOrResource", AnchorType[Any], Resource[Any])
 
 
 @frozen
-class Retrieved(Generic[D, T]):
+class Retrieved(Generic[D, AnchorOrResource]):
     """
     A value retrieved from a `Registry`.
     """
 
-    value: T
+    value: AnchorOrResource
     registry: Registry[D]
 
 

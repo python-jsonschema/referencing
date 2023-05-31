@@ -2,6 +2,11 @@
 Changelog
 =========
 
+v0.29.0
+-------
+
+* Add ``referencing.retrieval.to_cached_resource``, a simple caching decorator useful when writing a retrieval function turning JSON text into resources without repeatedly hitting the network, filesystem, etc.
+
 v0.28.6
 -------
 

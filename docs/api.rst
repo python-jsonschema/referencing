@@ -18,7 +18,7 @@ API Reference
    :undoc-members:
 
 
-.. autoclass:: referencing._core.T
+.. autoclass:: referencing._core.AnchorOrResource
 
 
 .. autoclass:: referencing._core.Resolver
@@ -49,6 +49,17 @@ referencing.exceptions
    :members:
    :show-inheritance:
    :undoc-members:
+
+
+referencing.retrieval
+^^^^^^^^^^^^^^^^^^^^^
+
+.. automodule:: referencing.retrieval
+   :members:
+   :undoc-members:
+
+
+.. autoclass:: referencing.retrieval._T
 
 
 referencing.typing

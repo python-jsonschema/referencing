@@ -5,13 +5,16 @@ changelog
 deduplication
 dereferenced
 deserialized
+deserializing
 discoverability
 docstrings
 filesystem
+hashable
 implementers
 instantiable
 instantiation
 iterable
+lookups
 metaschemas
 referenceable
 resolvers
