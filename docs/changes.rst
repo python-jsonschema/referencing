@@ -2,6 +2,26 @@
 Changelog
 =========
 
+v0.28.6
+-------
+
+* No user-facing changes.
+
+v0.28.5
+-------
+
+* Fix a type annotation and fill in some missing test coverage.
+
+v0.28.4
+-------
+
+* Fix a type annotation.
+
+v0.28.3
+-------
+
+* No user-facing changes.
+
 v0.28.2
 -------
 
