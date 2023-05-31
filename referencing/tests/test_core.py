@@ -992,7 +992,7 @@ class TestOpaqueSpecification:
 
 @pytest.mark.parametrize(
     "cls",
-    [Registry, Resource, Specification],
+    [Anchor, Registry, Resource, Specification, exceptions.PointerToNowhere],
 )
 def test_nonsubclassable(cls):
     with pytest.raises(Exception, match="(?i)subclassing"):  # noqa: B017
