@@ -237,12 +237,15 @@ Here's an example of automatically retrieving external references by downloading
 
     `referencing` will of course therefore not do any such thing automatically, and this section generally assumes that you have personally considered the security implications for your own use case.
 
-A common concern in these situations is also to *cache* the resulting resource such that repeated lookups of the same URI do not repeatedly make network calls, or hit the filesystem, etc.
+Caching
+^^^^^^^
 
-You are of course free to use whatever caching mechanism is convenient (e.g. one specific to ``httpx`` in the above example).
+A common concern in these situations is also to *cache* the resulting resource such that repeated lookups of the same URI do not repeatedly call your retrieval function and thereby make network calls, hit the filesystem, etc.
 
-Because of how common it is to retrieve a JSON string and construct a resource from it however, a decorator which specifically does so is also provided called `referencing.retrieval.to_cached_resource`.
-If you use it, note that your retrieval callable should return `str`, not a `Resource`, as the decorator will handle deserializing your response (this is mostly because otherwise, deserialized JSON is generally not hashable).
+You are of course free to use whatever caching mechanism is convenient  even if it uses caching functionality entirely unrelated to this library (e.g. one specific to ``httpx`` in the above example, or one using `functools.lru_cache` internally).
+
+Nonetheless, because it is so common to retrieve a JSON string and construct a resource from it, `referencing.retrieval.to_cached_resource` is a decorator which can help.
+If you use it, your retrieval callable should return a `str`, not a `Resource`, as the decorator will handle deserializing your response and constructing a `Resource` from it (this is mostly because otherwise, deserialized JSON is generally not hashable if it ends up being a Python `dict`).
 
 The above example would be written:
 
@@ -263,4 +266,4 @@ The above example would be written:
     resolver = registry.resolver()
     print(resolver.lookup("https://json-schema.org/draft/2020-12/schema"))
 
-and besides than that it will cache responses and not repeatedly call the retrieval function, it is otherwise functionally equivalent.
+It is otherwise functionally equivalent to the above, other than that retrieval will not repeatedly make a web request.
