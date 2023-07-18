@@ -2,6 +2,11 @@
 Changelog
 =========
 
+v0.29.3
+-------
+
+* Documentation fix.
+
 v0.29.2
 -------
 

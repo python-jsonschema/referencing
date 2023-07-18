@@ -10,6 +10,7 @@ discoverability
 docstrings
 filesystem
 hashable
+hashability
 implementers
 instantiable
 instantiation
