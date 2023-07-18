@@ -2,6 +2,12 @@
 Changelog
 =========
 
+v0.29.2
+-------
+
+* Improve the hashability of exceptions when they contain hashable data.
+
+
 v0.29.1
 -------
 

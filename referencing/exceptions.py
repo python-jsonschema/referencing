@@ -30,6 +30,9 @@ class NoSuchResource(KeyError):
             return NotImplemented
         return attrs.astuple(self) == attrs.astuple(other)
 
+    def __hash__(self) -> int:
+        return hash(attrs.astuple(self))
+
 
 @frozen
 class NoInternalID(Exception):
@@ -49,6 +52,9 @@ class NoInternalID(Exception):
             return NotImplemented
         return attrs.astuple(self) == attrs.astuple(other)
 
+    def __hash__(self) -> int:
+        return hash(attrs.astuple(self))
+
 
 @frozen
 class Unretrievable(KeyError):
@@ -57,6 +63,14 @@ class Unretrievable(KeyError):
     """
 
     ref: URI
+
+    def __eq__(self, other: Any) -> bool:
+        if self.__class__ is not other.__class__:
+            return NotImplemented
+        return attrs.astuple(self) == attrs.astuple(other)
+
+    def __hash__(self) -> int:
+        return hash(attrs.astuple(self))
 
 
 @frozen
@@ -70,8 +84,16 @@ class CannotDetermineSpecification(Exception):
 
     contents: Any
 
+    def __eq__(self, other: Any) -> bool:
+        if self.__class__ is not other.__class__:
+            return NotImplemented
+        return attrs.astuple(self) == attrs.astuple(other)
 
-@attrs.frozen
+    def __hash__(self) -> int:
+        return hash(attrs.astuple(self))
+
+
+@attrs.frozen  # Because here we allow subclassing below.
 class Unresolvable(Exception):
     """
     A reference was unresolvable.
@@ -83,6 +105,9 @@ class Unresolvable(Exception):
         if self.__class__ is not other.__class__:
             return NotImplemented
         return attrs.astuple(self) == attrs.astuple(other)
+
+    def __hash__(self) -> int:
+        return hash(attrs.astuple(self))
 
 
 @frozen
