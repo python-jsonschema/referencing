@@ -22,7 +22,7 @@ def session(default=True, **kwargs):
     return _session
 
 
-@session(python=["3.8", "3.9", "3.10", "3.11", "pypy3"])
+@session(python=["3.8", "3.9", "3.10", "3.11", "3.12", "pypy3"])
 def tests(session):
     session.install("-r", ROOT / "test-requirements.txt")
 
