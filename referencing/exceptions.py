@@ -39,7 +39,7 @@ class NoInternalID(Exception):
     """
     A resource has no internal ID, but one is needed.
 
-    E.g. in modern JSON Schema drafts, this is the ``$id`` keyword.
+    E.g. in modern JSON Schema drafts, this is the :kw:`$id` keyword.
 
     One might be needed if a resource was to-be added to a registry but no
     other URI is available, and the resource doesn't declare its canonical URI.

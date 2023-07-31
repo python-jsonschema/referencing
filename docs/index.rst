@@ -1,6 +1,6 @@
 An implementation-agnostic implementation of JSON reference resolution.
 
-In other words, a way for e.g. JSON Schema tooling to resolve the ``$ref`` keyword across all drafts without needing to implement support themselves.
+In other words, a way for e.g. JSON Schema tooling to resolve the :kw:`$ref` keywords across all drafts without needing to implement support themselves.
 
 This library is meant for use both by implementers of JSON referencing-related tooling -- like JSON Schema implementations supporting the :kw:`$ref` keyword -- as well as by end-users using said implementations who wish to then configure sets of resources (like schemas) for use at runtime.
 

@@ -61,8 +61,8 @@ There are a few different methods you can use to populate registries with resour
 Which one you want to use depends on things like:
 
     * do you already have an instance of `referencing.Resource`, or are you creating one out of some loaded JSON?
-      If not, does the JSON have some sort of identifier that can be used to determine which specification it belongs to (e.g. the JSON Schema ``$schema`` keyword)?
-    * does your resource have an internal ID (e.g. the JSON Schema ``$id`` keyword)?
+      If not, does the JSON have some sort of identifier that can be used to determine which specification it belongs to (e.g. the JSON Schema :kw:`$schema` keyword)?
+    * does your resource have an internal ID (e.g. the JSON Schema :kw:`$id` keyword)?
     * do you have additional (external) URIs you want to refer to the same resource as well?
     * do you have one resource to add or many?
 
@@ -114,7 +114,7 @@ Let's check by using `Registry.contents`, which takes a URI and should show us t
 
     {'$id': 'urn:example:my-schema', '$schema': 'https://json-schema.org/draft/2020-12/schema', 'type': 'integer'}
 
-If your schema did *not* have a ``$schema`` keyword, you'd get an error:
+If your schema did *not* have a :kw:`$schema` keyword, you'd get an error:
 
 .. testcode::
 
@@ -166,7 +166,7 @@ E.g., an equivalent way to create the above resource is:
 
     True
 
-If your resource doesn't contain an ``$id`` keyword, you'll get a different error if you attempt to add it to a registry:
+If your resource doesn't contain an :kw:`$id` keyword, you'll get a different error if you attempt to add it to a registry:
 
 .. testcode::
 
