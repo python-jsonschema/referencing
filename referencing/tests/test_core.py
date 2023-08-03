@@ -412,7 +412,7 @@ class TestRegistry:
             three,
         )
 
-        with pytest.raises(Exception, match="conflict.*retriev"):  # noqa: B017
+        with pytest.raises(Exception, match="conflict.*retriev"):
             first.combine(second, third)
 
     def test_remove(self):
@@ -995,7 +995,7 @@ class TestOpaqueSpecification:
     [Anchor, Registry, Resource, Specification, exceptions.PointerToNowhere],
 )
 def test_nonsubclassable(cls):
-    with pytest.raises(Exception, match="(?i)subclassing"):  # noqa: B017
+    with pytest.raises(Exception, match="(?i)subclassing"):
 
         class Boom(cls):  # pragma: no cover
             pass

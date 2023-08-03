@@ -84,7 +84,7 @@ exclude = [
 [tool.ruff]
 line-length = 79
 target-version = "py38"
-select = ["ANN", "B", "D", "E", "F", "Q", "UP", "W"]
+select = ["ANN", "B", "D", "E", "F", "Q", "RUF", "UP", "W"]
 ignore = [
   # Wat, type annotations for self and cls, why is this a thing?
   "ANN101",
@@ -121,5 +121,5 @@ docstring-quotes = "double"
 
 [tool.ruff.per-file-ignores]
 "docs/*" = ["ANN", "D"]
-"referencing/tests/*" = ["ANN", "D"]
+"referencing/tests/*" = ["ANN", "D", "RUF012"]
 "noxfile.py" = ["ANN", "D"]
