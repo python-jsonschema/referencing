@@ -27,6 +27,4 @@
 
 An implementation-agnostic implementation of JSON reference resolution.
 
-In other words, a way for e.g. JSON Schema tooling to resolve the ``$ref`` keyword across all drafts without needing to implement support themselves.
-
 See `the documentation <https://referencing.readthedocs.io/>`_ for more details.
