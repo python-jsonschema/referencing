@@ -2,6 +2,16 @@
 Changelog
 =========
 
+v0.30.1
+-------
+
+* Ensure that an ``sdist`` contains the test suite JSON files.
+
+v0.30.0
+-------
+
+* Declare support for Python 3.12.
+
 v0.29.3
 -------
 
