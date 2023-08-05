@@ -2,6 +2,11 @@
 Changelog
 =========
 
+v0.30.2
+-------
+
+* Minor docs improvement.
+
 v0.30.1
 -------
 

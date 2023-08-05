@@ -8,6 +8,15 @@ API Reference
    :special-members: __iter__, __getitem__, __len__, __rmatmul__
 
 
+Private Objects
+---------------
+
+The following objects are private in the sense that constructing or importing them is not part of the `referencing` public API, as their name indicates (by virtue of beginning with an underscore).
+
+They are however public in the sense that other public API functions may return objects of these types.
+
+Plainly then, you may rely on their methods and attributes not changing in backwards incompatible ways once `referencing` itself is stable, but may not rely on importing or constructing them yourself.
+
 .. autoclass:: referencing._core.Resolved
    :members:
    :undoc-members:
