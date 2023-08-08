@@ -551,7 +551,7 @@ class Resolver(Generic[D]):
     additional subresources and adding them to a new registry.
     """
 
-    _base_uri: str = field(alias="base_uri")
+    _base_uri: URI = field(alias="base_uri")
     _registry: Registry[D] = field(alias="registry")
     _previous: List[URI] = field(default=List(), repr=False, alias="previous")
 
@@ -617,7 +617,7 @@ class Resolver(Generic[D]):
         for uri in self._previous:
             yield uri, self._registry
 
-    def _evolve(self, base_uri: str, **kwargs: Any):
+    def _evolve(self, base_uri: URI, **kwargs: Any):
         """
         Evolve, appending to the dynamic scope.
         """

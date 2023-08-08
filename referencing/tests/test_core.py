@@ -819,7 +819,7 @@ class TestResolver:
         resource = Resource.opaque(contents={"foo": "baz"})
         once = [resource]
 
-        def retrieve(uri: str):
+        def retrieve(uri):
             return once.pop()
 
         resolver = Registry(retrieve=retrieve).resolver()
@@ -833,7 +833,7 @@ class TestResolver:
         resource = Resource.opaque(contents={"foo": "baz"})
         once = [resource]
 
-        def retrieve(uri: str):
+        def retrieve(uri):
             return once.pop()
 
         resolver = Registry(retrieve=retrieve).resolver()

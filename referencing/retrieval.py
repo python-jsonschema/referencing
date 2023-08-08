@@ -38,11 +38,12 @@ def to_cached_resource(
     .. testcode::
 
         from referencing import Registry
+        from referencing.typing import URI
         import referencing.retrieval
 
 
         @referencing.retrieval.to_cached_resource()
-        def retrieve(uri: str):
+        def retrieve(uri: URI):
             print(f"Retrieved {uri}")
 
             # Normally, go get some expensive JSON from the network, a file ...
