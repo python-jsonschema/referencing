@@ -13,7 +13,7 @@ repos:
         args: [--fix, lf]
       - id: trailing-whitespace
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.0.287"
+    rev: "v0.0.288"
     hooks:
       - id: ruff
   - repo: https://github.com/PyCQA/isort
@@ -21,7 +21,7 @@ repos:
     hooks:
       - id: isort
   - repo: https://github.com/psf/black
-    rev: 23.7.0
+    rev: 23.9.1
     hooks:
       - name: black
         id: black
