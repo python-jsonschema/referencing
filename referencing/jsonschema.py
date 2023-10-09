@@ -556,7 +556,7 @@ _SPECIFICATIONS: Registry[Specification[Schema]] = Registry(
 
 def specification_with(
     dialect_id: URI,
-    default: Specification[Any] = None,  # type: ignore[reportGeneralTypeIssues]  # noqa: E501
+    default: Specification[Any] = None,  # type: ignore[reportGeneralTypeIssues]
 ) -> Specification[Any]:
     """
     Retrieve the `Specification` with the given dialect identifier.

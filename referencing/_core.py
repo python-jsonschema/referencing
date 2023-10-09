@@ -101,7 +101,7 @@ class Resource(Generic[D]):
     def from_contents(
         cls,
         contents: D,
-        default_specification: Specification[D] = None,  # type: ignore[reportGeneralTypeIssues]  # noqa: E501
+        default_specification: Specification[D] = None,  # type: ignore[reportGeneralTypeIssues]
     ) -> Resource[D]:
         """
         Attempt to discern which specification applies to the given contents.
@@ -116,18 +116,18 @@ class Resource(Generic[D]):
         """
         specification = default_specification
         if isinstance(contents, Mapping):
-            jsonschema_dialect_id = contents.get("$schema")  # type: ignore[reportUnknownMemberType]  # noqa: E501
+            jsonschema_dialect_id = contents.get("$schema")  # type: ignore[reportUnknownMemberType]
             if jsonschema_dialect_id is not None:
                 from referencing.jsonschema import specification_with
 
                 specification = specification_with(
-                    jsonschema_dialect_id,  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+                    jsonschema_dialect_id,  # type: ignore[reportUnknownArgumentType]
                     default=default_specification,
                 )
 
         if specification is None:  # type: ignore[reportUnnecessaryComparison]
             raise exceptions.CannotDetermineSpecification(contents)
-        return cls(contents=contents, specification=specification)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+        return cls(contents=contents, specification=specification)  # type: ignore[reportUnknownArgumentType]
 
     @classmethod
     def opaque(cls, contents: D) -> Resource[D]:
@@ -183,7 +183,7 @@ class Resource(Generic[D]):
             else:
                 segment = segment.replace("~1", "/").replace("~0", "~")
             try:
-                contents = contents[segment]  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+                contents = contents[segment]  # type: ignore[reportUnknownArgumentType]
             except LookupError:
                 raise exceptions.PointerToNowhere(ref=pointer, resource=self)
 
@@ -192,11 +192,11 @@ class Resource(Generic[D]):
             resolver = self._specification.maybe_in_subresource(
                 segments=segments,
                 resolver=resolver,
-                subresource=self._specification.create_resource(contents),  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+                subresource=self._specification.create_resource(contents),  # type: ignore[reportUnknownArgumentType]
             )
             if resolver is not last:
                 segments = []
-        return Resolved(contents=contents, resolver=resolver)  # type: ignore[reportUnknownArgumentType]  # noqa: E501
+        return Resolved(contents=contents, resolver=resolver)  # type: ignore[reportUnknownArgumentType]
 
 
 def _fail_to_retrieve(uri: URI):
@@ -230,10 +230,10 @@ class Registry(Mapping[URI, Resource[D]]):
 
     _resources: HashTrieMap[URI, Resource[D]] = field(
         default=HashTrieMap(),
-        converter=HashTrieMap.convert,  # type: ignore[reportGeneralTypeIssues]  # noqa: E501
+        converter=HashTrieMap.convert,  # type: ignore[reportGeneralTypeIssues]
         alias="resources",
     )
-    _anchors: HashTrieMap[tuple[URI, str], AnchorType[D]] = HashTrieMap()  # type: ignore[reportGeneralTypeIssues]  # noqa: E501
+    _anchors: HashTrieMap[tuple[URI, str], AnchorType[D]] = HashTrieMap()  # type: ignore[reportGeneralTypeIssues]
     _uncrawled: HashTrieSet[URI] = EMPTY_UNCRAWLED
     _retrieve: Retrieve[D] = field(default=_fail_to_retrieve, alias="retrieve")
 
@@ -468,8 +468,8 @@ class Registry(Mapping[URI, Resource[D]]):
         uncrawled = self._uncrawled
         retrieve = self._retrieve
         for registry in registries:
-            resources = resources.update(registry._resources)  # type: ignore[reportUnknownMemberType]  # noqa: E501
-            anchors = anchors.update(registry._anchors)  # type: ignore[reportUnknownMemberType]  # noqa: E501
+            resources = resources.update(registry._resources)  # type: ignore[reportUnknownMemberType]
+            anchors = anchors.update(registry._anchors)  # type: ignore[reportUnknownMemberType]
             uncrawled = uncrawled.update(registry._uncrawled)
 
             if registry._retrieve is not _fail_to_retrieve:
