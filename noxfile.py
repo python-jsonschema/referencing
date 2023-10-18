@@ -152,6 +152,7 @@ def requirements(session):
             "pip-compile",
             "--resolver",
             "backtracking",
+            "--strip-extras",
             "-U",
             each.relative_to(ROOT),
         )
