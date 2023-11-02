@@ -420,7 +420,7 @@ DRAFT201909 = Specification(
             "properties",
         },
     ),
-    anchors_in=_anchor_2019,
+    anchors_in=_anchor_2019,  # type: ignore[reportGeneralTypeIssues]  TODO: check whether this is real
     maybe_in_subresource=_maybe_in_subresource_crazy_items(
         in_value={
             "additionalItems",
@@ -462,7 +462,7 @@ DRAFT7 = Specification(
         in_subarray={"allOf", "anyOf", "oneOf"},
         in_subvalues={"definitions", "patternProperties", "properties"},
     ),
-    anchors_in=_legacy_anchor_in_dollar_id,
+    anchors_in=_legacy_anchor_in_dollar_id,  # type: ignore[reportGeneralTypeIssues]  TODO: check whether this is real
     maybe_in_subresource=_maybe_in_subresource_crazy_items_dependencies(
         in_value={
             "additionalItems",
@@ -493,7 +493,7 @@ DRAFT6 = Specification(
         in_subarray={"allOf", "anyOf", "oneOf"},
         in_subvalues={"definitions", "patternProperties", "properties"},
     ),
-    anchors_in=_legacy_anchor_in_dollar_id,
+    anchors_in=_legacy_anchor_in_dollar_id,  # type: ignore[reportGeneralTypeIssues]  TODO: check whether this is real
     maybe_in_subresource=_maybe_in_subresource_crazy_items_dependencies(
         in_value={
             "additionalItems",

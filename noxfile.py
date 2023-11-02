@@ -87,7 +87,7 @@ def typing(session):
     """
     Check static typing.
     """
-    session.install("pyright==1.1.307", ROOT)
+    session.install("pyright", ROOT)
     session.run("pyright", REFERENCING)
 
 
