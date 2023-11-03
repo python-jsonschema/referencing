@@ -111,6 +111,16 @@ class TestRegistry:
         )
         assert len(registry) == total
 
+    def test_bool_empty(self):
+        assert not Registry()
+
+    def test_bool_not_empty(self):
+        registry = Registry().with_contents(
+            [(str(i), {"foo": "bar"}) for i in range(3)],
+            default_specification=Specification.OPAQUE,
+        )
+        assert registry
+
     def test_iter(self):
         registry = Registry().with_contents(
             [(str(i), {"foo": "bar"}) for i in range(8)],
