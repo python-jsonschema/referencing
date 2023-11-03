@@ -1,9 +1,9 @@
 import importlib.metadata
 import re
 
-from yarl import URL
+from url import URL
 
-GITHUB = URL("https://github.com/")
+GITHUB = URL.parse("https://github.com/")
 HOMEPAGE = GITHUB / "python-jsonschema/referencing"
 
 project = "referencing"
