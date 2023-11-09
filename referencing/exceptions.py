@@ -10,8 +10,9 @@ import attrs
 from referencing._attrs import frozen
 
 if TYPE_CHECKING:
+    from url import URL
+
     from referencing import Resource
-    from referencing.typing import URI
 
 
 @frozen
@@ -23,7 +24,7 @@ class NoSuchResource(KeyError):
     instantiable and *is* part of the public API of the package.
     """
 
-    ref: URI
+    ref: URL
 
     def __eq__(self, other: Any) -> bool:
         if self.__class__ is not other.__class__:
@@ -62,7 +63,7 @@ class Unretrievable(KeyError):
     The given URI is not present in a registry, and retrieving it failed.
     """
 
-    ref: URI
+    ref: URL
 
     def __eq__(self, other: Any) -> bool:
         if self.__class__ is not other.__class__:
@@ -99,7 +100,7 @@ class Unresolvable(Exception):
     A reference was unresolvable.
     """
 
-    ref: URI
+    ref: URL
 
     def __eq__(self, other: Any) -> bool:
         if self.__class__ is not other.__class__:

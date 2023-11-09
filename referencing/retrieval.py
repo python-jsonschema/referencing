@@ -10,7 +10,9 @@ import json
 from referencing import Resource
 
 if TYPE_CHECKING:
-    from referencing.typing import URI, D, Retrieve
+    from url import URL
+
+    from referencing.typing import D, Retrieve
 
 #: A serialized document (e.g. a JSON string)
 _T = TypeVar("_T")
@@ -20,7 +22,7 @@ def to_cached_resource(
     cache: Callable[[Retrieve[D]], Retrieve[D]] | None = None,
     loads: Callable[[_T], D] = json.loads,
     from_contents: Callable[[D], Resource[D]] = Resource.from_contents,
-) -> Callable[[Callable[[URI], _T]], Retrieve[D]]:
+) -> Callable[[Callable[[URL], _T]], Retrieve[D]]:
     """
     Create a retriever which caches its return values from a simpler callable.
 
@@ -39,13 +41,14 @@ def to_cached_resource(
 
     .. testcode::
 
+        from url import URL
+
         from referencing import Registry
-        from referencing.typing import URI
         import referencing.retrieval
 
 
         @referencing.retrieval.to_cached_resource()
-        def retrieve(uri: URI):
+        def retrieve(uri: URL):
             print(f"Retrieved {uri}")
 
             # Normally, go get some expensive JSON from the network, a file ...
@@ -74,9 +77,9 @@ def to_cached_resource(
     if cache is None:
         cache = lru_cache(maxsize=None)
 
-    def decorator(retrieve: Callable[[URI], _T]):
+    def decorator(retrieve: Callable[[URL], _T]):
         @cache
-        def cached_retrieve(uri: URI):
+        def cached_retrieve(uri: URL):
             response = retrieve(uri)
             contents = loads(response)
             return from_contents(contents)

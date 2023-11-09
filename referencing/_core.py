@@ -6,13 +6,14 @@ from urllib.parse import unquote, urldefrag, urljoin
 
 from attrs import evolve, field
 from rpds import HashTrieMap, HashTrieSet, List
+from url import URL
 
 from referencing import exceptions
 from referencing._attrs import frozen
-from referencing.typing import URI, Anchor as AnchorType, D, Mapping, Retrieve
+from referencing.typing import Anchor as AnchorType, D, Mapping, Retrieve
 
-EMPTY_UNCRAWLED: HashTrieSet[URI] = HashTrieSet()
-EMPTY_PREVIOUS_RESOLVERS: List[URI] = List()
+EMPTY_UNCRAWLED: HashTrieSet[URL] = HashTrieSet()
+EMPTY_PREVIOUS_RESOLVERS: List[URL] = List()
 
 
 class _MaybeInSubresource(Protocol[D]):
@@ -38,7 +39,7 @@ class Specification(Generic[D]):
     name: str
 
     #: Find the ID of a given document.
-    id_of: Callable[[D], URI | None]
+    id_of: Callable[[D], URL | None]
 
     #: Retrieve the subresources of the given document (without traversing into
     #: the subresources themselves).
@@ -138,7 +139,7 @@ class Resource(Generic[D]):
         """
         return Specification.OPAQUE.create_resource(contents=contents)
 
-    def id(self) -> URI | None:
+    def id(self) -> URL | None:
         """
         Retrieve this resource's (specification-specific) identifier.
         """
@@ -199,12 +200,12 @@ class Resource(Generic[D]):
         return Resolved(contents=contents, resolver=resolver)  # type: ignore[reportUnknownArgumentType]
 
 
-def _fail_to_retrieve(uri: URI):
+def _fail_to_retrieve(uri: URL):
     raise exceptions.NoSuchResource(ref=uri)
 
 
 @frozen
-class Registry(Mapping[URI, Resource[D]]):
+class Registry(Mapping[URL, Resource[D]]):
     r"""
     A registry of `Resource`\ s, each identified by their canonical URIs.
 
@@ -228,16 +229,16 @@ class Registry(Mapping[URI, Resource[D]]):
     even according to the retrieval logic.
     """
 
-    _resources: HashTrieMap[URI, Resource[D]] = field(
+    _resources: HashTrieMap[URL, Resource[D]] = field(
         default=HashTrieMap(),
         converter=HashTrieMap.convert,  # type: ignore[reportGeneralTypeIssues]
         alias="resources",
     )
-    _anchors: HashTrieMap[tuple[URI, str], AnchorType[D]] = HashTrieMap()
-    _uncrawled: HashTrieSet[URI] = EMPTY_UNCRAWLED
+    _anchors: HashTrieMap[tuple[URL, str], AnchorType[D]] = HashTrieMap()
+    _uncrawled: HashTrieSet[URL] = EMPTY_UNCRAWLED
     _retrieve: Retrieve[D] = field(default=_fail_to_retrieve, alias="retrieve")
 
-    def __getitem__(self, uri: URI) -> Resource[D]:
+    def __getitem__(self, uri: URL) -> Resource[D]:
         """
         Return the (already crawled) `Resource` identified by the given URI.
         """
@@ -246,7 +247,7 @@ class Registry(Mapping[URI, Resource[D]]):
         except KeyError:
             raise exceptions.NoSuchResource(ref=uri)
 
-    def __iter__(self) -> Iterator[URI]:
+    def __iter__(self) -> Iterator[URL]:
         """
         Iterate over all crawled URIs in the registry.
         """
@@ -315,7 +316,7 @@ class Registry(Mapping[URI, Resource[D]]):
             summary = f"{pluralized}"
         return f"<Registry ({size} {summary})>"
 
-    def get_or_retrieve(self, uri: URI) -> Retrieved[D, Resource[D]]:
+    def get_or_retrieve(self, uri: URL) -> Retrieved[D, Resource[D]]:
         """
         Get a resource from the registry, crawling or retrieving if necessary.
 
@@ -345,7 +346,7 @@ class Registry(Mapping[URI, Resource[D]]):
             registry = registry.with_resource(uri, resource)
             return Retrieved(registry=registry, value=resource)
 
-    def remove(self, uri: URI):
+    def remove(self, uri: URL):
         """
         Return a registry with the resource identified by a given URI removed.
         """
@@ -361,7 +362,7 @@ class Registry(Mapping[URI, Resource[D]]):
             ),
         )
 
-    def anchor(self, uri: URI, name: str):
+    def anchor(self, uri: URL, name: str):
         """
         Retrieve a given anchor from a resource which must already be crawled.
         """
@@ -389,7 +390,7 @@ class Registry(Mapping[URI, Resource[D]]):
             )
         raise exceptions.NoSuchAnchor(ref=uri, resource=resource, anchor=name)
 
-    def contents(self, uri: URI) -> D:
+    def contents(self, uri: URL) -> D:
         """
         Retrieve the (already crawled) contents identified by the given URI.
         """
@@ -421,7 +422,7 @@ class Registry(Mapping[URI, Resource[D]]):
             uncrawled=EMPTY_UNCRAWLED,
         )
 
-    def with_resource(self, uri: URI, resource: Resource[D]):
+    def with_resource(self, uri: URL, resource: Resource[D]):
         """
         Add the given `Resource` to the registry, without crawling it.
         """
@@ -429,7 +430,7 @@ class Registry(Mapping[URI, Resource[D]]):
 
     def with_resources(
         self,
-        pairs: Iterable[tuple[URI, Resource[D]]],
+        pairs: Iterable[tuple[URL, Resource[D]]],
     ) -> Registry[D]:
         r"""
         Add the given `Resource`\ s to the registry, without crawling them.
@@ -446,7 +447,7 @@ class Registry(Mapping[URI, Resource[D]]):
 
     def with_contents(
         self,
-        pairs: Iterable[tuple[URI, D]],
+        pairs: Iterable[tuple[URL, D]],
         **kwargs: Any,
     ) -> Registry[D]:
         r"""
@@ -487,7 +488,7 @@ class Registry(Mapping[URI, Resource[D]]):
             retrieve=retrieve,
         )
 
-    def resolver(self, base_uri: URI = "") -> Resolver[D]:
+    def resolver(self, base_uri: URL = "") -> Resolver[D]:
         """
         Return a `Resolver` which resolves references against this registry.
         """
@@ -551,11 +552,11 @@ class Resolver(Generic[D]):
     additional subresources and adding them to a new registry.
     """
 
-    _base_uri: URI = field(alias="base_uri")
+    _base_uri: URL = field(alias="base_uri")
     _registry: Registry[D] = field(alias="registry")
-    _previous: List[URI] = field(default=List(), repr=False, alias="previous")
+    _previous: List[URL] = field(default=List(), repr=False, alias="previous")
 
-    def lookup(self, ref: URI) -> Resolved[D]:
+    def lookup(self, ref: URL) -> Resolved[D]:
         """
         Resolve the given reference to the resource it points to.
 
@@ -610,14 +611,14 @@ class Resolver(Generic[D]):
             return self
         return evolve(self, base_uri=urljoin(self._base_uri, id))
 
-    def dynamic_scope(self) -> Iterable[tuple[URI, Registry[D]]]:
+    def dynamic_scope(self) -> Iterable[tuple[URL, Registry[D]]]:
         """
         In specs with such a notion, return the URIs in the dynamic scope.
         """
         for uri in self._previous:
             yield uri, self._registry
 
-    def _evolve(self, base_uri: URI, **kwargs: Any):
+    def _evolve(self, base_uri: URL, **kwargs: Any):
         """
         Evolve, appending to the dynamic scope.
         """

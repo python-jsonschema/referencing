@@ -5,12 +5,15 @@ Referencing implementations for JSON Schema specs (historic & current).
 from __future__ import annotations
 
 from collections.abc import Sequence, Set
-from typing import Any, Iterable, Union
+from typing import TYPE_CHECKING, Any, Iterable, Union
+
+if TYPE_CHECKING:
+    from url import URL
 
 from referencing import Anchor, Registry, Resource, Specification, exceptions
 from referencing._attrs import frozen
 from referencing._core import Resolved as _Resolved, Resolver as _Resolver
-from referencing.typing import URI, Anchor as AnchorType, Mapping
+from referencing.typing import Anchor as AnchorType, Mapping
 
 #: A JSON Schema which is a JSON object
 ObjectSchema = Mapping[str, Any]
@@ -33,16 +36,16 @@ class UnknownDialect(Exception):
     If it's a custom ("unofficial") dialect, be sure you've registered it.
     """
 
-    uri: URI
+    uri: URL
 
 
-def _dollar_id(contents: Schema) -> URI | None:
+def _dollar_id(contents: Schema) -> URL | None:
     if isinstance(contents, bool):
         return
     return contents.get("$id")
 
 
-def _legacy_dollar_id(contents: Schema) -> URI | None:
+def _legacy_dollar_id(contents: Schema) -> URL | None:
     if isinstance(contents, bool) or "$ref" in contents:
         return
     id = contents.get("$id")
@@ -50,7 +53,7 @@ def _legacy_dollar_id(contents: Schema) -> URI | None:
         return id
 
 
-def _legacy_id(contents: ObjectSchema) -> URI | None:
+def _legacy_id(contents: ObjectSchema) -> URL | None:
     if "$ref" in contents:
         return
     id = contents.get("id")
@@ -558,7 +561,7 @@ _SPECIFICATIONS: Registry[Specification[Schema]] = Registry(
 
 
 def specification_with(
-    dialect_id: URI,
+    dialect_id: URL,
     default: Specification[Any] = None,  # type: ignore[reportGeneralTypeIssues]
 ) -> Specification[Any]:
     """
