@@ -4,11 +4,13 @@ Helpers related to (dynamic) resource retrieval.
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Callable, TypeVar
+from typing import TYPE_CHECKING, Callable, TypeVar
 import json
 
 from referencing import Resource
-from referencing.typing import URI, D, Retrieve
+
+if TYPE_CHECKING:
+    from referencing.typing import URI, D, Retrieve
 
 #: A serialized document (e.g. a JSON string)
 _T = TypeVar("_T")

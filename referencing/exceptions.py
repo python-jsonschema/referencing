@@ -8,10 +8,10 @@ from typing import TYPE_CHECKING, Any
 import attrs
 
 from referencing._attrs import frozen
-from referencing.typing import URI
 
 if TYPE_CHECKING:
     from referencing import Resource
+    from referencing.typing import URI
 
 
 @frozen
