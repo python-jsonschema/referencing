@@ -45,6 +45,12 @@ Issues = "https://github.com/python-jsonschema/referencing/issues/"
 Funding = "https://github.com/sponsors/Julian"
 Source = "https://github.com/python-jsonschema/referencing"
 
+[project.optional-dependencies]
+hypothesis = ["hypothesis"]
+
+[project.entry-points.hypothesis]
+_ = "referencing._hypothesis"
+
 [tool.coverage.html]
 show_contexts = true
 skip_covered = false

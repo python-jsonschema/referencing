@@ -6,8 +6,11 @@
 #
 attrs==23.1.0
     # via
+    #   hypothesis
     #   pytest-subtests
     #   referencing
+hypothesis==6.88.4
+    # via -r test-requirements.in
 iniconfig==2.0.0
     # via pytest
 packaging==23.2
@@ -24,3 +27,5 @@ file:.#egg=referencing
     # via -r test-requirements.in
 rpds-py==0.12.0
     # via referencing
+sortedcontainers==2.4.0
+    # via hypothesis
