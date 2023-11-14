@@ -21,6 +21,9 @@ Schema = Union[bool, ObjectSchema]
 #: A JSON Schema Registry
 SchemaRegistry = Registry[Schema]
 
+#: The empty JSON Schema Registry
+EMPTY_REGISTRY: SchemaRegistry = Registry()
+
 
 @frozen
 class UnknownDialect(Exception):

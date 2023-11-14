@@ -376,3 +376,7 @@ def test_multiple_lookup_recursive_ref_with_nonrecursive_ref():
     resolver = second.resolver.lookup("bar").resolver
     fourth = referencing.jsonschema.lookup_recursive_ref(resolver=resolver)
     assert fourth.contents == two.contents
+
+
+def test_empty_registry():
+    assert referencing.jsonschema.EMPTY_REGISTRY == Registry()

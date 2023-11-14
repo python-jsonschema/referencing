@@ -2,6 +2,11 @@
 Changelog
 =========
 
+v0.31.0
+-------
+
+* Add ``referencing.jsonschema.EMPTY_REGISTRY`` (which simply has a convenient type annotation, but otherwise is just ``Registry()``).
+
 v0.30.2
 -------
 
