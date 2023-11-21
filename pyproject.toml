@@ -77,6 +77,7 @@ multi_line_output = 3
 use_parentheses = true
 
 [tool.pyright]
+reportUnnecessaryTypeIgnoreComment = true
 strict = ["**/*"]
 exclude = [
     "**/tests/__init__.py",

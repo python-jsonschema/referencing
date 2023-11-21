@@ -192,7 +192,7 @@ class Resource(Generic[D]):
             resolver = self._specification.maybe_in_subresource(
                 segments=segments,
                 resolver=resolver,
-                subresource=self._specification.create_resource(contents),  # type: ignore[reportUnknownArgumentType]
+                subresource=self._specification.create_resource(contents),
             )
             if resolver is not last:
                 segments = []
@@ -233,7 +233,7 @@ class Registry(Mapping[URI, Resource[D]]):
         converter=HashTrieMap.convert,  # type: ignore[reportGeneralTypeIssues]
         alias="resources",
     )
-    _anchors: HashTrieMap[tuple[URI, str], AnchorType[D]] = HashTrieMap()  # type: ignore[reportGeneralTypeIssues]
+    _anchors: HashTrieMap[tuple[URI, str], AnchorType[D]] = HashTrieMap()
     _uncrawled: HashTrieSet[URI] = EMPTY_UNCRAWLED
     _retrieve: Retrieve[D] = field(default=_fail_to_retrieve, alias="retrieve")
 
