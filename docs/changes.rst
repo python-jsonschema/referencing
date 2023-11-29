@@ -2,6 +2,11 @@
 Changelog
 =========
 
+v0.31.1
+-------
+
+* No user facing changes.
+
 v0.31.0
 -------
 

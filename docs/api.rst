@@ -39,6 +39,12 @@ Plainly then, you may rely on their methods and attributes not changing in backw
    :members:
    :undoc-members:
 
+.. class:: referencing._core._Unset
+
+   A sentinel object used internally to satisfy the type checker.
+
+   Neither accessing nor explicitly passing this object anywhere is public API, and it is only documented here at all to get Sphinx to not complain.
+
 
 Submodules
 ----------

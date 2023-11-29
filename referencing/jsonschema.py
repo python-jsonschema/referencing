@@ -9,6 +9,8 @@ from typing import Any, Iterable, Union
 
 from referencing import Anchor, Registry, Resource, Specification, exceptions
 from referencing._attrs import frozen
+from referencing._core import _UNSET  # type: ignore[reportPrivateUsage]
+from referencing._core import _Unset  # type: ignore[reportPrivateUsage]
 from referencing._core import Resolved as _Resolved, Resolver as _Resolver
 from referencing.typing import URI, Anchor as AnchorType, Mapping
 
@@ -559,7 +561,7 @@ _SPECIFICATIONS: Registry[Specification[Schema]] = Registry(
 
 def specification_with(
     dialect_id: URI,
-    default: Specification[Any] = None,  # type: ignore[reportGeneralTypeIssues]
+    default: Specification[Any] | _Unset = _UNSET,
 ) -> Specification[Any]:
     """
     Retrieve the `Specification` with the given dialect identifier.
@@ -573,7 +575,7 @@ def specification_with(
     resource = _SPECIFICATIONS.get(dialect_id.rstrip("#"))
     if resource is not None:
         return resource.contents
-    if default is None:  # type: ignore[reportUnnecessaryComparison]
+    if default is _UNSET:
         raise UnknownDialect(dialect_id)
     return default
 

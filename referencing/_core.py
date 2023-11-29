@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Iterator, Sequence
+from enum import Enum
 from typing import Any, Callable, ClassVar, Generic, Protocol, TypeVar
 from urllib.parse import unquote, urldefrag, urljoin
 
@@ -13,6 +14,17 @@ from referencing.typing import URI, Anchor as AnchorType, D, Mapping, Retrieve
 
 EMPTY_UNCRAWLED: HashTrieSet[URI] = HashTrieSet()
 EMPTY_PREVIOUS_RESOLVERS: List[URI] = List()
+
+
+class _Unset(Enum):
+    """
+    What sillyness...
+    """
+
+    SENTINEL = 1
+
+
+_UNSET = _Unset.SENTINEL
 
 
 class _MaybeInSubresource(Protocol[D]):
@@ -101,7 +113,7 @@ class Resource(Generic[D]):
     def from_contents(
         cls,
         contents: D,
-        default_specification: Specification[D] = None,  # type: ignore[reportGeneralTypeIssues]
+        default_specification: Specification[D] | _Unset = _UNSET,
     ) -> Resource[D]:
         """
         Attempt to discern which specification applies to the given contents.
@@ -125,7 +137,7 @@ class Resource(Generic[D]):
                     default=default_specification,
                 )
 
-        if specification is None:  # type: ignore[reportUnnecessaryComparison]
+        if specification is _UNSET:
             raise exceptions.CannotDetermineSpecification(contents)
         return cls(contents=contents, specification=specification)  # type: ignore[reportUnknownArgumentType]
 
