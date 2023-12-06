@@ -37,6 +37,54 @@ class _MaybeInSubresource(Protocol[D]):
         ...
 
 
+def _detect_or_error(contents: D) -> Specification[D]:
+    if not isinstance(contents, Mapping):
+        raise exceptions.CannotDetermineSpecification(contents)
+
+    jsonschema_dialect_id = contents.get("$schema")  # type: ignore[reportUnknownMemberType]
+    if jsonschema_dialect_id is None:
+        raise exceptions.CannotDetermineSpecification(contents)
+
+    from referencing.jsonschema import specification_with
+
+    return specification_with(
+        jsonschema_dialect_id,  # type: ignore[reportUnknownArgumentType]
+    )
+
+
+def _detect_or_default(
+    default: Specification[D],
+) -> Callable[[D], Specification[D]]:
+    def _detect(contents: D) -> Specification[D]:
+        if not isinstance(contents, Mapping):
+            return default
+
+        jsonschema_dialect_id = contents.get("$schema")  # type: ignore[reportUnknownMemberType]
+        if jsonschema_dialect_id is None:
+            return default
+
+        from referencing.jsonschema import specification_with
+
+        return specification_with(
+            jsonschema_dialect_id,  # type: ignore[reportUnknownArgumentType]
+            default=default,
+        )
+
+    return _detect
+
+
+class _SpecificationDetector:
+    def __get__(
+        self,
+        instance: Specification[D] | None,
+        cls: type[Specification[D]],
+    ) -> Callable[[D], Specification[D]]:
+        if instance is None:
+            return _detect_or_error
+        else:
+            return _detect_or_default(instance)
+
+
 @frozen
 class Specification(Generic[D]):
     """
@@ -69,6 +117,39 @@ class Specification(Generic[D]):
     #: An opaque specification where resources have no subresources
     #: nor internal identifiers.
     OPAQUE: ClassVar[Specification[Any]]
+
+    #: Attempt to discern which specification applies to the given contents.
+    #:
+    #: May be called either as an instance method or as a class method, with
+    #: slightly different behavior in the following case:
+    #:
+    #: Recall that not all contents contains enough internal information about
+    #: which specification it is written for -- the JSON Schema ``{}``,
+    #: for instance, is valid under many different dialects and may be
+    #: interpreted as any one of them.
+    #:
+    #: When this method is used as an instance method (i.e. called on a
+    #: specific specification), that specification is used as the default
+    #: if the given contents are unidentifiable.
+    #:
+    #: On the other hand when called as a class method, an error is raised.
+    #:
+    #: To reiterate, ``DRAFT202012.detect({})`` will return ``DRAFT202012``
+    #: whereas the class method ``Specification.detect({})`` will raise an
+    #: error.
+    #:
+    #: (Note that of course ``DRAFT202012.detect(...)`` may return some other
+    #: specification when given a schema which *does* identify as being for
+    #: another version).
+    #:
+    #: Raises:
+    #:
+    #:     `CannotDetermineSpecification`
+    #:
+    #:         if the given contents don't have any discernible
+    #:         information which could be used to guess which
+    #:         specification they identify as
+    detect = _SpecificationDetector()
 
     def __repr__(self) -> str:
         return f"<Specification name={self.name!r}>"
@@ -113,10 +194,11 @@ class Resource(Generic[D]):
     def from_contents(
         cls,
         contents: D,
-        default_specification: Specification[D] | _Unset = _UNSET,
+        default_specification: type[Specification[D]]
+        | Specification[D] = Specification,
     ) -> Resource[D]:
         """
-        Attempt to discern which specification applies to the given contents.
+        Create a resource guessing which specification applies to the contents.
 
         Raises:
 
@@ -126,20 +208,8 @@ class Resource(Generic[D]):
                 information which could be used to guess which
                 specification they identify as
         """
-        specification = default_specification
-        if isinstance(contents, Mapping):
-            jsonschema_dialect_id = contents.get("$schema")  # type: ignore[reportUnknownMemberType]
-            if jsonschema_dialect_id is not None:
-                from referencing.jsonschema import specification_with
-
-                specification = specification_with(
-                    jsonschema_dialect_id,  # type: ignore[reportUnknownArgumentType]
-                    default=default_specification,
-                )
-
-        if specification is _UNSET:
-            raise exceptions.CannotDetermineSpecification(contents)
-        return cls(contents=contents, specification=specification)  # type: ignore[reportUnknownArgumentType]
+        specification = default_specification.detect(contents)
+        return specification.create_resource(contents=contents)
 
     @classmethod
     def opaque(cls, contents: D) -> Resource[D]:

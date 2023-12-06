@@ -2,6 +2,11 @@
 Changelog
 =========
 
+v0.32.0
+-------
+
+* Add ``Specification.detect``, which essentially operates like ``Resource.from_contents`` without constructing a resource (i.e. it simply returns the detected specification).
+
 v0.31.1
 -------
 

@@ -966,6 +966,36 @@ class TestSpecification:
         )
         assert resource.id() == "urn:fixedID"
 
+    def test_detect_from_json_schema(self):
+        schema = {"$schema": "https://json-schema.org/draft/2020-12/schema"}
+        specification = Specification.detect(schema)
+        assert specification == DRAFT202012
+
+    def test_detect_with_no_discernible_information(self):
+        with pytest.raises(exceptions.CannotDetermineSpecification):
+            Specification.detect({"foo": "bar"})
+
+    def test_detect_with_no_discernible_information_and_default(self):
+        specification = Specification.OPAQUE.detect({"foo": "bar"})
+        assert specification is Specification.OPAQUE
+
+    def test_detect_unneeded_default(self):
+        schema = {"$schema": "https://json-schema.org/draft/2020-12/schema"}
+        specification = Specification.OPAQUE.detect(schema)
+        assert specification == DRAFT202012
+
+    def test_non_mapping_detect(self):
+        with pytest.raises(exceptions.CannotDetermineSpecification):
+            Specification.detect(True)
+
+    def test_non_mapping_detect_with_default(self):
+        specification = ID_AND_CHILDREN.detect(True)
+        assert specification is ID_AND_CHILDREN
+
+    def test_detect_with_fallback(self):
+        specification = Specification.OPAQUE.detect({"foo": "bar"})
+        assert specification is Specification.OPAQUE
+
     def test_repr(self):
         assert (
             repr(ID_AND_CHILDREN) == "<Specification name='id-and-children'>"
