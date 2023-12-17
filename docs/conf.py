@@ -26,7 +26,6 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.todo",
     "sphinx.ext.viewcode",
-    "sphinx_click",
     "sphinx_copybutton",
     "sphinx_json_schema_spec",
     "sphinxcontrib.spelling",
