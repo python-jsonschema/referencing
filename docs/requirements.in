@@ -1,7 +1,6 @@
 file:.#egg=referencing
 furo
 pygments-github-lexers
-sphinx-click
 sphinx-copybutton
 sphinx-json-schema-spec
 sphinx>5
