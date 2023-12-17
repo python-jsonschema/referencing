@@ -18,13 +18,14 @@ def frozen(cls: type[_T]) -> type[_T]:
 
 
 class UnsupportedSubclassing(Exception):
-    pass
+    def __str__(self):
+        return (
+            "Subclassing is not part of referencing's public API. "
+            "If no other suitable API exists for what you're trying to do, "
+            "feel free to file an issue asking for one."
+        )
 
 
 @staticmethod
 def _do_not_subclass() -> NoReturn:  # pragma: no cover
-    raise UnsupportedSubclassing(
-        "Subclassing is not part of referencing's public API. "
-        "If no other suitable API exists for what you're trying to do, "
-        "feel free to file an issue asking for one.",
-    )
+    raise UnsupportedSubclassing()

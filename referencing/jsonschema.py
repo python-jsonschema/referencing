@@ -336,9 +336,10 @@ def _maybe_in_subresource_crazy_items_dependencies(
     ) -> _Resolver[Any]:
         _segments = iter(segments)
         for segment in _segments:
-            if (
-                segment == "items" or segment == "dependencies"
-            ) and isinstance(subresource.contents, Mapping):
+            if segment in {"items", "dependencies"} and isinstance(
+                subresource.contents,
+                Mapping,
+            ):
                 return resolver.in_subresource(subresource)
             if segment not in in_value and (
                 segment not in in_child or next(_segments, None) is None

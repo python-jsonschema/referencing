@@ -25,7 +25,7 @@ class NoSuchResource(KeyError):
 
     ref: URI
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if self.__class__ is not other.__class__:
             return NotImplemented
         return attrs.astuple(self) == attrs.astuple(other)
@@ -47,7 +47,7 @@ class NoInternalID(Exception):
 
     resource: Resource[Any]
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if self.__class__ is not other.__class__:
             return NotImplemented
         return attrs.astuple(self) == attrs.astuple(other)
@@ -64,7 +64,7 @@ class Unretrievable(KeyError):
 
     ref: URI
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if self.__class__ is not other.__class__:
             return NotImplemented
         return attrs.astuple(self) == attrs.astuple(other)
@@ -84,7 +84,7 @@ class CannotDetermineSpecification(Exception):
 
     contents: Any
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if self.__class__ is not other.__class__:
             return NotImplemented
         return attrs.astuple(self) == attrs.astuple(other)
@@ -101,7 +101,7 @@ class Unresolvable(Exception):
 
     ref: URI
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         if self.__class__ is not other.__class__:
             return NotImplemented
         return attrs.astuple(self) == attrs.astuple(other)

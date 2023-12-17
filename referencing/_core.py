@@ -266,8 +266,9 @@ class Resource(Generic[D]):
                 segment = segment.replace("~1", "/").replace("~0", "~")
             try:
                 contents = contents[segment]  # type: ignore[reportUnknownArgumentType]
-            except LookupError:
-                raise exceptions.PointerToNowhere(ref=pointer, resource=self)
+            except LookupError as lookup_error:
+                error = exceptions.PointerToNowhere(ref=pointer, resource=self)
+                raise error from lookup_error
 
             segments.append(segment)
             last = resolver
@@ -326,7 +327,7 @@ class Registry(Mapping[URI, Resource[D]]):
         try:
             return self._resources[uri.rstrip("#")]
         except KeyError:
-            raise exceptions.NoSuchResource(ref=uri)
+            raise exceptions.NoSuchResource(ref=uri) from None
 
     def __iter__(self) -> Iterator[URI]:
         """
@@ -421,8 +422,8 @@ class Registry(Mapping[URI, Resource[D]]):
             exceptions.NoSuchResource,
         ):
             raise
-        except Exception:
-            raise exceptions.Unretrievable(ref=uri)
+        except Exception as error:  # noqa: BLE001
+            raise exceptions.Unretrievable(ref=uri) from error
         else:
             registry = registry.with_resource(uri, resource)
             return Retrieved(registry=registry, value=resource)
@@ -556,7 +557,7 @@ class Registry(Mapping[URI, Resource[D]]):
 
             if registry._retrieve is not _fail_to_retrieve:
                 if registry._retrieve is not retrieve is not _fail_to_retrieve:
-                    raise ValueError(
+                    raise ValueError(  # noqa: TRY003
                         "Cannot combine registries with conflicting retrieval "
                         "functions.",
                     )
@@ -668,8 +669,8 @@ class Resolver(Generic[D]):
             retrieved = self._registry.get_or_retrieve(uri)
         except exceptions.NoSuchResource:
             raise exceptions.Unresolvable(ref=ref) from None
-        except exceptions.Unretrievable:
-            raise exceptions.Unresolvable(ref=ref)
+        except exceptions.Unretrievable as error:
+            raise exceptions.Unresolvable(ref=ref) from error
 
         if fragment.startswith("/"):
             resolver = self._evolve(registry=retrieved.registry, base_uri=uri)
