@@ -2,6 +2,11 @@
 Changelog
 =========
 
+v0.32.1
+-------
+
+* Make ``Specification.detect`` raise a ``CannotDetermineSpecification`` error even if passed a mapping with a ``$schema`` key that doesn't match JSON Schema dialect semantics (e.g. a non-string).
+
 v0.32.0
 -------
 

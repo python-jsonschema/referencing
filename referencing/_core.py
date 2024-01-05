@@ -42,14 +42,12 @@ def _detect_or_error(contents: D) -> Specification[D]:
         raise exceptions.CannotDetermineSpecification(contents)
 
     jsonschema_dialect_id = contents.get("$schema")  # type: ignore[reportUnknownMemberType]
-    if jsonschema_dialect_id is None:
+    if not isinstance(jsonschema_dialect_id, str):
         raise exceptions.CannotDetermineSpecification(contents)
 
     from referencing.jsonschema import specification_with
 
-    return specification_with(
-        jsonschema_dialect_id,  # type: ignore[reportUnknownArgumentType]
-    )
+    return specification_with(jsonschema_dialect_id)
 
 
 def _detect_or_default(

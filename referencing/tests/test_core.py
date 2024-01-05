@@ -975,6 +975,10 @@ class TestSpecification:
         with pytest.raises(exceptions.CannotDetermineSpecification):
             Specification.detect({"foo": "bar"})
 
+    def test_detect_with_non_URI_schema(self):
+        with pytest.raises(exceptions.CannotDetermineSpecification):
+            Specification.detect({"$schema": 37})
+
     def test_detect_with_no_discernible_information_and_default(self):
         specification = Specification.OPAQUE.detect({"foo": "bar"})
         assert specification is Specification.OPAQUE
