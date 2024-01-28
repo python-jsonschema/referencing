@@ -20,6 +20,9 @@ ObjectSchema = Mapping[str, Any]
 #: A JSON Schema of any kind
 Schema = Union[bool, ObjectSchema]
 
+#: A Resource whose contents are JSON Schemas
+SchemaResource = Resource[Schema]
+
 #: A JSON Schema Registry
 SchemaRegistry = Registry[Schema]
 
@@ -588,7 +591,7 @@ class DynamicAnchor:
     """
 
     name: str
-    resource: Resource[Schema]
+    resource: SchemaResource
 
     def resolve(self, resolver: _Resolver[Schema]) -> _Resolved[Schema]:
         """

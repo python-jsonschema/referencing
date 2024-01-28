@@ -2,6 +2,11 @@
 Changelog
 =========
 
+v0.33.0
+-------
+
+* Add a ``referencing.jsonschema.SchemaResource`` type alias to go along with the other JSON Schema specialized types.
+
 v0.32.1
 -------
 
