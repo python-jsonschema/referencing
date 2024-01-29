@@ -33,8 +33,7 @@ class _MaybeInSubresource(Protocol[D]):
         segments: Sequence[int | str],
         resolver: Resolver[D],
         subresource: Resource[D],
-    ) -> Resolver[D]:
-        ...
+    ) -> Resolver[D]: ...
 
 
 def _detect_or_error(contents: D) -> Specification[D]:
@@ -192,8 +191,9 @@ class Resource(Generic[D]):
     def from_contents(
         cls,
         contents: D,
-        default_specification: type[Specification[D]]
-        | Specification[D] = Specification,
+        default_specification: (
+            type[Specification[D]] | Specification[D]
+        ) = Specification,
     ) -> Resource[D]:
         """
         Create a resource guessing which specification applies to the contents.
