@@ -1,6 +1,7 @@
 """
 Type-annotation related support for the referencing library.
 """
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, TypeVar
