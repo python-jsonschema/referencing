@@ -154,7 +154,9 @@ def docs_style(session):
 @session(default=False)
 def requirements(session):
     """
-    Update the project's pinned requirements. Commit the result.
+    Update the project's pinned requirements.
+
+    You should commit the result afterwards.
     """
     session.install("pip-tools")
     for each in REQUIREMENTS_IN:
