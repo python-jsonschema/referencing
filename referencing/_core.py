@@ -205,6 +205,7 @@ class Resource(Generic[D]):
                 if the given contents don't have any discernible
                 information which could be used to guess which
                 specification they identify as
+
         """
         specification = default_specification.detect(contents)
         return specification.create_resource(contents=contents)
@@ -254,6 +255,7 @@ class Resource(Generic[D]):
             `exceptions.PointerToNowhere`
 
                 if the pointer points to a location not present in the document
+
         """
         contents = self.contents
         segments: list[int | str] = []
@@ -369,6 +371,7 @@ class Registry(Mapping[URI, Resource[D]]):
             `NoInternalID`
 
                 if the resource(s) in fact do not have IDs
+
         """
         if isinstance(new, Resource):
             new = (new,)
@@ -658,6 +661,7 @@ class Resolver(Generic[D]):
                 if the reference is to a URI where a resource exists but
                 contains a JSON pointer to a location within the resource
                 that does not exist
+
         """
         if ref.startswith("#"):
             uri, fragment = self._base_uri, ref[1:]
