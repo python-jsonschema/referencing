@@ -575,6 +575,7 @@ def specification_with(
         `UnknownDialect`
 
             if the given ``dialect_id`` isn't known
+
     """
     resource = _SPECIFICATIONS.get(dialect_id.rstrip("#"))
     if resource is not None:
