@@ -38,6 +38,7 @@ class Retrieve(Protocol[D]):
         Raise `referencing.exceptions.NoSuchResource` if you wish to indicate
         the retriever cannot lookup the given URI.
         """
+        ...
 
 
 class Anchor(Protocol[D]):
@@ -53,8 +54,10 @@ class Anchor(Protocol[D]):
         """
         Return the name of this anchor.
         """
+        ...
 
     def resolve(self, resolver: Resolver[D]) -> Resolved[D]:
         """
         Return the resource for this anchor.
         """
+        ...
