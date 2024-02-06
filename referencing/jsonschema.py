@@ -9,9 +9,12 @@ from typing import Any, Iterable, Union
 
 from referencing import Anchor, Registry, Resource, Specification, exceptions
 from referencing._attrs import frozen
-from referencing._core import _UNSET  # type: ignore[reportPrivateUsage]
-from referencing._core import _Unset  # type: ignore[reportPrivateUsage]
-from referencing._core import Resolved as _Resolved, Resolver as _Resolver
+from referencing._core import (
+    _UNSET,  # type: ignore[reportPrivateUsage]
+    Resolved as _Resolved,
+    Resolver as _Resolver,
+    _Unset,  # type: ignore[reportPrivateUsage]
+)
 from referencing.typing import URI, Anchor as AnchorType, Mapping
 
 #: A JSON Schema which is a JSON object
