@@ -98,7 +98,7 @@ def typing(session):
     Check static typing.
     """
     session.install("pyright", ROOT)
-    session.run("pyright", REFERENCING)
+    session.run("pyright", *session.posargs, REFERENCING)
 
 
 @session(tags=["docs"])
