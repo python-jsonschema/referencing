@@ -17,8 +17,8 @@ REQUIREMENTS_IN = [  # this is actually ordered, as files depend on each other
     path.parent / f"{path.stem}.in" for path in REQUIREMENTS.values()
 ]
 
-SUPPORTED = ["3.8", "3.9", "3.10", "3.11", "3.12", "pypy3.10"]
-LATEST = "3.12"
+SUPPORTED = ["3.8", "3.9", "3.10", "pypy3.10", "3.11", "3.12"]
+LATEST = SUPPORTED[-1]
 
 nox.options.sessions = []
 
@@ -89,7 +89,7 @@ def style(session):
     Check Python code style.
     """
     session.install("ruff")
-    session.run("ruff", "check", ROOT)
+    session.run("ruff", "check", ROOT, __file__)
 
 
 @session()
