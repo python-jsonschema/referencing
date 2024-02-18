@@ -552,8 +552,8 @@ class Registry(Mapping[URI, Resource[D]]):
         uncrawled = self._uncrawled
         retrieve = self._retrieve
         for registry in registries:
-            resources = resources.update(registry._resources)  # type: ignore[reportUnknownMemberType]
-            anchors = anchors.update(registry._anchors)  # type: ignore[reportUnknownMemberType]
+            resources = resources.update(registry._resources)
+            anchors = anchors.update(registry._anchors)
             uncrawled = uncrawled.update(registry._uncrawled)
 
             if registry._retrieve is not _fail_to_retrieve:
