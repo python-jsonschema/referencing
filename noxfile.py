@@ -101,6 +101,15 @@ def typing(session):
     session.run("pyright", *session.posargs, REFERENCING)
 
 
+@session()
+def mypy(session):
+    """
+    Check that mypy runs with no blocking errors.
+    """
+    session.install("mypy", ROOT)
+    session.run("mypy", REFERENCING)
+
+
 @session(tags=["docs"])
 @nox.parametrize(
     "builder",
