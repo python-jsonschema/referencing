@@ -13,8 +13,7 @@ readme = "README.rst"
 license = {text = "MIT"}
 keywords = ["json", "referencing", "jsonschema", "openapi", "asyncapi"]
 authors = [
-  {email = "Julian+referencing@GrayVines.com"},
-  {name = "Julian Berman"},
+  { name = "Julian Berman", email = "Julian+referencing@GrayVines.com" },
 ]
 classifiers = [
   "Development Status :: 3 - Alpha",
