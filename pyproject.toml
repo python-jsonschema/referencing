@@ -10,7 +10,6 @@ name = "referencing"
 description = "JSON Referencing + Python"
 requires-python = ">=3.8"
 readme = "README.rst"
-license = {text = "MIT"}
 keywords = ["json", "referencing", "jsonschema", "openapi", "asyncapi"]
 authors = [
   { name = "Julian Berman", email = "Julian+referencing@GrayVines.com" },
