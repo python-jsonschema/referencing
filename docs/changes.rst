@@ -2,6 +2,12 @@
 Changelog
 =========
 
+v0.34.0
+-------
+
+* Also look inside ``definitions`` keywords even on newer dialects.
+  The specification recommends doing so regardless of the rename to ``$defs``.
+
 v0.33.0
 -------
 

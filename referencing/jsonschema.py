@@ -377,6 +377,7 @@ DRAFT202012 = Specification(
         in_subarray={"allOf", "anyOf", "oneOf", "prefixItems"},
         in_subvalues={
             "$defs",
+            "definitions",
             "dependentSchemas",
             "patternProperties",
             "properties",
@@ -400,6 +401,7 @@ DRAFT202012 = Specification(
         in_subarray={"allOf", "anyOf", "oneOf", "prefixItems"},
         in_subvalues={
             "$defs",
+            "definitions",
             "dependentSchemas",
             "patternProperties",
             "properties",
@@ -427,6 +429,7 @@ DRAFT201909 = Specification(
         in_subarray={"allOf", "anyOf", "oneOf"},
         in_subvalues={
             "$defs",
+            "definitions",
             "dependentSchemas",
             "patternProperties",
             "properties",
@@ -450,6 +453,7 @@ DRAFT201909 = Specification(
         in_subarray={"allOf", "anyOf", "oneOf"},
         in_subvalues={
             "$defs",
+            "definitions",
             "dependentSchemas",
             "patternProperties",
             "properties",
