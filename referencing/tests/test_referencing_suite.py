@@ -46,6 +46,9 @@ def test_referencing_suite(test_path, subtests):
     )
     for test in loaded["tests"]:
         with subtests.test(test=test):
+            if "normalization" in test_path.stem:
+                pytest.xfail("APIs need to change for proper URL support.")
+
             resolver = registry.resolver(base_uri=test.get("base_uri", ""))
 
             if test.get("error"):
