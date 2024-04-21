@@ -14,12 +14,13 @@ REQUIREMENTS = dict(
     tests=ROOT / "test-requirements.txt",
 )
 REQUIREMENTS_IN = [  # this is actually ordered, as files depend on each other
-    path.parent / f"{path.stem}.in" for path in REQUIREMENTS.values()
+    (path.parent / f"{path.stem}.in", path) for path in REQUIREMENTS.values()
 ]
 
 SUPPORTED = ["3.8", "3.9", "3.10", "pypy3.10", "3.11", "3.12"]
 LATEST = SUPPORTED[-1]
 
+nox.options.default_venv_backend = "uv|virtualenv"
 nox.options.sessions = []
 
 
@@ -167,13 +168,13 @@ def requirements(session):
 
     You should commit the result afterwards.
     """
-    session.install("pip-tools")
-    for each in REQUIREMENTS_IN:
-        session.run(
-            "pip-compile",
-            "--resolver",
-            "backtracking",
-            "--strip-extras",
-            "-U",
-            each.relative_to(ROOT),
-        )
+    if session.venv_backend == "uv":
+        cmd = ["uv", "pip", "compile"]
+    else:
+        session.install("pip-tools")
+        cmd = ["pip-compile", "--resolver", "backtracking", "--strip-extras"]
+
+    for each, out in REQUIREMENTS_IN:
+        # otherwise output files end up with silly absolute path comments...
+        relative = each.relative_to(ROOT)
+        session.run(*cmd, "--upgrade", "--output-file", out, relative)
