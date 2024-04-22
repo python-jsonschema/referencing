@@ -2,6 +2,8 @@ name: CI
 
 on:
   push:
+    branches-ignore:
+      - "wip*"
     tags:
       - "v*"
   pull_request:
@@ -10,6 +12,7 @@ on:
   schedule:
     # Daily at 8:33
     - cron: "33 8 * * *"
+  workflow_dispatch:
 
 env:
   PIP_DISABLE_PIP_VERSION_CHECK: "1"
@@ -33,6 +36,7 @@ jobs:
   ci:
     needs: list
     runs-on: ubuntu-latest
+
     strategy:
       fail-fast: false
       matrix:
@@ -64,8 +68,11 @@ jobs:
             pypy3.10
           allow-prereleases: true
           cache: pip
+      - name: Set up uv
+        uses: hynek/setup-cached-uv@v1
       - name: Set up nox
-        uses: wntrblm/nox@2024.03.02
+        uses: wntrblm/nox@2024.04.15
+
       - name: Run nox
         run: nox -s "${{ matrix.noxenv }}" -- ${{ matrix.posargs }}
 
