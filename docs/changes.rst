@@ -2,6 +2,11 @@
 Changelog
 =========
 
+v0.35.0
+-------
+
+* Ensure that ``Registry.contents()`` also raises ``NoSuchResource`` exceptions for nonexistent resources, not ``KeyError`` (which is an implementation detail).
+
 v0.34.0
 -------
 

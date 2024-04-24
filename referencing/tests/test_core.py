@@ -188,6 +188,12 @@ class TestRegistry:
             == {"ID": uri + "#"}
         )
 
+    def test_contents_nonexistent_resource(self):
+        registry = Registry()
+        with pytest.raises(exceptions.NoSuchResource) as e:
+            registry.contents("urn:example")
+        assert e.value == exceptions.NoSuchResource(ref="urn:example")
+
     def test_crawled_anchor(self):
         resource = ID_AND_CHILDREN.create_resource({"anchors": {"foo": "bar"}})
         registry = Registry().with_resource("urn:example", resource)

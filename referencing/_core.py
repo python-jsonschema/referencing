@@ -477,9 +477,7 @@ class Registry(Mapping[URI, Resource[D]]):
         """
         Retrieve the (already crawled) contents identified by the given URI.
         """
-        # Empty fragment URIs are equivalent to URIs without the fragment.
-        # TODO: Is this true for non JSON Schema resources? Probably not.
-        return self._resources[uri.rstrip("#")].contents
+        return self[uri].contents
 
     def crawl(self) -> Registry[D]:
         """
