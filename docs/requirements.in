@@ -7,3 +7,6 @@ sphinx>5
 sphinxcontrib-spelling>5
 sphinxext-opengraph
 url.py
+
+# Until pyenchant/pyenchant#302 is released...
+pyenchant>=3.3.0rc1
