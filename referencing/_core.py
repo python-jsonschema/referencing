@@ -423,7 +423,7 @@ class Registry(Mapping[URI, Resource[D]]):
             exceptions.NoSuchResource,
         ):
             raise
-        except Exception as error:  # noqa: BLE001
+        except Exception as error:
             raise exceptions.Unretrievable(ref=uri) from error
         else:
             registry = registry.with_resource(uri, resource)
