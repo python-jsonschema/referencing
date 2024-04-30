@@ -2,6 +2,12 @@
 Changelog
 =========
 
+v0.35.1
+-------
+
+* Make ``Resource.pointer`` also properly handle empty pointers (which refer to the root document).
+  This fix likely only affects you if you were using that function directly, as ``Resource.lookup`` already handles empty fragments.
+
 v0.35.0
 -------
 

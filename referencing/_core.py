@@ -257,6 +257,9 @@ class Resource(Generic[D]):
                 if the pointer points to a location not present in the document
 
         """
+        if not pointer:
+            return self
+
         contents = self.contents
         segments: list[int | str] = []
         for segment in unquote(pointer[1:]).split("/"):

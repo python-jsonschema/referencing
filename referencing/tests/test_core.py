@@ -681,6 +681,12 @@ class TestResource:
         resolver = Registry().resolver()
         assert resource.pointer("/foo/bar/0", resolver=resolver).contents == 3
 
+    def test_root_pointer(self):
+        contents = {"foo": "baz"}
+        resource = Resource.opaque(contents=contents)
+        resolver = Registry().resolver()
+        assert resource.pointer("", resolver=resolver).contents == contents
+
     def test_opaque(self):
         contents = {"foo": "bar"}
         assert Resource.opaque(contents) == Resource(
