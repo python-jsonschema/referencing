@@ -258,7 +258,7 @@ class Resource(Generic[D]):
 
         """
         if not pointer:
-            return self
+            return Resolved(contents=self.contents, resolver=resolver)
 
         contents = self.contents
         segments: list[int | str] = []
