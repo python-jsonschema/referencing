@@ -41,7 +41,7 @@ pygments-github-lexers==0.0.5
     # via -r docs/requirements.in
 referencing @ file:.#egg=referencing
     # via -r docs/requirements.in
-requests==2.31.0
+requests==2.32.1
     # via sphinx
 rpds-py==0.18.1
     # via referencing
