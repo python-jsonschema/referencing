@@ -63,7 +63,7 @@ jobs:
           allow-prereleases: true
 
       - name: Set up uv
-        uses: hynek/setup-cached-uv@v1
+        uses: hynek/setup-cached-uv@v2
       - name: Set up nox
         uses: wntrblm/nox@2024.04.15
 
@@ -90,7 +90,7 @@ jobs:
         with:
           python-version: "3.x"
       - name: Set up uv
-        uses: hynek/setup-cached-uv@v1
+        uses: hynek/setup-cached-uv@v2
       - name: Install dependencies
         run: uv pip install --system build
 
