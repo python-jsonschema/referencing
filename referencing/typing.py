@@ -4,15 +4,8 @@ Type-annotation related support for the referencing library.
 
 from __future__ import annotations
 
+from collections.abc import Mapping as Mapping
 from typing import TYPE_CHECKING, Protocol, TypeVar
-
-try:
-    from collections.abc import Mapping as Mapping
-
-    Mapping[str, str]
-except TypeError:  # pragma: no cover
-    from typing import Mapping as Mapping
-
 
 if TYPE_CHECKING:
     from referencing._core import Resolved, Resolver, Resource
