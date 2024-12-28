@@ -18,7 +18,7 @@ REQUIREMENTS_IN = [  # this is actually ordered, as files depend on each other
 ]
 
 SUPPORTED = ["3.9", "3.10", "pypy3.10", "3.11", "3.12", "3.13"]
-LATEST = "3.12"  # until 3.13 matures
+LATEST = SUPPORTED[-1]
 
 nox.options.default_venv_backend = "uv|virtualenv"
 nox.options.sessions = []
