@@ -10,6 +10,8 @@ name = "referencing"
 description = "JSON Referencing + Python"
 requires-python = ">=3.9"
 readme = "README.rst"
+license = "MIT"
+license-files = ["COPYING"]
 keywords = ["json", "referencing", "jsonschema", "openapi", "asyncapi"]
 authors = [
   { name = "Julian Berman", email = "Julian+referencing@GrayVines.com" },
@@ -17,7 +19,6 @@ authors = [
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Python",
   "Programming Language :: Python :: 3.9",
@@ -65,8 +66,8 @@ skip_covered = true
 
 [tool.doc8]
 ignore = [
-    "D000",  # see PyCQA/doc8#125
-    "D001",  # one sentence per line, so max length doesn't make sense
+  "D000",  # see PyCQA/doc8#125
+  "D001",  # one sentence per line, so max length doesn't make sense
 ]
 
 [tool.mypy]
@@ -77,8 +78,8 @@ ignore_errors = true
 reportUnnecessaryTypeIgnoreComment = true
 strict = ["**/*"]
 exclude = [
-    "**/tests/__init__.py",
-    "**/tests/test_*.py",
+  "**/tests/__init__.py",
+  "**/tests/test_*.py",
 ]
 
 [tool.ruff]
