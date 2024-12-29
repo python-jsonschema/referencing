@@ -10,7 +10,7 @@ import json
 
 try:
     from typing_extensions import TypeVar
-except ImportError:
+except ImportError:  # pragma: no cover
     from typing import TypeVar
 
 from referencing import Resource

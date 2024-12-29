@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, Protocol
 
 try:
     from typing_extensions import TypeVar
-except ImportError:
+except ImportError:  # pragma: no cover
     from typing import TypeVar
 
 if TYPE_CHECKING:
