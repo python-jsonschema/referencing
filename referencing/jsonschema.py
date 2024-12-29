@@ -435,7 +435,7 @@ DRAFT201909 = Specification(
             "properties",
         },
     ),
-    anchors_in=_anchor_2019,  # type: ignore[reportGeneralTypeIssues]  # TODO: check whether this is real
+    anchors_in=_anchor_2019,
     maybe_in_subresource=_maybe_in_subresource_crazy_items(
         in_value={
             "additionalItems",
@@ -478,7 +478,7 @@ DRAFT7 = Specification(
         in_subarray={"allOf", "anyOf", "oneOf"},
         in_subvalues={"definitions", "patternProperties", "properties"},
     ),
-    anchors_in=_legacy_anchor_in_dollar_id,  # type: ignore[reportGeneralTypeIssues]  # TODO: check whether this is real
+    anchors_in=_legacy_anchor_in_dollar_id,
     maybe_in_subresource=_maybe_in_subresource_crazy_items_dependencies(
         in_value={
             "additionalItems",
@@ -509,7 +509,7 @@ DRAFT6 = Specification(
         in_subarray={"allOf", "anyOf", "oneOf"},
         in_subvalues={"definitions", "patternProperties", "properties"},
     ),
-    anchors_in=_legacy_anchor_in_dollar_id,  # type: ignore[reportGeneralTypeIssues]  # TODO: check whether this is real
+    anchors_in=_legacy_anchor_in_dollar_id,
     maybe_in_subresource=_maybe_in_subresource_crazy_items_dependencies(
         in_value={
             "additionalItems",
@@ -556,7 +556,7 @@ DRAFT3 = Specification(
 
 
 _SPECIFICATIONS: Registry[Specification[Schema]] = Registry(
-    {  # type: ignore[reportGeneralTypeIssues]  # :/ internal vs external types
+    {
         dialect_id: Resource.opaque(specification)
         for dialect_id, specification in [
             ("https://json-schema.org/draft/2020-12/schema", DRAFT202012),

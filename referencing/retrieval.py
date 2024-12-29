@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from referencing.typing import URI, D, Retrieve
 
 #: A serialized document (e.g. a JSON string)
-_T = TypeVar("_T")
+_T = TypeVar("_T", default=str)
 
 
 def to_cached_resource(

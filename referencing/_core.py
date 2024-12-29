@@ -557,8 +557,8 @@ class Registry(Mapping[URI, Resource[D]]):
             anchors = anchors.update(registry._anchors)
             uncrawled = uncrawled.update(registry._uncrawled)
 
-            if registry._retrieve is not _fail_to_retrieve:
-                if registry._retrieve is not retrieve is not _fail_to_retrieve:
+            if registry._retrieve is not _fail_to_retrieve:  # type: ignore[reportUnnecessaryComparison] ???
+                if registry._retrieve is not retrieve is not _fail_to_retrieve:  # type: ignore[reportUnnecessaryComparison] ???
                     raise ValueError(  # noqa: TRY003
                         "Cannot combine registries with conflicting retrieval "
                         "functions.",
@@ -590,7 +590,11 @@ class Registry(Mapping[URI, Resource[D]]):
 
 
 #: An anchor or resource.
-AnchorOrResource = TypeVar("AnchorOrResource", AnchorType[Any], Resource[Any])
+AnchorOrResource = TypeVar(
+    "AnchorOrResource",
+    bound=AnchorType[Any] | Resource[Any],
+    default=AnchorType[Any] | Resource[Any],
+)
 
 
 @frozen
