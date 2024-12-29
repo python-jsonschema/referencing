@@ -2,11 +2,16 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Iterator, Sequence
 from enum import Enum
-from typing import Any, Callable, ClassVar, Generic, Protocol, TypeVar
+from typing import Any, Callable, ClassVar, Generic, Protocol
 from urllib.parse import unquote, urldefrag, urljoin
 
 from attrs import evolve, field
 from rpds import HashTrieMap, HashTrieSet, List
+
+try:
+    from typing_extensions import TypeVar
+except ImportError:
+    from typing import TypeVar
 
 from referencing import exceptions
 from referencing._attrs import frozen
@@ -592,8 +597,9 @@ class Registry(Mapping[URI, Resource[D]]):
 #: An anchor or resource.
 AnchorOrResource = TypeVar(
     "AnchorOrResource",
-    bound=AnchorType[Any] | Resource[Any],
-    default=AnchorType[Any] | Resource[Any],
+    AnchorType[Any],
+    Resource[Any],
+    default=Resource[Any],
 )
 
 
