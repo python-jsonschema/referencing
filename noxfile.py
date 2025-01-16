@@ -78,9 +78,15 @@ def build(session):
     """
     Build a distribution suitable for PyPI and check its validity.
     """
-    session.install("build", "twine")
+    session.install("build[uv]", "twine")
     with TemporaryDirectory() as tmpdir:
-        session.run("python", "-m", "build", ROOT, "--outdir", tmpdir)
+        session.run(
+            "pyproject-build",
+            "--installer=uv",
+            ROOT,
+            "--outdir",
+            tmpdir,
+        )
         session.run("twine", "check", "--strict", tmpdir + "/*")
 
 
