@@ -12,6 +12,7 @@ wheels = [
 
 [[package]]
 name = "referencing"
+version = "0.36.2.dev1+gb529607.d20250117"
 source = { editable = "." }
 dependencies = [
     { name = "attrs" },
@@ -23,7 +24,7 @@ dependencies = [
 requires-dist = [
     { name = "attrs", specifier = ">=22.2.0" },
     { name = "rpds-py", specifier = ">=0.7.0" },
-    { name = "typing-extensions", marker = "python_full_version < '3.13'" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13'", specifier = ">=4.4.0" },
 ]
 
 [[package]]
