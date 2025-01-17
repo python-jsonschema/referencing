@@ -2,6 +2,16 @@
 Changelog
 =========
 
+v0.36.1
+-------
+
+* Add a lower pin on ``typing-extensions`` for the version we depend on.
+
+v0.36.0
+-------
+
+* Declare support for Python 3.13.
+
 v0.35.1
 -------
 
