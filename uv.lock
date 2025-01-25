@@ -12,7 +12,7 @@ wheels = [
 
 [[package]]
 name = "referencing"
-version = "0.36.2.dev1+gb529607.d20250117"
+version = "0.36.2.dev2+g52add92"
 source = { editable = "." }
 dependencies = [
     { name = "attrs" },
