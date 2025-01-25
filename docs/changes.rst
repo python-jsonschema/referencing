@@ -2,6 +2,11 @@
 Changelog
 =========
 
+v0.36.2
+-------
+
+* Release using the newer twine release to preserve PEP 639 license metadata.
+
 v0.36.1
 -------
 
