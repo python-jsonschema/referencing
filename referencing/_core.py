@@ -562,8 +562,8 @@ class Registry(Mapping[URI, Resource[D]]):
             anchors = anchors.update(registry._anchors)
             uncrawled = uncrawled.update(registry._uncrawled)
 
-            if registry._retrieve is not _fail_to_retrieve:  # type: ignore[reportUnnecessaryComparison] ???
-                if registry._retrieve is not retrieve is not _fail_to_retrieve:  # type: ignore[reportUnnecessaryComparison] ???
+            if registry._retrieve is not _fail_to_retrieve:
+                if registry._retrieve is not retrieve is not _fail_to_retrieve:
                     raise ValueError(  # noqa: TRY003
                         "Cannot combine registries with conflicting retrieval "
                         "functions.",
