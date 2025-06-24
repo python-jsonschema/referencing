@@ -10,13 +10,15 @@ packaging==25.0
     # via pytest
 pluggy==1.6.0
     # via pytest
-pytest==8.3.5
+pygments==2.19.2
+    # via pytest
+pytest==8.4.1
     # via
     #   -r test-requirements.in
     #   pytest-subtests
-pytest-subtests==0.14.1
+pytest-subtests==0.14.2
     # via -r test-requirements.in
 referencing @ file:.
     # via -r test-requirements.in
-rpds-py==0.25.0
+rpds-py==0.25.1
     # via referencing

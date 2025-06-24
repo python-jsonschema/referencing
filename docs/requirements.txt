@@ -8,7 +8,7 @@ babel==2.17.0
     # via sphinx
 beautifulsoup4==4.13.4
     # via furo
-certifi==2025.4.26
+certifi==2025.6.15
     # via requests
 charset-normalizer==3.4.2
     # via requests
@@ -32,7 +32,7 @@ pyenchant==3.3.0rc1
     # via
     #   -r docs/requirements.in
     #   sphinxcontrib-spelling
-pygments==2.19.1
+pygments==2.19.2
     # via
     #   furo
     #   pygments-github-lexers
@@ -41,13 +41,13 @@ pygments-github-lexers==0.0.5
     # via -r docs/requirements.in
 referencing @ file:.#egg=referencing
     # via -r docs/requirements.in
-requests==2.32.3
+requests==2.32.4
     # via
     #   sphinx
     #   sphinxcontrib-spelling
 roman-numerals-py==3.1.0
     # via sphinx
-rpds-py==0.25.0
+rpds-py==0.25.1
     # via referencing
 snowballstemmer==3.0.1
     # via sphinx
@@ -84,9 +84,9 @@ sphinxcontrib-spelling==8.0.1
     # via -r docs/requirements.in
 sphinxext-opengraph==0.10.0
     # via -r docs/requirements.in
-typing-extensions==4.13.2
+typing-extensions==4.14.0
     # via beautifulsoup4
 url-py==0.15.0
     # via -r docs/requirements.in
-urllib3==2.4.0
+urllib3==2.5.0
     # via requests
