@@ -130,6 +130,7 @@ ignore = [
   "RET505",  # These push you to use `if` instead of `elif`, but for no reason
   "RET506",
   "RSE102",  # Ha, what, who even knew you could leave the parens off. But no.
+  "RUF043",  # This rule makes no sense. "foo.*bar" is a string containing a regex
   "SIM300", # Not sure what heuristic this uses, but it's easily incorrect
   "SLF001",  # Private usage within this package itself is fine
   "TD",  # These TODO style rules are also silly
