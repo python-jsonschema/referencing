@@ -64,15 +64,6 @@ def tests(session):
         session.run("pytest", *session.posargs, REFERENCING)
 
 
-@session()
-def audit(session):
-    """
-    Audit dependencies for vulnerabilities.
-    """
-    session.install("pip-audit", ROOT)
-    session.run("python", "-m", "pip_audit")
-
-
 @session(tags=["build"])
 def build(session):
     """
