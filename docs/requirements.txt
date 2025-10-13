@@ -22,7 +22,7 @@ imagesize==1.4.1
     # via sphinx
 jinja2==3.1.6
     # via sphinx
-lxml==5.4.0
+lxml==6.0.2
     # via sphinx-json-schema-spec
 markupsafe==3.0.2
     # via jinja2
