@@ -2,6 +2,12 @@
 Changelog
 =========
 
+v0.37.0
+-------
+
+* Declare support for Python 3.14.
+* Drop support for Python 3.9 which is near EOL.
+
 v0.36.2
 -------
 
