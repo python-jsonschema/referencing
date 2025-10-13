@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator, Sequence
+from collections.abc import Callable, Iterable, Iterator, Sequence
 from enum import Enum
-from typing import Any, Callable, ClassVar, Generic, Protocol
+from typing import Any, ClassVar, Generic, Protocol
 from urllib.parse import unquote, urldefrag, urljoin
 
 from attrs import evolve, field

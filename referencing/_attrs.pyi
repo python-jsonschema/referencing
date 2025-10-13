@@ -1,4 +1,5 @@
-from typing import Any, Callable, TypeVar, Union
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 from attr import attrib, field
 
@@ -9,7 +10,7 @@ _T = TypeVar("_T")
 def __dataclass_transform__(
     *,
     frozen_default: bool = False,
-    field_descriptors: tuple[Union[type, Callable[..., Any]], ...] = ...,
+    field_descriptors: tuple[type | Callable[..., Any], ...] = ...,
 ) -> Callable[[_T], _T]: ...
 @__dataclass_transform__(field_descriptors=(attrib, field))
 def define(cls: type[_T]) -> type[_T]: ...

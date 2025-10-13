@@ -5,7 +5,7 @@ Helpers related to (dynamic) resource retrieval.
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 import json
 
 try:
@@ -16,6 +16,8 @@ except ImportError:  # pragma: no cover
 from referencing import Resource
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from referencing.typing import URI, D, Retrieve
 
 #: A serialized document (e.g. a JSON string)

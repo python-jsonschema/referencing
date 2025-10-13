@@ -5,7 +5,7 @@ Referencing implementations for JSON Schema specs (historic & current).
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence, Set
-from typing import Any, Union
+from typing import Any
 
 from referencing import Anchor, Registry, Resource, Specification, exceptions
 from referencing._attrs import frozen
@@ -21,7 +21,7 @@ from referencing.typing import URI, Anchor as AnchorType, Mapping
 ObjectSchema = Mapping[str, Any]
 
 #: A JSON Schema of any kind
-Schema = Union[bool, ObjectSchema]
+Schema = bool | ObjectSchema
 
 #: A Resource whose contents are JSON Schemas
 SchemaResource = Resource[Schema]
