@@ -12,6 +12,8 @@ on:
     - cron: "33 8 * * *"
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   list:
     runs-on: ubuntu-latest
@@ -19,10 +21,12 @@ jobs:
       noxenvs: ${{ steps.noxenvs-matrix.outputs.noxenvs }}
     steps:
       - uses: actions/checkout@v5
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v7
         with:
-          enable-cache: true
+          persist-credentials: false
+      - name: Set up uv
+        uses: astral-sh/setup-uv@3259c6206f993105e3a61b142c2d97bf4b9ef83d
+        with:
+          enable-cache: ${{ github.ref_type != 'tag' }} # zizmor: ignore[cache-poisoning]
       - id: noxenvs-matrix
         run: |
           echo >>$GITHUB_OUTPUT noxenvs=$(
@@ -45,7 +49,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          submodules: "recursive"
+          persist-credentials: false
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y libenchant-2-dev
         if: runner.os == 'Linux' && startsWith(matrix.noxenv, 'docs')
@@ -64,14 +68,17 @@ jobs:
             3.14t
             pypy3.11
           allow-prereleases: true
+      - name: Enable UTF-8 on Windows
+        run: echo "PYTHONUTF8=1" >> $env:GITHUB_ENV
+        if: runner.os == 'Windows' && startsWith(matrix.noxenv, 'tests')
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@3259c6206f993105e3a61b142c2d97bf4b9ef83d
         with:
-          enable-cache: true
+          enable-cache: ${{ github.ref_type != 'tag' }} # zizmor: ignore[cache-poisoning]
 
       - name: Run nox
-        run: uvx nox -s "${{ matrix.noxenv }}" -- ${{ matrix.posargs }}
+        run: uvx nox -s "${{ matrix.noxenv }}" -- ${{ matrix.posargs }} # zizmor: ignore[template-injection]
 
   packaging:
     needs: ci
@@ -87,21 +94,22 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
+          persist-credentials: false
           submodules: "recursive"
       - name: Set up uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@3259c6206f993105e3a61b142c2d97bf4b9ef83d
         with:
-          enable-cache: true
+          enable-cache: ${{ github.ref_type != 'tag' }} # zizmor: ignore[cache-poisoning]
 
       - name: Build our distributions
         run: uv run --frozen --with 'build[uv]' -m build --installer=uv
 
       - name: Publish to PyPI
         if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
-        uses: pypa/gh-action-pypi-publish@release/v1
-      - name: Create a Release
+        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e
+      - name: Create a GitHub Release
         if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090
         with:
           files: |
             dist/*
