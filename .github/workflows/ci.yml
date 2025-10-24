@@ -50,6 +50,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           persist-credentials: false
+          submodules: "recursive"
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y libenchant-2-dev
         if: runner.os == 'Linux' && startsWith(matrix.noxenv, 'docs')
