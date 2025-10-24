@@ -35,16 +35,21 @@ jobs:
 
   ci:
     needs: list
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
         noxenv: ${{ fromJson(needs.list.outputs.noxenvs) }}
         posargs: [""]
         include:
-          - noxenv: tests-3.14
+          - os: ubuntu-latest
+            noxenv: tests-3.14
             posargs: coverage github
+        exclude:
+          - os: windows-latest
+            noxenv: "docs(style)"
 
     steps:
       - uses: actions/checkout@v5
