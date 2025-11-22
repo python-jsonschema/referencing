@@ -1,3 +1,2 @@
 file:.
-pytest
-pytest-subtests
+pytest>9
