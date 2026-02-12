@@ -31,4 +31,4 @@ def test_eq_incompatible_types(one, two):
 
 @pytest.mark.parametrize("thunk", thunks)
 def test_hash(thunk):
-    assert thunk() in {thunk()}
+    assert thunk() in {thunk()}  # noqa: FURB171
