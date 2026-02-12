@@ -4,15 +4,15 @@ attrs==25.4.0
     # via referencing
 iniconfig==2.3.0
     # via pytest
-packaging==25.0
+packaging==26.0
     # via pytest
 pluggy==1.6.0
     # via pytest
 pygments==2.19.2
     # via pytest
-pytest==9.0.1
+pytest==9.0.2
     # via -r test-requirements.in
 referencing @ file:.
     # via -r test-requirements.in
-rpds-py==0.29.0
+rpds-py==0.30.0
     # via referencing
