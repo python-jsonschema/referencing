@@ -433,10 +433,7 @@ class Registry(Mapping[URI, Resource[D]]):
         roots: list[str] = []
         for uri in uris:
             # A URI is a root if no existing root is a proper prefix of it
-            if not any(
-                uri != root and uri.startswith(root)
-                for root in roots
-            ):
+            if not any(uri != root and uri.startswith(root) for root in roots):
                 roots.append(uri)
 
         def _render(
@@ -449,19 +446,33 @@ class Registry(Mapping[URI, Resource[D]]):
             resource_repr = repr(resource) if resource is not None else "?"
             lines.append(f"{prefix}{connector}{uri} \u2013 {resource_repr}")
 
-            child_prefix = prefix + ("    " if connector == "\u2514\u2500\u2500 " else "\u2502   " if connector else "")
+            child_prefix = prefix + (
+                "    "
+                if connector == "\u2514\u2500\u2500 "
+                else "\u2502   "
+                if connector
+                else ""
+            )
 
             children = [
-                u for u in all_uris
+                u
+                for u in all_uris
                 if u != uri
                 and u.startswith(uri)
-                and "/" not in u[len(uri):].rstrip("/")
+                and "/" not in u[len(uri) :].rstrip("/")
             ]
             children.sort()
             for i, child in enumerate(children):
                 is_last = i == len(children) - 1
-                child_connector = "\u2514\u2500\u2500 " if is_last else "\u251c\u2500\u2500 "
-                _render(child, all_uris, prefix=child_prefix, connector=child_connector)
+                child_connector = (
+                    "\u2514\u2500\u2500 " if is_last else "\u251c\u2500\u2500 "
+                )
+                _render(
+                    child,
+                    all_uris,
+                    prefix=child_prefix,
+                    connector=child_connector,
+                )
 
         for root in roots:
             _render(root, uris, prefix="", connector="")

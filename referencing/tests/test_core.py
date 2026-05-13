@@ -587,10 +587,12 @@ class TestRegistry:
         """
         one = Resource.opaque(contents={"title": "one"})
         two = Resource.opaque(contents={"title": "two"})
-        registry = Registry().with_resources([
-            ("http://example.com/one", one),
-            ("http://example.com/two", two),
-        ])
+        registry = Registry().with_resources(
+            [
+                ("http://example.com/one", one),
+                ("http://example.com/two", two),
+            ]
+        )
         tree = registry.display_as_tree()
         assert "http://example.com/one" in tree
         assert "http://example.com/two" in tree
@@ -602,17 +604,22 @@ class TestRegistry:
         root = Resource.opaque(contents={})
         child = Resource.opaque(contents={})
         grandchild = Resource.opaque(contents={})
-        registry = Registry().with_resources([
-            ("http://example.com/", root),
-            ("http://example.com/foo/", child),
-            ("http://example.com/foo/bar/", grandchild),
-        ])
+        registry = Registry().with_resources(
+            [
+                ("http://example.com/", root),
+                ("http://example.com/foo/", child),
+                ("http://example.com/foo/bar/", grandchild),
+            ]
+        )
         tree = registry.display_as_tree()
         lines = tree.splitlines()
         # Root appears first with no indentation connector
         assert lines[0].startswith("http://example.com/")
         # Nested children use box-drawing connectors
-        assert any("\u251c\u2500\u2500" in line or "\u2514\u2500\u2500" in line for line in lines[1:])
+        assert any(
+            "\u251c\u2500\u2500" in line or "\u2514\u2500\u2500" in line
+            for line in lines[1:]
+        )
 
 
 class TestResource:
