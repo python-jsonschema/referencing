@@ -407,6 +407,67 @@ class Registry(Mapping[URI, Resource[D]]):
             summary = f"{pluralized}"
         return f"<Registry ({size} {summary})>"
 
+    def display_as_tree(self) -> str:
+        """
+        Return a unicode tree representation of the resources in this registry.
+
+        Useful for debugging what is contained in a registry. Resources are
+        grouped by their common URI prefixes and displayed using unicode
+        box-drawing characters.
+
+        Example output::
+
+            http://example.com/ – Resource(...)
+            ├── foo/ – Resource(...)
+            │   ├── bar/ – Resource(...)
+            │   └── baz/ – Resource(...)
+            http://example.org/ – Resource(...)
+
+        """
+        uris = sorted(self._resources)
+        if not uris:
+            return "<empty registry>"
+
+        lines: list[str] = []
+        # Track roots: top-level URIs that are not prefixes of each other
+        roots: list[str] = []
+        for uri in uris:
+            # A URI is a root if no existing root is a proper prefix of it
+            if not any(
+                uri != root and uri.startswith(root)
+                for root in roots
+            ):
+                roots.append(uri)
+
+        def _render(
+            uri: str,
+            all_uris: list[str],
+            prefix: str = "",
+            connector: str = "",
+        ) -> None:
+            resource = self._resources.get(uri)
+            resource_repr = repr(resource) if resource is not None else "?"
+            lines.append(f"{prefix}{connector}{uri} \u2013 {resource_repr}")
+
+            child_prefix = prefix + ("    " if connector == "\u2514\u2500\u2500 " else "\u2502   " if connector else "")
+
+            children = [
+                u for u in all_uris
+                if u != uri
+                and u.startswith(uri)
+                and "/" not in u[len(uri):].rstrip("/")
+            ]
+            children.sort()
+            for i, child in enumerate(children):
+                is_last = i == len(children) - 1
+                child_connector = "\u2514\u2500\u2500 " if is_last else "\u251c\u2500\u2500 "
+                _render(child, all_uris, prefix=child_prefix, connector=child_connector)
+
+        for root in roots:
+            _render(root, uris, prefix="", connector="")
+
+        return "\n".join(lines)
+
     def get_or_retrieve(self, uri: URI) -> Retrieved[D, Resource[D]]:
         """
         Get a resource from the registry, crawling or retrieving if necessary.
