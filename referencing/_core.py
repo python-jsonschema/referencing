@@ -247,7 +247,7 @@ class Resource(Generic[D]):
 
     def anchors(self) -> Iterable[AnchorType[D]]:
         """
-        Retrieve this resource's (specification-specific) identifier.
+        Retrieve this resource's (specification-specific) anchors.
         """
         return self._specification.anchors_in(self.contents)
 
