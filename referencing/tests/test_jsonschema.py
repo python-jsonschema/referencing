@@ -304,7 +304,10 @@ def test_dynamic_ref_with_anonymous_root_schema():
     resolver = registry.resolver_with_root(anonymous)
     resolved = resolver.lookup("https://example.com/PaginatedTemplate")
     item_type = resolved.resolver.lookup("#itemType")
-    assert item_type.contents == {"$dynamicAnchor": "itemType", "type": "string"}
+    assert item_type.contents == {
+        "$dynamicAnchor": "itemType",
+        "type": "string",
+    }
 
 
 def test_lookup_trivial_recursive_ref():
