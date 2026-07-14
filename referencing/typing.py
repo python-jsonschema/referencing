@@ -5,12 +5,7 @@ Type-annotation related support for the referencing library.
 from __future__ import annotations
 
 from collections.abc import Mapping as Mapping
-from typing import TYPE_CHECKING, Any, Protocol
-
-try:
-    from typing_extensions import TypeVar
-except ImportError:  # pragma: no cover
-    from typing import TypeVar
+from typing import TYPE_CHECKING, Any, Protocol, TypeVar
 
 if TYPE_CHECKING:
     from referencing._core import Resolved, Resolver, Resource

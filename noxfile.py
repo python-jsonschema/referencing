@@ -9,27 +9,32 @@ PYPROJECT = ROOT / "pyproject.toml"
 DOCS = ROOT / "docs"
 REFERENCING = ROOT / "referencing"
 
-REQUIREMENTS = dict(
-    docs=DOCS / "requirements.txt",
-    tests=ROOT / "test-requirements.txt",
-)
-REQUIREMENTS_IN = [  # this is actually ordered, as files depend on each other
-    (path.parent / f"{path.stem}.in", path) for path in REQUIREMENTS.values()
-]
-
 SUPPORTED = [
-    "3.10",
-    "pypy3.11",
-    "3.11",
-    "3.12",
     "3.13",
     "3.14t",
     "3.14",
+    "3.15",
 ]
-LATEST = SUPPORTED[-1]
+# 3.15 is still a prerelease, so the non-test sessions run on the latest
+# stable interpreter until it's released.
+LATEST = "3.14"
 
-nox.options.default_venv_backend = "uv|virtualenv"
+nox.options.default_venv_backend = "uv"
 nox.options.sessions = []
+
+
+def install(session, *groups):
+    """
+    Install the project and the given dependency group(s) via ``uv sync``.
+    """
+    session.run_install(
+        "uv",
+        "sync",
+        "--no-default-groups",
+        *(arg for group in groups for arg in ("--group", group)),
+        f"--python={session.virtualenv.location}",
+        env={"UV_PROJECT_ENVIRONMENT": session.virtualenv.location},
+    )
 
 
 def session(default=True, python=LATEST, **kwargs):  # noqa: D103
@@ -46,7 +51,7 @@ def tests(session):
     """
     Run the test suite with a corresponding Python version.
     """
-    session.install("-r", REQUIREMENTS["tests"])
+    install(session, "dev")
 
     if session.posargs and session.posargs[0] == "coverage":
         if len(session.posargs) > 1 and session.posargs[1] == "github":
@@ -134,7 +139,7 @@ def docs(session, builder):
     """
     Build the documentation using a specific Sphinx builder.
     """
-    session.install("-r", REQUIREMENTS["docs"])
+    install(session, "docs")
     with TemporaryDirectory() as tmpdir_str:
         tmpdir = Path(tmpdir_str)
         argv = ["-n", "-T", "-W"]
@@ -164,22 +169,3 @@ def docs_style(session):
         "pygments-github-lexers",
     )
     session.run("python", "-m", "doc8", "--config", PYPROJECT, DOCS)
-
-
-@session(default=False)
-def requirements(session):
-    """
-    Update the project's pinned requirements.
-
-    You should commit the result afterwards.
-    """
-    if session.venv_backend == "uv":
-        cmd = ["uv", "pip", "compile"]
-    else:
-        session.install("pip-tools")
-        cmd = ["pip-compile", "--resolver", "backtracking", "--strip-extras"]
-
-    for each, out in REQUIREMENTS_IN:
-        # otherwise output files end up with silly absolute path comments...
-        relative = each.relative_to(ROOT)
-        session.run(*cmd, "--upgrade", "--output-file", out, relative)

@@ -8,7 +8,7 @@ source = "vcs"
 [project]
 name = "referencing"
 description = "JSON Referencing + Python"
-requires-python = ">=3.10"
+requires-python = ">=3.13"
 readme = "README.rst"
 license = "MIT"
 license-files = ["COPYING"]
@@ -21,13 +21,10 @@ classifiers = [
   "Intended Audience :: Developers",
   "Operating System :: OS Independent",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
   "Programming Language :: Python :: Implementation :: CPython",
-  "Programming Language :: Python :: Implementation :: PyPy",
   "Topic :: File Formats :: JSON",
   "Topic :: File Formats :: JSON :: JSON Schema",
 ]
@@ -35,7 +32,6 @@ dynamic = ["version"]
 dependencies = [
   "attrs>=22.2.0",
   "rpds-py>=0.7.0",
-  "typing-extensions>=4.4.0; python_version<'3.13'",
 ]
 
 [project.urls]
@@ -46,6 +42,20 @@ Funding = "https://github.com/sponsors/Julian"
 Tidelift = "https://tidelift.com/subscription/pkg/pypi-referencing?utm_source=pypi-referencing&utm_medium=referral&utm_campaign=pypi-link"
 Changelog = "https://referencing.readthedocs.io/en/stable/changes/"
 Source = "https://github.com/python-jsonschema/referencing"
+
+[dependency-groups]
+dev = ["pytest>9"]
+docs = [
+  "furo",
+  "pygments-github-lexers",
+  "sphinx-copybutton",
+  "sphinx-json-schema-spec",
+  "sphinx>5",
+  "sphinxcontrib-spelling>5",
+  "sphinxext-opengraph",
+  "url.py",
+  "pyenchant>=3.3.0rc1",  # Until pyenchant/pyenchant#302 is released...
+]
 
 [tool.coverage.html]
 show_contexts = true
@@ -134,6 +144,8 @@ ignore = [
   "SIM300", # Not sure what heuristic this uses, but it's easily incorrect
   "SLF001",  # Private usage within this package itself is fine
   "TD",  # These TODO style rules are also silly
+  "UP046",  # PEP 695 native generics are a deliberate follow-up (the shared,
+  "UP047",  # defaulted `D` TypeVar is public API in referencing.typing).
 ]
 
 [tool.ruff.lint.flake8-pytest-style]

@@ -9,7 +9,7 @@ build:
     post_create_environment:
       - pip install uv
     post_install:
-      - VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH uv pip install -r docs/requirements.txt
+      - VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH uv sync --active --no-default-groups --group docs
 
 sphinx:
   builder: dirhtml

@@ -2,16 +2,11 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Iterator, Sequence
 from enum import Enum
-from typing import Any, ClassVar, Generic, Protocol
+from typing import Any, ClassVar, Generic, Protocol, TypeVar
 from urllib.parse import unquote, urldefrag, urljoin
 
 from attrs import evolve, field
 from rpds import HashTrieMap, HashTrieSet, List
-
-try:
-    from typing_extensions import TypeVar
-except ImportError:  # pragma: no cover
-    from typing import TypeVar
 
 from referencing import exceptions
 from referencing._attrs import frozen
