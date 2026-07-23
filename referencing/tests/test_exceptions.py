@@ -6,7 +6,10 @@ from referencing import Resource, exceptions
 
 
 def pairs(choices):
-    return itertools.combinations(choices, 2)
+    return sorted(
+        itertools.combinations(choices, 2),
+        key=lambda error: str(type(error)),
+    )
 
 
 TRUE = Resource.opaque(True)
