@@ -44,7 +44,10 @@ Changelog = "https://referencing.readthedocs.io/en/stable/changes/"
 Source = "https://github.com/python-jsonschema/referencing"
 
 [dependency-groups]
-dev = ["pytest>9"]
+dev = [
+  "hypothesis>=6.100",
+  "pytest>9",
+]
 docs = [
   "furo",
   "pygments-github-lexers",
