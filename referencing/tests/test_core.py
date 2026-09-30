@@ -762,6 +762,18 @@ class TestResolver:
             resource=resource,
         )
 
+    def test_lookup_non_integer_pointer_to_array_index(self):
+        resource = Resource.opaque([1, 2, 4, 8])
+        resolver = Registry({"http://example.com/1": resource}).resolver()
+        ref = "http://example.com/1#/foo"
+        with pytest.raises(exceptions.Unresolvable) as e:
+            resolver.lookup(ref)
+        assert e.value == exceptions.PointerToNowhere(
+            ref="/foo",
+            resource=resource,
+        )
+        assert str(e.value) == "'/foo' does not exist within [1, 2, 4, 8]"
+
     def test_lookup_pointer_to_empty_string(self):
         resolver = Registry().resolver_with_root(Resource.opaque({"": {}}))
         assert resolver.lookup("#/").contents == {}
