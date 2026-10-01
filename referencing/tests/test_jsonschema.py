@@ -272,6 +272,44 @@ def test_multiple_lookup_dynamic_ref_to_nondynamic_ref():
     assert fourth.contents == two.contents
 
 
+def test_dynamic_ref_with_anonymous_root_schema():
+    template = referencing.jsonschema.DRAFT202012.create_resource(
+        {
+            "$id": "https://example.com/PaginatedTemplate",
+            "$defs": {
+                "itemType": {"$dynamicAnchor": "itemType", "not": {}},
+            },
+            "type": "object",
+            "required": ["items"],
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {"$dynamicRef": "#itemType"},
+                },
+            },
+        },
+    )
+    anonymous = referencing.jsonschema.DRAFT202012.create_resource(
+        {
+            "$defs": {
+                "itemType": {"$dynamicAnchor": "itemType", "type": "string"},
+            },
+            "$ref": "https://example.com/PaginatedTemplate",
+        },
+    )
+    registry = Registry().with_resource(
+        "https://example.com/PaginatedTemplate",
+        template,
+    )
+    resolver = registry.resolver_with_root(anonymous)
+    resolved = resolver.lookup("https://example.com/PaginatedTemplate")
+    item_type = resolved.resolver.lookup("#itemType")
+    assert item_type.contents == {
+        "$dynamicAnchor": "itemType",
+        "type": "string",
+    }
+
+
 def test_lookup_trivial_recursive_ref():
     one = referencing.jsonschema.DRAFT201909.create_resource(
         {"$recursiveAnchor": True},
