@@ -865,6 +865,23 @@ class TestResolver:
         resolved = resolved.resolver.lookup("#")
         assert resolved.contents == resource.contents
 
+    def test_repeated_scope_does_not_duplicate_same_caller(self):
+        first_uri = "http://example.com/first"
+        second_uri = "http://example.com/second"
+        registry = Registry().with_resources(
+            [
+                (first_uri, Resource.opaque({"value": 1})),
+                (second_uri, Resource.opaque({"value": 2})),
+            ],
+        )
+
+        first = registry.resolver(base_uri=first_uri).lookup(first_uri)
+        second = first.resolver.lookup(second_uri)
+
+        assert [uri for uri, _ in second.resolver.dynamic_scope()] == [
+            first_uri,
+        ]
+
     # FIXME: The tests below aren't really representable in the current
     #        suite, though we should probably think of ways to do so.
 
