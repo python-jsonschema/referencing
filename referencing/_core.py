@@ -713,7 +713,9 @@ class Resolver(Generic[D]):
         Evolve, appending to the dynamic scope.
         """
         previous = self._previous
-        if self._base_uri and (not previous or base_uri != self._base_uri):
+        if self._base_uri and (
+            not previous or next(iter(previous), None) != self._base_uri
+        ):
             previous = previous.push_front(self._base_uri)
         return evolve(self, base_uri=base_uri, previous=previous, **kwargs)
 
