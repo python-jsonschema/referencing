@@ -265,6 +265,12 @@ class Resource(Generic[D]):
         for segment in unquote(pointer[1:]).split("/"):
             if isinstance(contents, Sequence):
                 segment = int(segment)
+                # 2026-10-08: JSON array indices cannot count from the end.
+                if segment < 0:
+                    raise exceptions.PointerToNowhere(
+                        ref=pointer,
+                        resource=self,
+                    )
             else:
                 segment = segment.replace("~1", "/").replace("~0", "~")
             try:
