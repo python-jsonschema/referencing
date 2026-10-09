@@ -2,6 +2,12 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+* Make ``Registry.get_or_retrieve`` recognize empty-fragment URI aliases for
+  resources already present in, or found by crawling, the registry.
+
 v0.37.0
 -------
 
