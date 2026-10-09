@@ -762,6 +762,25 @@ class TestResolver:
             resource=resource,
         )
 
+    @pytest.mark.parametrize("index", [-1, -2, -4])
+    def test_lookup_negative_array_index(self, index):
+        # 2026-10-08: JSON arrays have no negative-index members.
+        resource = Resource.opaque([1, 2, 4, 8])
+        resolver = Registry({"http://example.com/1": resource}).resolver()
+        pointer = f"/{index}"
+        with pytest.raises(exceptions.PointerToNowhere) as exc:
+            resolver.lookup(f"http://example.com/1#{pointer}")
+        assert exc.value == exceptions.PointerToNowhere(
+            ref=pointer,
+            resource=resource,
+        )
+
+    def test_lookup_negative_integer_object_key(self):
+        # 2026-10-08: Object member names remain literal strings.
+        resource = Resource.opaque({"-1": "value"})
+        resolver = Registry().resolver_with_root(resource)
+        assert resolver.lookup("#/-1").contents == "value"
+
     def test_lookup_pointer_to_empty_string(self):
         resolver = Registry().resolver_with_root(Resource.opaque({"": {}}))
         assert resolver.lookup("#/").contents == {}
