@@ -781,6 +781,50 @@ class TestResolver:
         resolver = Registry().resolver_with_root(resource)
         assert resolver.lookup("#/-1").contents == "value"
 
+    # 2026-10-11: Array tokens retain their spelling until validation.
+    @pytest.mark.parametrize(
+        "index",
+        [
+            "-0",
+            "+1",
+            "01",
+            "00",
+            " 1",
+            "1 ",
+            "\u0661",
+            "\uff11",
+            "1_0",
+            "",
+            "-",
+            "foo",
+            "1x",
+        ],
+    )
+    def test_lookup_invalid_array_index_spelling(self, index):
+        resource = Resource.opaque([10, 20, 30])
+        resolver = Registry().resolver_with_root(resource)
+        pointer = f"/{index}"
+        with pytest.raises(exceptions.PointerToNowhere) as exc:
+            resolver.lookup(f"#{pointer}")
+        assert exc.value == exceptions.PointerToNowhere(
+            ref=pointer,
+            resource=resource,
+        )
+
+    @pytest.mark.parametrize("index", ["0", "1", "2"])
+    def test_lookup_unsigned_array_index(self, index):
+        resolver = Registry().resolver_with_root(Resource.opaque([10, 20, 30]))
+        assert (
+            resolver.lookup(f"#/{index}").contents == [10, 20, 30][int(index)]
+        )
+
+    @pytest.mark.parametrize("key", ["-0", "+1", "01"])
+    def test_lookup_array_index_spelling_as_object_key(self, key):
+        resolver = Registry().resolver_with_root(
+            Resource.opaque({key: "value"}),
+        )
+        assert resolver.lookup(f"#/{key}").contents == "value"
+
     def test_lookup_pointer_to_empty_string(self):
         resolver = Registry().resolver_with_root(Resource.opaque({"": {}}))
         assert resolver.lookup("#/").contents == {}

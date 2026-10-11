@@ -264,13 +264,17 @@ class Resource(Generic[D]):
         segments: list[int | str] = []
         for segment in unquote(pointer[1:]).split("/"):
             if isinstance(contents, Sequence):
-                segment = int(segment)
-                # 2026-10-08: JSON array indices cannot count from the end.
-                if segment < 0:
+                # 2026-10-11: Validate unsigned ASCII spelling before int().
+                if (
+                    not segment.isascii()
+                    or not segment.isdecimal()
+                    or (len(segment) > 1 and segment.startswith("0"))
+                ):
                     raise exceptions.PointerToNowhere(
                         ref=pointer,
                         resource=self,
                     )
+                segment = int(segment)
             else:
                 segment = segment.replace("~1", "/").replace("~0", "~")
             try:
