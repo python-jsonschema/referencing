@@ -410,12 +410,24 @@ class Registry(Mapping[URI, Resource[D]]):
         so the returned object is a `Retrieved` object which contains both the
         resource value as well as the registry which ultimately contained it.
         """
+        # Keep exact-key lookups first for compatibility with registries
+        # constructed directly from a resource mapping.  Resources added via
+        # ``with_resource(s)`` normalize empty trailing fragments, so fall
+        # back to that spelling when the requested URI has one.
         resource = self._resources.get(uri)
+        if resource is None:
+            base, separator, fragment = uri.rpartition("#")
+            if separator and not fragment and "#" not in base:
+                resource = self._resources.get(base)
         if resource is not None:
             return Retrieved(registry=self, value=resource)
 
         registry = self.crawl()
         resource = registry._resources.get(uri)
+        if resource is None:
+            base, separator, fragment = uri.rpartition("#")
+            if separator and not fragment and "#" not in base:
+                resource = registry._resources.get(base)
         if resource is not None:
             return Retrieved(registry=registry, value=resource)
 
