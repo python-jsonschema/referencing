@@ -7,6 +7,8 @@ from __future__ import annotations
 from collections.abc import Iterable, Sequence, Set
 from typing import Any
 
+from attrs import evolve
+
 from referencing import Anchor, Registry, Resource, Specification, exceptions
 from referencing._attrs import frozen
 from referencing._core import (
@@ -606,6 +608,7 @@ class DynamicAnchor:
         Resolve this anchor dynamically.
         """
         last = self.resource
+        last_uri: URI | None = None
         for uri, registry in resolver.dynamic_scope():
             try:
                 anchor = registry.anchor(uri, self.name).value
@@ -613,6 +616,12 @@ class DynamicAnchor:
                 continue
             if isinstance(anchor, DynamicAnchor):
                 last = anchor.resource
+                last_uri = uri
+        if last_uri is not None:
+            return _Resolved(
+                contents=last.contents,
+                resolver=evolve(resolver, base_uri=last_uri),
+            )
         return _Resolved(
             contents=last.contents,
             resolver=resolver.in_subresource(last),
