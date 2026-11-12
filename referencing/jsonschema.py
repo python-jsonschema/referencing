@@ -613,6 +613,13 @@ class DynamicAnchor:
                 continue
             if isinstance(anchor, DynamicAnchor):
                 last = anchor.resource
+        try:
+            anchor = resolver._registry.anchor("", self.name).value
+        except (exceptions.NoSuchAnchor, exceptions.NoSuchResource):
+            pass
+        else:
+            if isinstance(anchor, DynamicAnchor):
+                last = anchor.resource
         return _Resolved(
             contents=last.contents,
             resolver=resolver.in_subresource(last),
