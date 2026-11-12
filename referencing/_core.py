@@ -264,7 +264,14 @@ class Resource(Generic[D]):
         segments: list[int | str] = []
         for segment in unquote(pointer[1:]).split("/"):
             if isinstance(contents, Sequence):
-                segment = int(segment)
+                try:
+                    segment = int(segment)
+                except ValueError as value_error:
+                    error = exceptions.PointerToNowhere(
+                        ref=pointer,
+                        resource=self,
+                    )
+                    raise error from value_error
             else:
                 segment = segment.replace("~1", "/").replace("~0", "~")
             try:
