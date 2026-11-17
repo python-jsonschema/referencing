@@ -2,6 +2,12 @@
 Changelog
 =========
 
+Next
+----
+
+* Fix dynamic anchor resolution so that relative references after a dynamic
+  override use the URI of the matched dynamic scope.
+
 v0.37.0
 -------
 

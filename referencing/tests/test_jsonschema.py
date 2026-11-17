@@ -231,6 +231,162 @@ def test_multiple_lookup_trivial_dynamic_ref():
     assert fourth.contents == root.contents
 
 
+def test_dynamic_anchor_uses_matching_scope_uri_for_followup_lookup():
+    """
+    A dynamic override also supplies the base for relative follow-up refs.
+
+    The two public lookup paths deliberately have different dynamic scopes:
+    looking up ``A#x`` from ``Cam`` starts at ``Cam``, while entering ``A``
+    first makes ``A`` the nearest scope for a later ``#x`` lookup.
+    """
+    a = {
+        "$id": "https://example.test/A",
+        "$dynamicAnchor": "x",
+        "$defs": {
+            "y": {"$dynamicAnchor": "y", "const": "A.y"},
+        },
+    }
+    cam = {
+        "$id": "https://example.test/Cam",
+        "$defs": {"x": {"$dynamicAnchor": "x", "const": "Cam.x"}},
+    }
+    b = {
+        "$id": "https://example.test/B",
+        "$dynamicAnchor": "y",
+        "const": "B.y",
+    }
+    registry = Registry().with_resources(
+        [
+            (a["$id"], referencing.jsonschema.DRAFT202012.create_resource(a)),
+            (
+                cam["$id"],
+                referencing.jsonschema.DRAFT202012.create_resource(cam),
+            ),
+            (b["$id"], referencing.jsonschema.DRAFT202012.create_resource(b)),
+        ],
+    )
+    caller = registry.resolver(base_uri="https://example.test/Cam")
+
+    foreign = caller.lookup("https://example.test/A#x")
+    entered = caller.lookup("https://example.test/A")
+    current = entered.resolver.lookup("#x")
+
+    assert foreign.contents["const"] == "Cam.x"
+    assert current.contents["const"] == "Cam.x"
+    assert (
+        foreign.resolver.lookup("https://example.test/B#y").contents["const"]
+        == "B.y"
+    )
+    assert (
+        current.resolver.lookup("https://example.test/B#y").contents["const"]
+        == "A.y"
+    )
+    assert foreign.resolver._base_uri == "https://example.test/Cam"
+    assert current.resolver._base_uri == "https://example.test/Cam"
+    assert (
+        next(iter(foreign.resolver.dynamic_scope()))[0]
+        == "https://example.test/Cam"
+    )
+    assert [uri for uri, _ in current.resolver.dynamic_scope()] == [
+        "https://example.test/A",
+        "https://example.test/Cam",
+    ]
+    for resolved, expected_scope in (
+        (foreign, ["https://example.test/Cam"]),
+        (
+            current,
+            [
+                "https://example.test/Cam",
+                "https://example.test/A",
+                "https://example.test/Cam",
+            ],
+        ),
+    ):
+        third = resolved.resolver.lookup("#x")
+        fourth = third.resolver.lookup("#x")
+        assert [uri for uri, _ in fourth.resolver.dynamic_scope()] == (
+            expected_scope
+        )
+
+
+def test_dynamic_anchor_nested_override_uses_camera_resource_for_pointer():
+    base_uri = "https://example.test/base.json"
+    camera_uri = "https://example.test/camera.json"
+    base = referencing.jsonschema.DRAFT202012.create_resource(
+        {
+            "$id": base_uri,
+            "$dynamicAnchor": "concreteData",
+        },
+    )
+    camera = referencing.jsonschema.DRAFT202012.create_resource(
+        {
+            "$id": camera_uri,
+            "$ref": base_uri,
+            "$defs": {
+                "override": {"$dynamicAnchor": "concreteData"},
+                "size": {"type": "integer"},
+            },
+        },
+    )
+    registry = Registry().with_resources(
+        [(base_uri, base), (camera_uri, camera)],
+    )
+
+    entered = registry.resolver(base_uri=camera_uri).lookup(base_uri)
+    override = entered.resolver.lookup("#concreteData")
+    size = override.resolver.lookup("#/$defs/size")
+
+    assert size.contents == {"type": "integer"}
+    assert override.resolver._base_uri == camera_uri
+
+
+def test_dynamic_anchor_relative_id_does_not_join_against_target_uri():
+    base_uri = "https://example.test/base/root.json"
+    camera_uri = "https://example.test/camera/dir/root.json"
+    override_seed_uri = "https://example.test/camera/dir/override.json"
+    override_uri = "https://example.test/camera/override.json"
+    base = referencing.jsonschema.DRAFT202012.create_resource(
+        {"$id": base_uri, "$dynamicAnchor": "x"},
+    )
+    override = referencing.jsonschema.DRAFT202012.create_resource(
+        {"$id": "../override.json", "$dynamicAnchor": "x"},
+    )
+    camera = referencing.jsonschema.DRAFT202012.create_resource({})
+    registry = Registry().with_resources(
+        [
+            (base_uri, base),
+            (camera_uri, camera),
+            (override_seed_uri, override),
+        ],
+    )
+
+    entered_override = registry.resolver(base_uri=camera_uri).lookup(
+        "../override.json",
+    )
+    entered_base = entered_override.resolver.lookup(base_uri)
+    resolved = entered_base.resolver.lookup("#x")
+
+    assert resolved.resolver._base_uri == override_uri
+
+
+def test_dynamic_anchor_without_match_keeps_subresource_base():
+    resource = referencing.jsonschema.DRAFT202012.create_resource(
+        {"$id": "https://example.test/root", "$dynamicAnchor": "x"},
+    )
+    resolver = (
+        Registry()
+        .with_resource(
+            "https://example.test/root",
+            resource,
+        )
+        .resolver()
+    )
+
+    resolved = resolver.lookup("https://example.test/root#x")
+
+    assert resolved.resolver._base_uri == "https://example.test/root"
+
+
 def test_multiple_lookup_dynamic_ref_to_nondynamic_ref():
     one = referencing.jsonschema.DRAFT202012.create_resource(
         {"$anchor": "fooAnchor"},
