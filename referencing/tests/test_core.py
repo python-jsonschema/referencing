@@ -518,6 +518,116 @@ class TestRegistry:
         assert registry["urn:example"] == foo
         assert registry.get_or_retrieve("urn:example").value == foo
 
+    def test_retrieve_already_available_resource_with_empty_fragment(self):
+        foo = Resource.opaque({"foo": "bar"})
+        registry = Registry(retrieve=blow_up).with_resource("urn:foo#", foo)
+        retrieved = registry.get_or_retrieve("urn:foo#")
+
+        assert retrieved.value is foo
+        assert retrieved.registry is registry
+
+    def test_retrieve_crawlable_resource_with_empty_fragment(self):
+        child = ID_AND_CHILDREN.create_resource({"ID": "urn:child", "foo": 12})
+        root = ID_AND_CHILDREN.create_resource({"children": [child.contents]})
+        registry = Registry(retrieve=blow_up).with_resource("urn:root", root)
+        retrieved = registry.get_or_retrieve("urn:child#")
+
+        assert retrieved.value == child
+
+    def test_retrieve_empty_fragment_preserves_original_callback_uri(self):
+        foo = Resource.opaque({"foo": "bar"})
+        calls = []
+
+        def retrieve(uri):
+            calls.append(uri)
+            return foo
+
+        registry = Registry(retrieve=retrieve)
+        retrieved = registry.get_or_retrieve("urn:new#")
+
+        assert retrieved.value is foo
+        assert calls == ["urn:new#"]
+        assert retrieved.registry.contents("urn:new") == {"foo": "bar"}
+        assert retrieved.registry.get_or_retrieve("urn:new#").value is foo
+        assert calls == ["urn:new#"]
+
+    def test_retrieve_constructor_raw_key_has_priority(self):
+        canonical = Resource.opaque({"value": "canonical"})
+        raw = Resource.opaque({"value": "raw"})
+        registry = Registry(
+            {"urn:foo": canonical, "urn:foo#": raw},
+            retrieve=blow_up,
+        )
+
+        assert registry.get_or_retrieve("urn:foo#").value is raw
+        assert registry.get_or_retrieve("urn:foo").value is canonical
+
+    def test_retrieve_nonempty_and_escaped_fragments_are_unchanged(self):
+        nonempty = Resource.opaque({"fragment": "nonempty"})
+        escaped = Resource.opaque({"fragment": "escaped"})
+        registry = Registry(retrieve=blow_up).with_resources(
+            [("urn:foo#bar", nonempty), ("urn:foo%23", escaped)],
+        )
+
+        assert registry.get_or_retrieve("urn:foo#bar").value is nonempty
+        assert registry.get_or_retrieve("urn:foo%23").value is escaped
+
+    def test_retrieve_multiple_or_nonempty_trailing_fragments_are_not_aliases(
+        self,
+    ):
+        calls = []
+        known = Resource.opaque({"uri": "known"})
+        known_fragment = Resource.opaque({"uri": "known#bar"})
+
+        def retrieve(uri):
+            calls.append(uri)
+            return Resource.opaque({"uri": uri})
+
+        registry = Registry(retrieve=retrieve).with_resources(
+            [("urn:foo", known), ("urn:foo#bar", known_fragment)],
+        )
+        assert registry.get_or_retrieve("urn:foo#bar#").value.contents == {
+            "uri": "urn:foo#bar#",
+        }
+        assert registry.get_or_retrieve("urn:foo##").value.contents == {
+            "uri": "urn:foo##",
+        }
+        assert calls == ["urn:foo#bar#", "urn:foo##"]
+        assert registry["urn:foo"] is known
+        assert registry["urn:foo#bar"] is known_fragment
+
+    def test_retrieve_crawl_does_not_alias_multiple_or_nonempty_fragments(
+        self,
+    ):
+        calls = []
+        known = ID_AND_CHILDREN.create_resource({"ID": "urn:foo"})
+        known_fragment = ID_AND_CHILDREN.create_resource({"ID": "urn:foo#bar"})
+
+        def retrieve(uri):
+            calls.append(uri)
+            return Resource.opaque({"uri": uri})
+
+        root = ID_AND_CHILDREN.create_resource(
+            {"children": [known.contents, known_fragment.contents]},
+        )
+        registry = Registry(retrieve=retrieve).with_resource("urn:root", root)
+        assert registry.get_or_retrieve("urn:foo#bar#").value.contents == {
+            "uri": "urn:foo#bar#",
+        }
+        assert registry.get_or_retrieve("urn:foo##").value.contents == {
+            "uri": "urn:foo##",
+        }
+        assert calls == ["urn:foo#bar#", "urn:foo##"]
+
+    def test_retrieve_empty_fragment_no_such_resource_preserves_ref(self):
+        def retrieve(uri):
+            raise exceptions.NoSuchResource(ref=uri)
+
+        with pytest.raises(exceptions.NoSuchResource) as error:
+            Registry(retrieve=retrieve).get_or_retrieve("urn:missing#")
+
+        assert error.value == exceptions.NoSuchResource(ref="urn:missing#")
+
     def test_retrieve_first_checks_crawlable_resource(self):
         child = ID_AND_CHILDREN.create_resource({"ID": "urn:child", "foo": 12})
         root = ID_AND_CHILDREN.create_resource({"children": [child.contents]})
